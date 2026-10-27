@@ -1,0 +1,22 @@
+[
+ {"case_id": "SMOKE1", "category": "C_parlay_edge", "book": "FanDuel", "bet_type": "Boost-SGP", "stake": 4.0, "stake_kind": "cash",
+  "boost_or_token": "30% profit boost", "ticket_price_american": "+655", "printed_payout": 30.2,
+  "legs": [
+   {"leg": 1, "selection": "Man City", "market": "Money Line 3-Way", "fixture": "Liverpool v Man City", "home": "Liverpool", "away": "Man City", "league": "Premier League", "kickoff_et": "2026-10-11 11:30"},
+   {"leg": 2, "selection": "Over", "market": "Total Goals", "line": 1.5, "fixture": "Liverpool v Man City", "home": "Liverpool", "away": "Man City", "league": "Premier League", "kickoff_et": "2026-10-11 11:30"},
+   {"leg": 3, "selection": "No", "market": "Both Teams To Score", "fixture": "Liverpool v Man City", "home": "Liverpool", "away": "Man City", "league": "Premier League", "kickoff_et": "2026-10-11 11:30"}],
+  "log_grade": {"ticket_result": "WIN", "net": 26.2}},
+ {"case_id": "SMOKE2", "category": "A_simple", "book": "DraftKings", "bet_type": "ML", "stake": 8.0, "stake_kind": "cash",
+  "boost_or_token": "30% profit boost", "ticket_price_american": "+351", "printed_payout": 36.08,
+  "legs": [{"leg": 1, "selection": "Draw", "market": "Moneyline (3-way)", "fixture": "Liverpool v Man City", "home": "Liverpool", "away": "Man City", "league": "Premier League", "kickoff_et": "2026-10-11 11:30",
+            "market_wording_on_slip": "Market settled based on the result at the end of regular time"}],
+  "log_grade": {"ticket_result": "LOSS", "net": -8.0}},
+ {"case_id": "SMOKE3", "category": "C_parlay_edge", "book": "Fanatics", "bet_type": "Parlay", "stake": 4.0, "stake_kind": "cash",
+  "boost_or_token": "30% parlay boost", "ticket_price_american": "+1200", "printed_payout": 52.03,
+  "legs": [
+   {"leg": 1, "selection": "Betis", "market": "Money Line 3-Way", "leg_price_american": "-225", "fixture": "Osasuna v Betis", "home": "Osasuna", "away": "Betis", "league": "La Liga", "kickoff_et": "2026-10-11 12:30"},
+   {"leg": 2, "selection": "Juventus", "market": "Money Line 3-Way", "leg_price_american": "-175", "fixture": "Cagliari v Juventus", "home": "Cagliari", "away": "Juventus", "league": "Serie A", "kickoff_et": "2026-10-11 14:45"},
+   {"leg": 3, "selection": "Marseille", "market": "Money Line 3-Way", "leg_price_american": "+105", "fixture": "Troyes v Marseille", "home": "Troyes", "away": "Marseille", "league": "Ligue 1", "kickoff_et": "2026-10-11 14:45"},
+   {"leg": 4, "selection": "Racing Santander", "market": "Money Line 3-Way", "leg_price_american": "+120", "fixture": "Racing Santander v Valencia", "home": "Racing Santander", "away": "Valencia", "league": "La Liga", "kickoff_et": "2026-10-11 15:00"}],
+  "log_grade": {"ticket_result": "LOSS", "net": -4.0}}
+]

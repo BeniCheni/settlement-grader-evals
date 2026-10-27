@@ -1,0 +1,164 @@
+{
+ "02353b4a807043f1ebfe1a3c0470a3c9": {
+  "failure_mode": null,
+  "note": "Pass. Found the right match (Denmark 2–4 Portugal), used the 90-minute rule, settled WIN +$11.50. Clean path, evidence matches.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A01"
+ },
+ "99797cc98ca84c5a3614ddf6da85c021": {
+  "failure_mode": null,
+  "note": "Fail. find_match came back empty (I think it couldn't match 'Sporting KC' to 'Sporting Kansas City'), and it didn't try again, it just called it VOID $0. No rule says 'can't find it = void', that should be NEEDS_HUMAN. Seattle won 2–1, so it's LOSS −$4.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A02"
+ },
+ "d1d1b0915ed7d15efe6fbeb48a408784": {
+  "failure_mode": null,
+  "note": "Fail. Facts say 2–2, a draw, so my Austria bet lost. It still marked it W and booked +$12.65. Evidence is just the placeholder text from the prompt. Should be LOSS −$10.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A03"
+ },
+ "68a956ff53b48a197f7ccbd42fb625fb": {
+  "failure_mode": null,
+  "note": "Pass. Found USA 3–0 Mexico even with the late kickoff on the next UTC day, used the 90-minute rule, WIN +$9.36. Clean path.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A05"
+ },
+ "85223156314b868f9f7ce6e0b67b0b0c": {
+  "failure_mode": null,
+  "note": "Fail. Ireland drew 1–1 with Israel, so my bet lost, but it graded W and booked +$5.36. Placeholder evidence again. Should be LOSS −$4.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A06"
+ },
+ "0c6af49f099fbf2c894ed448e166e112": {
+  "failure_mode": null,
+  "note": "Pass. Right match even though the slip lists the away team first. Slovenia won 2–1 away, WIN +$17.25, evidence matches.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A08"
+ },
+ "f2a38f3cd032cd84cc57ad91bcadd059": {
+  "failure_mode": null,
+  "note": "Fail. I bet the draw and Chicago won 3–1, so I lost. It graded W anyway and booked +$12.48. Placeholder evidence. Should be LOSS −$4.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A09"
+ },
+ "a29e3df564b7b9ed521e9fcfabb67293": {
+  "failure_mode": null,
+  "note": "Fail. Facts say Chicago 2–1 (NYCFC led 1–0 at half time but lost), yet it graded my NYCFC bet W and booked +$12.96. Placeholder evidence. Should be LOSS −$4.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A11"
+ },
+ "9310aeee6400cbad4f9fafe210133a02": {
+  "failure_mode": null,
+  "note": "Fail. Its own note says 'Draw selection lost' (0–3 City) but it still graded W and booked +$28.08. Should be LOSS −$8.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A12"
+ },
+ "ce517dc6441616e884458dfd9dcdbb9e": {
+  "failure_mode": null,
+  "note": "Pass. 1–1 draw, used the Draw No Bet rule, PUSH $0. Small thing: it passed a made-up printed payout ($2) to settle_ticket, harmless on a push.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "A13"
+ },
+ "69ea994efdf8c659c8a72d0c5cc44f6d": {
+  "failure_mode": null,
+  "note": "Fail. Guirassy didn't score first (Svensson did, 80'), so it's a plain loss. It sent it to NEEDS_HUMAN saying the rule needs a human 'because the player did not score', and the rule doesn't say that. Should be LOSS −$10 (second chance = full cash loss).",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B01"
+ },
+ "4438a78efa6289c4a1b696126eb240b3": {
+  "failure_mode": null,
+  "note": "Fail. Marked all 4 legs W and booked +$93.60, but Yamal isn't in the scorers list and 3–0 is only 3 goals, so Over 3.5 lost. Guessed 3 rule names that don't exist. Final lists 1 of 4 legs. Should be LOSS −$20.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B02"
+ },
+ "c79a88420e5967d7b0247257761a4923": {
+  "failure_mode": null,
+  "note": "Pass. All 4 legs really won (3–1, Spain scored first at 6'), WIN +$38. But the evidence is the same '3–1' line for every leg, so I can't tell it checked who scored first.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B04"
+ },
+ "872e147dcb360c8e00f4e63a043000ad": {
+  "failure_mode": null,
+  "note": "Fail. Never finished. Found the right match (Coventry 4–1 Newcastle), then tried to fire a long list of rule lookups at once and hit the output limit. No grade. Should be LOSS −$4.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B05"
+ },
+ "8f048f7f086a998ccc453f6b18800f7c": {
+  "failure_mode": null,
+  "note": "Fail. Made up every result without calling a single tool ('Spain lost by 1 goal', 'total goals were 2, under 1.5'), then said LOSS but with net +$76.22, which doesn't even add up. All 4 legs actually won: WIN +$68.22.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B06"
+ },
+ "0fa83fe0f696a85725c85ccdafd34cf7": {
+  "failure_mode": null,
+  "note": "Fail. Got the facts (USA 1–0, Ellis scored, not Hall) but then spent every turn looking up rules one at a time, some that don't apply, and ran out of turns. Never graded. Should be LOSS, $0 cash (bonus bet).",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B08"
+ },
+ "e823c00505b9fa586ef4a2d9f7f54874": {
+  "failure_mode": null,
+  "note": "Fail. The HT/FT leg needed a draw at half time, but it was 0–1 Bournemouth at the break, so that leg lost. It marked all 3 W and booked +$53.20. Looked up the wrong rule (double chance; our rulebook has no HT/FT rule). Final lists 1 of 3 legs. Should be LOSS −$10.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B09"
+ },
+ "02c484565422b22ed81e7880c8c49342": {
+  "failure_mode": null,
+  "note": "Near-miss. NEEDS_HUMAN is an accepted answer here, but it got there without calling any tool. It just said the facts 'are not available' without trying. Right answer, wrong reason. The book voided it (a player didn't play).",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B10"
+ },
+ "ef5b4378b323aa39fcfb068a43042bfa": {
+  "failure_mode": null,
+  "note": "Fail. First goal was Leeds (James Justin, 55'), and Saka didn't score first anyway. It said 'Calafiori scored the first goal for Arsenal' and graded my Saka bet W, +$45.00. Should be LOSS −$10 (second chance = full cash loss).",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B12"
+ },
+ "7a186320a20edb3938d0848f8e3d500c": {
+  "failure_mode": null,
+  "note": "Near-miss. Right result (LOSS −$35.20), but only because the corners leg (13 corners) lost. It graded my Columbus moneyline W on a 1–1 draw and said Columbus 'lost on penalties' (they won 3–2), and called Over 1.5 a push with 2 goals.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "B13"
+ },
+ "0f02817b38befcb3afbf599a93128090": {
+  "failure_mode": null,
+  "note": "Fail. Didn't call a single tool and said all 4 games were 'not final', but they were played Oct 4–5. The Germany leg lost, so the parlay was already dead. Should be LOSS −$4.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "C02"
+ },
+ "743b4fe7c342af174a41604305b58b72": {
+  "failure_mode": null,
+  "note": "Fail. Called no tools and made up the scores ('Spain won by 2.5 goals', and you can't win by half a goal). Booked WIN +$205.72. Spain only won by 1, so the −1.5 leg lost. Should be LOSS, $0 cash (FanCash stake).",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "C03"
+ },
+ "0cd5a4166ea8b3a33c96c580435bc486": {
+  "failure_mode": null,
+  "note": "Fail. Path was good (right 3 matches, right rule), but it wrote 'Total goals 2.0 (Under 2.5)' and still marked my Under leg L. 2 goals IS under 2.5. That one flip turned WIN +$12.34 into LOSS −$2.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "C04"
+ },
+ "df1adc87bff83441019e0b75637d970d": {
+  "failure_mode": null,
+  "note": "Near-miss. Right answer (Brighton won 2–0, WIN +$15.00 on a free bet). But settle_ticket returned an error (it didn't pass the price), and it just ignored the error and wrote the net itself.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "C06"
+ },
+ "62d5f925bcef552362015405f9ce119c": {
+  "failure_mode": null,
+  "note": "Fail. Its own note says Liverpool didn't score, which means my BTTS No leg won, but it sent W, W, L and booked LOSS −$4. Should be WIN +$26.20. Final lists 1 of 3 legs.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "C08"
+ },
+ "937d0210a6a26db9e0e8059246e05d92": {
+  "failure_mode": null,
+  "note": "Near-miss. Right result (LOSS −$4), since Juve drew 1–1 so that leg lost. But it graded Racing's 2–2 draw as a push, and on a 3-way moneyline a draw is a loss. It also sent settle_ticket in the same turn it asked for the match facts.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "C09"
+ },
+ "63323ca38a8cf96f34973558436e3256": {
+  "failure_mode": null,
+  "note": "Near-miss. Correctly saw all 3 games hadn't started (3 PM today) and said UNSETTLED. But it put net $0.00 instead of leaving it blank and skipped settle_ticket. An open bet shouldn't show a $0 result.",
+  "ts": "2026-10-14T00:00:00Z",
+  "draft_case": "C10"
+ }
+}

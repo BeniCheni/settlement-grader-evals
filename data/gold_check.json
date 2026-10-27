@@ -1,0 +1,1298 @@
+[
+ {
+  "case_id": "A01",
+  "category": "A_simple",
+  "book": "Fanatics",
+  "bet_type": "ML",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 11.5,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Portugal",
+    "market": "Money Line 3-Way (regulation only)",
+    "line": null,
+    "espn_event": "401861096",
+    "espn_match": "Denmark v Portugal (2026-10-01, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Denmark 2-4 Portugal",
+    "agree": true
+   }
+  ],
+  "why": "Boost turns an even-money price into +115; placed the night before (slip said 'Tomorrow'), so a grader must anchor the date to 1 Oct, not the placement date.",
+  "corrected": false
+ },
+ {
+  "case_id": "A02",
+  "category": "A_simple",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -4.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Sporting KC",
+    "market": "Full Time (3-way result)",
+    "line": null,
+    "espn_event": "761798",
+    "espn_match": "Seattle Sounders FC v Sporting Kansas City (2026-10-02, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Seattle Sounders FC 2-1 Sporting Kansas City",
+    "agree": true
+   }
+  ],
+  "why": "Opposes C01 on the same match. The original log had the wrong side and the wrong kickoff timezone, so a grader that trusts an early description would grade it WIN.",
+  "corrected": false
+ },
+ {
+  "case_id": "A03",
+  "category": "A_simple",
+  "book": "Fanatics",
+  "bet_type": "ML",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -10.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Austria",
+    "market": "Money Line 3-Way (regulation only)",
+    "line": null,
+    "espn_event": "401861094",
+    "espn_match": "Republic of Ireland v Austria (2026-10-01, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Republic of Ireland 2-2 Austria",
+    "agree": true
+   }
+  ],
+  "why": "A 3-way moneyline loses on a draw. The printed payout ($22.65) is 5 cents off the stake x boosted-price arithmetic ($22.60), so a grader that recomputes the payout should not call it a mismatch.",
+  "corrected": false
+ },
+ {
+  "case_id": "A05",
+  "category": "A_simple",
+  "book": "FanDuel",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 9.36,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "USA",
+    "market": "Moneyline (3-way)",
+    "line": null,
+    "espn_event": "401905202",
+    "espn_match": "United States v Mexico (2026-10-04, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' United States 3-0 Mexico",
+    "agree": true
+   }
+  ],
+  "why": "A 10:00 PM ET kickoff whose result is listed on the next day's UTC page. The Fanatics slip for the same match prints 'MEX vs USA' (away first), so labels can disagree on home and away.",
+  "corrected": false
+ },
+ {
+  "case_id": "A06",
+  "category": "A_simple",
+  "book": "BetMGM",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -4.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Republic of Ireland",
+    "market": "Match result (3-Way, 90 min, regulation time only)",
+    "line": null,
+    "espn_event": "401861124",
+    "espn_match": "Republic of Ireland v Israel (2026-10-04, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Republic of Ireland 1-1 Israel",
+    "agree": true
+   }
+  ],
+  "why": "The fixture moved to a neutral venue (TSC Arena, Backa Topola, Serbia, behind closed doors), so 'home' is nominal. The slip shows +133 against +134 arithmetic (truncation), and the boost turns -112 into a plus price.",
+  "corrected": false
+ },
+ {
+  "case_id": "A08",
+  "category": "A_simple",
+  "book": "Fanatics",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 17.25,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Slovenia",
+    "market": "Money Line 3-Way",
+    "line": null,
+    "espn_event": "401861143",
+    "espn_match": "Scotland v Slovenia (2026-10-06, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Scotland 1-2 Slovenia",
+    "agree": true
+   }
+  ],
+  "why": "The slip prints 'SVN vs SCO' (Fanatics puts the away side first), so a grader that reads the first-named team as home inverts the fixture. The base price +375 is only derived from the struck-through payout.",
+  "corrected": false
+ },
+ {
+  "case_id": "A09",
+  "category": "A_simple",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -4.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Tie (Draw)",
+    "market": "Full Time result (placed in-play at 0-0)",
+    "line": null,
+    "espn_event": "761660",
+    "espn_match": "Chicago Fire FC v Vancouver Whitecaps (2026-10-07, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Chicago Fire FC 3-1 Vancouver Whitecaps",
+    "agree": true
+   }
+  ],
+  "why": "A live bet on the draw placed after kickoff. It was found in Unlogged/ four days later (AFTER-SETTLEMENT), and the slip's live clock and the listed kickoff disagree by about 10 minutes.",
+  "corrected": false
+ },
+ {
+  "case_id": "A11",
+  "category": "A_simple",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -4.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "NYCFC",
+    "market": "Full Time moneyline (3-way, regulation)",
+    "line": null,
+    "espn_event": "761846",
+    "espn_match": "Chicago Fire FC v New York City FC (2026-10-10, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Chicago Fire FC 2-1 New York City FC",
+    "agree": true
+   }
+  ],
+  "why": "The underdog took the lead and lost the game. A grader that reads a first-half or live score would get it wrong. The same fixture also carries an NYCFC SGP subset ticket (Entry 11).",
+  "corrected": false
+ },
+ {
+  "case_id": "A12",
+  "category": "A_simple",
+  "book": "DraftKings",
+  "bet_type": "ML",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -8.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Draw",
+    "market": "Moneyline (3-way)",
+    "line": null,
+    "espn_event": "401879264",
+    "espn_match": "Liverpool v Manchester City (2026-10-11, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Liverpool 0-3 Manchester City",
+    "agree": true
+   }
+  ],
+  "why": "A bet on the draw itself, with truncated regulation-time wording. The log explicitly set aside two search results for older Liverpool v City matches (1-2 and 3-0), which are stale-match traps for a grader.",
+  "corrected": false
+ },
+ {
+  "case_id": "A13",
+  "category": "A_simple",
+  "book": "BetMGM",
+  "bet_type": "DNB",
+  "stake": 2.0,
+  "stake_kind": "cash",
+  "log_ticket": "PUSH",
+  "log_net": 0.0,
+  "code_ticket": "PUSH",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Rayo Vallecano",
+    "market": "Draw No Bet",
+    "line": null,
+    "espn_event": "401882908",
+    "espn_match": "Rayo Vallecano v Alavés (2026-08-20, STATUS_FULL_TIME)",
+    "log": "P",
+    "code": "P",
+    "evidence": "90' Rayo Vallecano 1-1 Alavés",
+    "agree": true
+   }
+  ],
+  "why": "The only Draw No Bet push in the logs ($2.00 returned, $0 net). The price and payout were never captured ('[verify slip]'), so the grader must push without any price to work from, and a boost does not apply to a push.",
+  "corrected": false
+ },
+ {
+  "case_id": "B01",
+  "category": "B_market",
+  "book": "BetRivers",
+  "bet_type": "Prop",
+  "stake": 10.0,
+  "stake_kind": "second_chance",
+  "log_ticket": "LOSS",
+  "log_net": -10.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Sehrou Guirassy",
+    "market": "First Goal Scorer",
+    "line": null,
+    "espn_event": "401884781",
+    "espn_match": "Borussia Dortmund v Werder Bremen (2026-10-09, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "first goal Daniel Svensson",
+    "agree": true
+   }
+  ],
+  "why": "Guirassy had a disallowed goal at 58', so a grader reading a live feed or goal list could credit him as first scorer. The Second Chance books as a full cash loss plus a separate $10 bonus bet (unconfirmed), not a push.",
+  "corrected": false
+ },
+ {
+  "case_id": "B02",
+  "category": "B_market",
+  "book": "theScore Bet",
+  "bet_type": "Boost-SGP",
+  "stake": 20.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -20.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Barcelona",
+    "market": "Match Result",
+    "line": null,
+    "espn_event": "401882853",
+    "espn_match": "Barcelona v Getafe (2026-10-10, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Barcelona 3-0 Getafe",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Lamine Yamal",
+    "market": "Anytime Goalscorer",
+    "line": null,
+    "espn_event": "401882853",
+    "espn_match": "Barcelona v Getafe (2026-10-10, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "scorers ['Anthony Gordon', 'Gabriel Jesus', 'Jules Koundé']",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 3.5,
+    "espn_event": "401882853",
+    "espn_match": "Barcelona v Getafe (2026-10-10, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Barcelona 3-0 Getafe",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "Over",
+    "market": "Barcelona Total Corners",
+    "line": 8.5,
+    "espn_event": "401882853",
+    "espn_match": "Barcelona v Getafe (2026-10-10, STATUS_FULL_TIME)",
+    "log": "MOOT",
+    "code": "W",
+    "evidence": "corners H9-A3 (home)",
+    "agree": true
+   }
+  ],
+  "why": "Player and team-corners props in one SGP. Yamal's assist could be misread as a goal, and the corners leg has no data in the log (MOOT), so a grader has to settle the ticket without it.",
+  "corrected": false
+ },
+ {
+  "case_id": "B04",
+  "category": "B_market",
+  "book": "BetMGM",
+  "bet_type": "SGP",
+  "stake": 15.2,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 38.0,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Spain",
+    "market": "Match result",
+    "line": null,
+    "espn_event": "401861118",
+    "espn_match": "Spain v Czechia (2026-10-03, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Spain 3-1 Czechia",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Yes",
+    "market": "Both teams to score",
+    "line": null,
+    "espn_event": "401861118",
+    "espn_match": "Spain v Czechia (2026-10-03, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Spain 3-1 Czechia",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total goals",
+    "line": 3.5,
+    "espn_event": "401861118",
+    "espn_match": "Spain v Czechia (2026-10-03, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Spain 3-1 Czechia",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "Spain",
+    "market": "First team to score",
+    "line": null,
+    "espn_event": "401861118",
+    "espn_match": "Spain v Czechia (2026-10-03, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "first goal {'min': \"6'\", 'team': 'Spain', 'player': 'Lamine Yamal', 'kind': 'Goal'}",
+    "agree": true
+   }
+  ],
+  "why": "The first-team-to-score leg needs goal order, not just the final score. The fourth goal came at 89', so the Over 3.5 leg was only decided late. A clean four-leg win to use as a positive control.",
+  "corrected": false
+ },
+ {
+  "case_id": "B05",
+  "category": "B_market",
+  "book": "Fanatics",
+  "bet_type": "SGP",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -4.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Newcastle",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401879267",
+    "espn_match": "Coventry City v Newcastle United (2026-10-12, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Coventry City 4-1 Newcastle United",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 1.5,
+    "espn_event": "401879267",
+    "espn_match": "Coventry City v Newcastle United (2026-10-12, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Coventry City 4-1 Newcastle United",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "No",
+    "market": "Both Teams to Score",
+    "line": null,
+    "espn_event": "401879267",
+    "espn_match": "Coventry City v Newcastle United (2026-10-12, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Coventry City 4-1 Newcastle United",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "Under",
+    "market": "1st Half Total Goals",
+    "line": 2.5,
+    "espn_event": "401879267",
+    "espn_match": "Coventry City v Newcastle United (2026-10-12, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "HT 1-0",
+    "agree": true
+   }
+  ],
+  "why": "A first-half totals leg graded only by inference from goal minutes (no half-time score cited). The fixture was moved from Sat 10 Oct, the slip lists the away side first, and two legs win while two lose.",
+  "corrected": false
+ },
+ {
+  "case_id": "B06",
+  "category": "B_market",
+  "book": "theScore Bet",
+  "bet_type": "Parlay",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 68.22,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "England",
+    "market": "2-Way Handicap",
+    "line": -2.5,
+    "espn_event": "401861142",
+    "espn_match": "England v Czechia (2026-10-06, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' England 3-0 Czechia",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 1.5,
+    "espn_event": "401861143",
+    "espn_match": "Scotland v Slovenia (2026-10-06, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Scotland 1-2 Slovenia",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Switzerland",
+    "market": "2-Way Handicap",
+    "line": -2.5,
+    "espn_event": "401861139",
+    "espn_match": "Switzerland v North Macedonia (2026-10-06, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Switzerland 3-0 North Macedonia",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "Spain",
+    "market": "Match Result",
+    "line": null,
+    "espn_event": "401861137",
+    "espn_match": "Croatia v Spain (2026-10-06, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Croatia 1-2 Spain",
+    "agree": true
+   }
+  ],
+  "why": "Two -2.5 handicaps clear by exactly half a goal (3-0), and the Spain leg's fixture was inferred because the capture cut it off. A 50% boost on a cross-match parlay with one totals leg from a different match.",
+  "corrected": false
+ },
+ {
+  "case_id": "B08",
+  "category": "B_market",
+  "book": "Caesars",
+  "bet_type": "SGP",
+  "stake": 2.0,
+  "stake_kind": "bonus_bet",
+  "log_ticket": "LOSS",
+  "log_net": 0.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "USA",
+    "market": "90 Minutes (to win, regulation)",
+    "line": null,
+    "espn_event": "401905188",
+    "espn_match": "United States v Canada (2026-10-07, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' United States 1-0 Canada",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Julian Hall",
+    "market": "Anytime Goalscorer",
+    "line": null,
+    "espn_event": "401905188",
+    "espn_match": "United States v Canada (2026-10-07, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "scorers ['Justin Ellis']",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Yes",
+    "market": "Both Teams To Score",
+    "line": null,
+    "espn_event": "401905188",
+    "espn_match": "United States v Canada (2026-10-07, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' United States 1-0 Canada",
+    "agree": true
+   }
+  ],
+  "why": "A bonus-bet stake: printed $6.50 is profit only, and a loss is $0.00 cash, not -$2. The anytime-scorer leg involves a half-time substitute, which tests the player-must-take-part rule (he played, so the leg is live and loses).",
+  "corrected": false
+ },
+ {
+  "case_id": "B09",
+  "category": "B_market",
+  "book": "BetRivers",
+  "bet_type": "Boost-SGP",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -10.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Over",
+    "market": "Total Goals by Manchester City (team total)",
+    "line": 0.5,
+    "espn_event": "401879320",
+    "espn_match": "Manchester City v AFC Bournemouth (2026-08-23, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Manchester City 2-1 AFC Bournemouth",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals (match)",
+    "line": 1.5,
+    "espn_event": "401879320",
+    "espn_match": "Manchester City v AFC Bournemouth (2026-08-23, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Manchester City 2-1 AFC Bournemouth",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Tie/Manchester City",
+    "market": "Half Time/Regular Time (HT/FT double result)",
+    "line": null,
+    "espn_event": "401879320",
+    "espn_match": "Manchester City v AFC Bournemouth (2026-08-23, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "HT 0-1, 90' Manchester City 2-1 AFC Bournemouth",
+    "agree": true
+   }
+  ],
+  "why": "An HT/FT leg with an unusual label (the log itself flags the wording as ambiguous), plus a historical premature grade from a live headline. The correct answer needs the half-time score, not just the final.",
+  "corrected": true
+ },
+ {
+  "case_id": "B10",
+  "category": "B_market",
+  "book": "Caesars",
+  "bet_type": "Prop",
+  "stake": 3.2,
+  "stake_kind": "cash",
+  "log_ticket": "VOID",
+  "log_net": 0.0,
+  "code_ticket": "LOSS",
+  "status": "DISAGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Ousmane Dembele & Ollie Watkins each score in 90 min",
+    "market": "Odds Boost goalscorer combo (both players to score)",
+    "line": null,
+    "espn_event": "401873624",
+    "espn_match": "Paris Saint-Germain v Aston Villa (2026-08-12, STATUS_FULL_TIME)",
+    "log": "VOID",
+    "code": "L",
+    "evidence": "scorers ['Khvicha Kvaratskhelia', 'Brian Madjo', 'Désiré Doué']",
+    "agree": false
+   }
+  ],
+  "why": "The scoreline alone says LOSS (neither player scored), but the book voided because a named player did not take part. This is the textbook non-participant trap, and it was mis-graded once. Neutral venue, so home and away are left null.",
+  "corrected": true
+ },
+ {
+  "case_id": "B12",
+  "category": "B_market",
+  "book": "BetRivers",
+  "bet_type": "Prop",
+  "stake": 10.0,
+  "stake_kind": "second_chance",
+  "log_ticket": "LOSS",
+  "log_net": -10.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Bukayo Saka",
+    "market": "First Goal Scorer",
+    "line": null,
+    "espn_event": "401879268",
+    "espn_match": "Arsenal v Leeds United (2026-10-10, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "first goal James Justin",
+    "agree": true
+   }
+  ],
+  "why": "The opponent scored first, so the leg loses cleanly. The token convention conflicts inside the same entry (push vs full loss), and the trackers disagree with each other, which makes this a label-semantics test.",
+  "corrected": false
+ },
+ {
+  "case_id": "B13",
+  "category": "B_market",
+  "book": "BetMGM",
+  "bet_type": "Boost-SGP",
+  "stake": 35.2,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -35.2,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Columbus Crew",
+    "market": "Moneyline (90 minutes)",
+    "line": null,
+    "espn_event": "401863611",
+    "espn_match": "Columbus Crew v Pumas UNAM (2026-08-11, STATUS_FINAL_PEN)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Columbus Crew 1-1 Pumas UNAM",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Yes",
+    "market": "Both Teams to Score",
+    "line": null,
+    "espn_event": "401863611",
+    "espn_match": "Columbus Crew v Pumas UNAM (2026-08-11, STATUS_FINAL_PEN)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Columbus Crew 1-1 Pumas UNAM",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 1.5,
+    "espn_event": "401863611",
+    "espn_match": "Columbus Crew v Pumas UNAM (2026-08-11, STATUS_FINAL_PEN)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Columbus Crew 1-1 Pumas UNAM",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "Under",
+    "market": "Total Corners",
+    "line": 8.5,
+    "espn_event": "401863611",
+    "espn_match": "Columbus Crew v Pumas UNAM (2026-08-11, STATUS_FINAL_PEN)",
+    "log": "MOOT",
+    "code": "L",
+    "evidence": "corners H10-A3 (match)",
+    "agree": true
+   }
+  ],
+  "why": "The closest stand-in for the requested 'to advance' case: the team advanced on penalties, but the 90-minute ML leg loses. No true to-advance, to-qualify or to-lift ticket exists in the logs.",
+  "corrected": false
+ },
+ {
+  "case_id": "C02",
+  "category": "C_parlay_edge",
+  "book": "Fanatics",
+  "bet_type": "Parlay",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -4.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Netherlands",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401861122",
+    "espn_match": "Netherlands v Serbia (2026-10-04, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Netherlands 2-1 Serbia",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Portugal",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401861126",
+    "espn_match": "Portugal v Norway (2026-10-04, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Portugal 2-1 Norway",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Germany",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401861123",
+    "espn_match": "Greece v Germany (2026-10-04, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Greece 0-0 Germany",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "Sweden",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401861128",
+    "espn_match": "Romania v Sweden (2026-10-05, STATUS_FULL_TIME)",
+    "log": "MOOT",
+    "code": "W",
+    "evidence": "90' Romania 0-1 Sweden",
+    "agree": true
+   }
+  ],
+  "why": "The parlay is dead before its last leg kicks off, and that leg later wins. A grader must not wait for, or be swayed by, the moot leg. The slip labels are away-first (e.g. 'GER vs GRE' for Greece at home).",
+  "corrected": false
+ },
+ {
+  "case_id": "C03",
+  "category": "C_parlay_edge",
+  "book": "Fanatics",
+  "bet_type": "Parlay",
+  "stake": 4.0,
+  "stake_kind": "bonus_bet",
+  "log_ticket": "LOSS",
+  "log_net": 0.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Spain",
+    "market": "Spread",
+    "line": -1.5,
+    "espn_event": "401861137",
+    "espn_match": "Croatia v Spain (2026-10-06, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Croatia 1-2 Spain",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Switzerland",
+    "market": "Spread",
+    "line": -1.5,
+    "espn_event": "401861139",
+    "espn_match": "Switzerland v North Macedonia (2026-10-06, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Switzerland 3-0 North Macedonia",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "England",
+    "market": "Spread",
+    "line": -2.5,
+    "espn_event": "401861142",
+    "espn_match": "England v Czechia (2026-10-06, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' England 3-0 Czechia",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "USA",
+    "market": "ML 3-Way",
+    "line": null,
+    "espn_event": "401905188",
+    "espn_match": "United States v Canada (2026-10-07, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' United States 1-0 Canada",
+    "agree": true
+   }
+  ],
+  "why": "A FanCash stake: the payout is profit only and the loss is $0.00 cash, not -$4. Spain's one-goal win kills -1.5 while three legs win. A cash twin (Entry 3, same legs, +499 to +623 boosted) printed a different base price one minute later.",
+  "corrected": false
+ },
+ {
+  "case_id": "C04",
+  "category": "C_parlay_edge",
+  "book": "Caesars",
+  "bet_type": "Parlay",
+  "stake": 2.0,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 12.34,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 3.5,
+    "espn_event": "401884781",
+    "espn_match": "Borussia Dortmund v Werder Bremen (2026-10-09, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Borussia Dortmund 2-2 Werder Bremen",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 2.5,
+    "espn_event": "401876447",
+    "espn_match": "Lens v Lyon (2026-10-09, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Lens 2-1 Lyon",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Under",
+    "market": "Total Goals",
+    "line": 2.5,
+    "espn_event": "401882851",
+    "espn_match": "Málaga v Espanyol (2026-10-09, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Málaga 1-1 Espanyol",
+    "agree": true
+   }
+  ],
+  "why": "The slip headline +475 is the unboosted price; the $14.34 payout implies about +617 boosted (not printed, so the field is left null). Mixed Over/Over/Under totals across three matches, and the Under clears only at exactly 2 goals.",
+  "corrected": false
+ },
+ {
+  "case_id": "C06",
+  "category": "C_parlay_edge",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 10.0,
+  "stake_kind": "free_bet",
+  "log_ticket": "WIN",
+  "log_net": 15.0,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Brighton",
+    "market": "Moneyline",
+    "line": null,
+    "espn_event": "401878772",
+    "espn_match": "Sunderland v Brighton & Hove Albion (2026-10-10, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Sunderland 0-2 Brighton & Hove Albion",
+    "agree": true
+   }
+  ],
+  "why": "A free-bet win pays profit only: +$15.00 net, not $25.00 returned. The entry's own cash-impact line contradicts the grade. Placed 25 Sep, two weeks before the match.",
+  "corrected": false
+ },
+ {
+  "case_id": "C08",
+  "category": "C_parlay_edge",
+  "book": "FanDuel",
+  "bet_type": "Boost-SGP",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 26.2,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Man City",
+    "market": "Moneyline (3-way)",
+    "line": null,
+    "espn_event": "401879264",
+    "espn_match": "Liverpool v Manchester City (2026-10-11, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Liverpool 0-3 Manchester City",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Goals (match total)",
+    "line": 1.5,
+    "espn_event": "401879264",
+    "espn_match": "Liverpool v Manchester City (2026-10-11, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Liverpool 0-3 Manchester City",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "No",
+    "market": "BTTS",
+    "line": null,
+    "espn_event": "401879264",
+    "espn_match": "Liverpool v Manchester City (2026-10-11, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Liverpool 0-3 Manchester City",
+    "agree": true
+   }
+  ],
+  "why": "An away-team SGP win placed three weeks before the match. A12 (the DK Draw single) covers it, and the log rejects two older Liverpool v City reports that surfaced in search, so it is a positive control with a stale-source trap.",
+  "corrected": false
+ },
+ {
+  "case_id": "C09",
+  "category": "C_parlay_edge",
+  "book": "Fanatics",
+  "bet_type": "Parlay",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -4.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Betis",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401882855",
+    "espn_match": "Real Betis v Osasuna (2026-10-11, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Real Betis 5-2 Osasuna",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Juventus",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401874764",
+    "espn_match": "Cagliari v Juventus (2026-10-11, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Cagliari 1-1 Juventus",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Marseille",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401876440",
+    "espn_match": "Troyes v Marseille (2026-10-11, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Troyes 0-2 Marseille",
+    "agree": true
+   },
+   {
+    "leg": 4,
+    "selection": "Racing Santander",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "espn_event": "401882850",
+    "espn_match": "Racing Santander v Valencia (2026-10-11, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Racing Santander 2-2 Valencia",
+    "agree": true
+   }
+  ],
+  "why": "Home/away for leg 1 is ambiguous: the slip prints away-first, the log writes 'Osasuna v Betis', but the match was at La Cartuja (Betis's ground), so it is left null. The build screen showed +1201 and the slip +1200, and two legs die on draws.",
+  "corrected": false
+ },
+ {
+  "case_id": "C10",
+  "category": "C_parlay_edge",
+  "book": "theScore Bet",
+  "bet_type": "Parlay",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "log_ticket": "UNSETTLED",
+  "log_net": null,
+  "code_ticket": "UNSETTLED",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "VfB Stuttgart",
+    "market": "Match Result (regulation time)",
+    "line": null,
+    "espn_event": "401915405",
+    "espn_match": "Slovan Bratislava v VfB Stuttgart (2026-10-14, STATUS_SCHEDULED)",
+    "log": "OPEN",
+    "code": "OPEN",
+    "evidence": "status STATUS_SCHEDULED",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Real Madrid",
+    "market": "Match Result (regulation time)",
+    "line": null,
+    "espn_event": "401915414",
+    "espn_match": "AS Roma v Real Madrid (2026-10-14, STATUS_SCHEDULED)",
+    "log": "OPEN",
+    "code": "OPEN",
+    "evidence": "status STATUS_SCHEDULED",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Aston Villa",
+    "market": "Match Result (regulation time)",
+    "line": null,
+    "espn_event": "401915409",
+    "espn_match": "Aston Villa v Fenerbahce (2026-10-14, STATUS_SCHEDULED)",
+    "log": "OPEN",
+    "code": "OPEN",
+    "evidence": "status STATUS_SCHEDULED",
+    "agree": true
+   }
+  ],
+  "why": "An open ticket. UNSETTLED is correct only before about 5 PM ET on 14 Oct 2026: all three legs kick off at 3:00 PM ET that day, so the label goes stale the same evening. A grader with live web access must not invent a result before full time.",
+  "corrected": false
+ },
+ {
+  "case_id": "C12",
+  "category": "C_parlay_edge",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "log_ticket": "WIN",
+  "log_net": 12.45,
+  "code_ticket": "WIN",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Manchester City",
+    "market": "Moneyline (live, placed in-play at 0-1, 34:06 1st half)",
+    "line": null,
+    "espn_event": "401879320",
+    "espn_match": "Manchester City v AFC Bournemouth (2026-08-23, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Manchester City 2-1 AFC Bournemouth",
+    "agree": true
+   }
+  ],
+  "why": "The canonical premature-grade trap: a mid-match headline showed a 1-1 'final' and the actual result came from a stoppage-time winner. The grade flips from LOSS to WIN, and it was a live bet placed while trailing.",
+  "corrected": true
+ },
+ {
+  "case_id": "C13",
+  "category": "C_parlay_edge",
+  "book": "Fanatics",
+  "bet_type": "Boost-SGP",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "log_ticket": "LOSS",
+  "log_net": -10.0,
+  "code_ticket": "LOSS",
+  "status": "AGREE",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Bayern Munich",
+    "market": "Moneyline 3-Way",
+    "line": null,
+    "espn_event": "401884801",
+    "espn_match": "Schalke 04 v Bayern Munich (2026-09-05, STATUS_FULL_TIME)",
+    "log": "L",
+    "code": "L",
+    "evidence": "90' Schalke 04 0-0 Bayern Munich",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "No",
+    "market": "Both Teams to Score",
+    "line": null,
+    "espn_event": "401884801",
+    "espn_match": "Schalke 04 v Bayern Munich (2026-09-05, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Schalke 04 0-0 Bayern Munich",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Under",
+    "market": "Total Goals",
+    "line": 2.5,
+    "espn_event": "401884801",
+    "espn_match": "Schalke 04 v Bayern Munich (2026-09-05, STATUS_FULL_TIME)",
+    "log": "W",
+    "code": "W",
+    "evidence": "90' Schalke 04 0-0 Bayern Munich",
+    "agree": true
+   }
+  ],
+  "why": "Two agreeing but bad web sources produced a wrong WIN. The corrected label rests only on the user's word, with no source cited, so verify the ground truth independently before scoring a grader against it.",
+  "corrected": true
+ },
+ {
+  "case_id": "C14",
+  "category": "C_parlay_edge",
+  "book": "BetRivers",
+  "bet_type": "Boost-SGP",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "log_ticket": "VOID",
+  "log_net": 0.0,
+  "code_ticket": null,
+  "status": "PARTIAL",
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Over",
+    "market": "Total Corners",
+    "line": 8.5,
+    "espn_event": null,
+    "espn_match": null,
+    "log": "VOID",
+    "code": null,
+    "evidence": "no ESPN match found",
+    "agree": true
+   },
+   {
+    "leg": 2,
+    "selection": "Celta Vigo",
+    "market": "Full Time 2Up Early Payout",
+    "line": null,
+    "espn_event": null,
+    "espn_match": null,
+    "log": "VOID",
+    "code": null,
+    "evidence": "no ESPN match found",
+    "agree": true
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 2.5,
+    "espn_event": null,
+    "espn_match": null,
+    "log": "VOID",
+    "code": null,
+    "evidence": "no ESPN match found",
+    "agree": true
+   }
+  ],
+  "why": "A postponed match the book voided instead of carrying to the new date, confirmed by Beni rather than inferred, since void handling is book-specific. A grader that finds the rescheduled 27 Aug result and grades on it would be wrong.",
+  "corrected": false
+ }
+]

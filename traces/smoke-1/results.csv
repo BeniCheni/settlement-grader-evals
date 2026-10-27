@@ -1,0 +1,4 @@
+case_id,category,trace_id,run_status,reason_code,got_ticket_result,got_net,exp_ticket_result,exp_net,outcome_match,turns,tool_calls,wall_clock_s,input_tokens,output_tokens
+SMOKE1,C_parlay_edge,1c454f8276aaa7980e0438e5cd922e01,complete,,LOSS,-4.0,WIN,26.2,False,8,7,36.9,14359,294
+SMOKE2,A_simple,30c22256e895ecd102b7b62025cffe02,complete,,WIN,28.08,LOSS,-8.0,False,5,4,19.47,7238,216
+SMOKE3,C_parlay_edge,1eae522c79498e5927c3e91ad5463ff6,complete,,LOSS,-4,LOSS,-4.0,True,3,9,38.31,6000,438

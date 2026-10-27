@@ -1,0 +1,1946 @@
+[
+ {
+  "case_id": "A01",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "ML",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "boost_or_token": "15% Profit Boost",
+  "ticket_price_american": "+115",
+  "printed_payout": 21.5,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Portugal",
+    "market": "Money Line 3-Way (regulation only)",
+    "line": null,
+    "leg_price_american": "+100",
+    "fixture": "Denmark v Portugal",
+    "home": "Denmark",
+    "away": "Portugal",
+    "league": "UEFA Nations League (League A Group 4)",
+    "kickoff_et": "2026-10-01 14:45",
+    "market_wording_on_slip": "Tomorrow 2:45pm (kickoff label at placement on 30 Sep)"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Denmark 2-4 Portugal (sportytrader.com, final)"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 11.5,
+   "final_score_cited": "Denmark 2-4 Portugal (Cancelo 13', Damsgaard 23', Ramos 25', Hojlund 53', Vitinha 67', Felix 87')",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "Boost turns an even-money price into +115; placed the night before (slip said 'Tomorrow'), so a grader must anchor the date to 1 Oct, not the placement date."
+ },
+ {
+  "case_id": "A02",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "Profit Boost (% not printed in log; +460 -> +552)",
+  "ticket_price_american": "+552",
+  "printed_payout": 26.08,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Sporting KC",
+    "market": "Full Time (3-way result)",
+    "line": null,
+    "leg_price_american": "+460",
+    "fixture": "Seattle Sounders v Sporting KC",
+    "home": "Seattle Sounders",
+    "away": "Sporting KC",
+    "league": "MLS",
+    "kickoff_et": "2026-10-01 21:30",
+    "market_wording_on_slip": "Sporting KC Full Time"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "Seattle 2-1 Sporting KC (sportytrader.com, final)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -4.0,
+   "final_score_cited": "Seattle 2-1 Sporting KC (Andre Luiz 44', Gomez 51', Roldan 90+1')",
+   "was_corrected": false,
+   "correction_note": "The selection itself (not the grade) was corrected before grading: first logged as 'Seattle Sounders ML', the slip says 'Sporting KC Full Time'. Kickoff also corrected from 9:30 PM PT to 9:30 PM ET."
+  },
+  "why_interesting": "Opposes C01 on the same match. The original log had the wrong side and the wrong kickoff timezone, so a grader that trusts an early description would grade it WIN."
+ },
+ {
+  "case_id": "A03",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "ML",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "boost_or_token": "15% Profit Boost",
+  "ticket_price_american": "+126",
+  "printed_payout": 22.65,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Austria",
+    "market": "Money Line 3-Way (regulation only)",
+    "line": null,
+    "leg_price_american": "+110",
+    "fixture": "Republic of Ireland v Austria",
+    "home": "Republic of Ireland",
+    "away": "Austria",
+    "league": "UEFA Nations League (Group Stage)",
+    "kickoff_et": "2026-10-01 14:45",
+    "market_wording_on_slip": "Today 2:45pm"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "2-2 draw (oddslot.com, final)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -10.0,
+   "final_score_cited": "Republic of Ireland 2-2 Austria (Parrott 12', 45'; Prass 71', Gregoritsch 77')",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "A 3-way moneyline loses on a draw. The printed payout ($22.65) is 5 cents off the stake x boosted-price arithmetic ($22.60), so a grader that recomputes the payout should not call it a mismatch."
+ },
+ {
+  "case_id": "A05",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "FanDuel",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "30% Profit Boost",
+  "ticket_price_american": "+234",
+  "printed_payout": 13.36,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "USA",
+    "market": "Moneyline (3-way)",
+    "line": null,
+    "leg_price_american": "+180",
+    "fixture": "USA v Mexico",
+    "home": "USA",
+    "away": "Mexico",
+    "league": "International friendly (Elite International Friendlies)",
+    "kickoff_et": "2026-10-03 22:00",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "USA 3-0 Mexico (footballwebpages.co.uk Oct 4 UTC page)"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 9.36,
+   "final_score_cited": "USA 3-0 Mexico",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "A 10:00 PM ET kickoff whose result is listed on the next day's UTC page. The Fanatics slip for the same match prints 'MEX vs USA' (away first), so labels can disagree on home and away."
+ },
+ {
+  "case_id": "A06",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetMGM",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "50% Odds Boost (BetMGM; source, max wager and expiry unknown)",
+  "ticket_price_american": "+133",
+  "printed_payout": 9.36,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Republic of Ireland",
+    "market": "Match result (3-Way, 90 min, regulation time only)",
+    "line": null,
+    "leg_price_american": "-112",
+    "fixture": "Republic of Ireland v Israel",
+    "home": "Republic of Ireland",
+    "away": "Israel",
+    "league": "UEFA Nations League (league phase)",
+    "kickoff_et": "2026-10-04 14:45 (ESTIMATE; slip countdown, both sources print TBC)",
+    "market_wording_on_slip": "Includes boost ($1.78)"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "1-1 draw (footballwebpages.co.uk Oct 4 page, one aggregator)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -4.0,
+   "final_score_cited": "Republic of Ireland 1-1 Israel",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "The fixture moved to a neutral venue (TSC Arena, Backa Topola, Serbia, behind closed doors), so 'home' is nominal. The slip shows +133 against +134 arithmetic (truncation), and the boost turns -112 into a plus price."
+ },
+ {
+  "case_id": "A08",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "15% Profit Boost (inferred from payout; % not printed)",
+  "ticket_price_american": "+431",
+  "printed_payout": 21.25,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Slovenia",
+    "market": "Money Line 3-Way",
+    "line": null,
+    "leg_price_american": "+375",
+    "fixture": "Scotland v Slovenia",
+    "home": "Scotland",
+    "away": "Slovenia",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": "UEFA NL SVN vs SCO, Today 2:45 PM"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Scotland 1-2 Slovenia (UEFA fixtures-and-results page; 101greatgoals)"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 17.25,
+   "final_score_cited": "Scotland 1-2 Slovenia",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "The slip prints 'SVN vs SCO' (Fanatics puts the away side first), so a grader that reads the first-named team as home inverts the fixture. The base price +375 is only derived from the struck-through payout."
+ },
+ {
+  "case_id": "A09",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "20% Profit Boost",
+  "ticket_price_american": "+312",
+  "printed_payout": 16.48,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Tie (Draw)",
+    "market": "Full Time result (placed in-play at 0-0)",
+    "line": null,
+    "leg_price_american": "+260",
+    "fixture": "Chicago Fire v Vancouver Whitecaps",
+    "home": "Chicago Fire",
+    "away": "Vancouver Whitecaps",
+    "league": "MLS",
+    "kickoff_et": "2026-10-06 20:30 (sources; slip clock implies about 20:40)",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "Chicago Fire 3-1 Vancouver (surprisesports.com Final; futboltotal.futbol Full time)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -4.0,
+   "final_score_cited": "Chicago Fire 3-1 Vancouver (Bamba 9', Zinckernagel 50', Haile-Selassie 88'; Laborda 73')",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "A live bet on the draw placed after kickoff. It was found in Unlogged/ four days later (AFTER-SETTLEMENT), and the slip's live clock and the listed kickoff disagree by about 10 minutes."
+ },
+ {
+  "case_id": "A11",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "20% profit boost (inferred from arithmetic; slip shows bolt only)",
+  "ticket_price_american": "+324",
+  "printed_payout": 16.96,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "NYCFC",
+    "market": "Full Time moneyline (3-way, regulation)",
+    "line": null,
+    "leg_price_american": "+270",
+    "fixture": "Chicago Fire v New York City FC",
+    "home": "Chicago Fire",
+    "away": "New York City FC",
+    "league": "MLS",
+    "kickoff_et": "2026-10-10 14:30",
+    "market_wording_on_slip": "CHI Fire - NYCFC"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "Chicago Fire 2-1 NYCFC (futboltotal.futbol Final; oddscalendar.com)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -4.0,
+   "final_score_cited": "Chicago Fire 2-1 NYCFC (Wolf 19' NYCFC; Saletros 55', Haile-Selassie 87')",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "The underdog took the lead and lost the game. A grader that reads a first-half or live score would get it wrong. The same fixture also carries an NYCFC SGP subset ticket (Entry 11)."
+ },
+ {
+  "case_id": "A12",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "DraftKings",
+  "bet_type": "ML",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "boost_or_token": "DraftKings 'LIV Vs MCI 30% Boost' (Profit Boost; boost cancelled on cash-out)",
+  "ticket_price_american": "+351",
+  "printed_payout": 36.08,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Draw",
+    "market": "Moneyline (3-way)",
+    "line": null,
+    "leg_price_american": "+270",
+    "fixture": "Liverpool v Man City",
+    "home": "Liverpool",
+    "away": "Man City",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-11 11:30",
+    "market_wording_on_slip": "Market settled based on the result at the end of regular time (includi... [truncated on screen]"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "Liverpool 0-3 Man City (theScore, ESPN, mancity.com, beIN Sports)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -8.0,
+   "final_score_cited": "Liverpool 0-3 Man City (Haaland 65', Doku 68', Cherki 78'; Gravenberch sent off)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "A bet on the draw itself, with truncated regulation-time wording. The log explicitly set aside two search results for older Liverpool v City matches (1-2 and 3-0), which are stale-match traps for a grader."
+ },
+ {
+  "case_id": "A13",
+  "category": "A_simple",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetMGM",
+  "bet_type": "DNB",
+  "stake": 2.0,
+  "stake_kind": "cash",
+  "boost_or_token": "50% Boost (BetMGM token)",
+  "ticket_price_american": null,
+  "printed_payout": null,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Rayo Vallecano",
+    "market": "Draw No Bet",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Rayo Vallecano v Alaves",
+    "home": "Rayo Vallecano",
+    "away": "Alaves",
+    "league": "La Liga",
+    "kickoff_et": "2026-08-20 (time not recorded)",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "P",
+     "evidence": "1-1 draw; DNB refunds stake (ElDesmarque, Eurosport, OneFootball)"
+    }
+   ],
+   "ticket_result": "PUSH",
+   "net": 0.0,
+   "final_score_cited": "Rayo Vallecano 1-1 Alaves (Camello 47', Mariano Diaz 84')",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "The only Draw No Bet push in the logs ($2.00 returned, $0 net). The price and payout were never captured ('[verify slip]'), so the grader must push without any price to work from, and a boost does not apply to a push."
+ },
+ {
+  "case_id": "B01",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "Prop",
+  "stake": 10.0,
+  "stake_kind": "second_chance",
+  "boost_or_token": "Second Chance (stake refunded as a bonus bet on a loss)",
+  "ticket_price_american": "+240",
+  "printed_payout": 34.0,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Sehrou Guirassy",
+    "market": "First Goal Scorer",
+    "line": null,
+    "leg_price_american": "+240",
+    "fixture": "Borussia Dortmund v Werder Bremen",
+    "home": "Borussia Dortmund",
+    "away": "Werder Bremen",
+    "league": "Bundesliga",
+    "kickoff_et": "2026-10-09 14:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "First goal Daniel Svensson (Dortmund) 80'; Guirassy's 58' goal ruled out for offside (zdfheute liveticker; hoofoot.net)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -10.0,
+   "final_score_cited": "Dortmund 2-2 Werder Bremen (Svensson 80', Schlotterbeck 85', Reis 88', Fullkrug 90+2')",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "Guirassy had a disallowed goal at 58', so a grader reading a live feed or goal list could credit him as first scorer. The Second Chance books as a full cash loss plus a separate $10 bonus bet (unconfirmed), not a push."
+ },
+ {
+  "case_id": "B02",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "theScore Bet",
+  "bet_type": "Boost-SGP",
+  "stake": 20.0,
+  "stake_kind": "cash",
+  "boost_or_token": "30% Profit Boost for Soccer",
+  "ticket_price_american": "+468",
+  "printed_payout": 113.6,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Barcelona",
+    "market": "Match Result",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Barcelona v Getafe",
+    "home": "Barcelona",
+    "away": "Getafe",
+    "league": "La Liga",
+    "kickoff_et": "2026-10-10 12:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 2,
+    "selection": "Lamine Yamal",
+    "market": "Anytime Goalscorer",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Barcelona v Getafe",
+    "home": "Barcelona",
+    "away": "Getafe",
+    "league": "La Liga",
+    "kickoff_et": "2026-10-10 12:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 3.5,
+    "leg_price_american": null,
+    "fixture": "Barcelona v Getafe",
+    "home": "Barcelona",
+    "away": "Getafe",
+    "league": "La Liga",
+    "kickoff_et": "2026-10-10 12:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 4,
+    "selection": "Over",
+    "market": "Barcelona Total Corners",
+    "line": 8.5,
+    "leg_price_american": null,
+    "fixture": "Barcelona v Getafe",
+    "home": "Barcelona",
+    "away": "Getafe",
+    "league": "La Liga",
+    "kickoff_et": "2026-10-10 12:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Barcelona 3-0"
+    },
+    {
+     "leg": 2,
+     "result": "L",
+     "evidence": "Yamal did not score (assisted Kounde 73')"
+    },
+    {
+     "leg": 3,
+     "result": "L",
+     "evidence": "3 goals, under 3.5"
+    },
+    {
+     "leg": 4,
+     "result": "MOOT",
+     "evidence": "corners not checked; ticket already dead"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -20.0,
+   "final_score_cited": "Barcelona 3-0 Getafe (Gordon 2', Jesus 30', Kounde 73') (vavel.com Full Time; beinsports.com)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "Player and team-corners props in one SGP. Yamal's assist could be misread as a goal, and the corners leg has no data in the log (MOOT), so a grader has to settle the ticket without it."
+ },
+ {
+  "case_id": "B04",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetMGM",
+  "bet_type": "SGP",
+  "stake": 15.2,
+  "stake_kind": "cash",
+  "boost_or_token": null,
+  "ticket_price_american": "+250",
+  "printed_payout": 53.2,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Spain",
+    "market": "Match result",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Spain v Czechia",
+    "home": "Spain",
+    "away": "Czechia",
+    "league": "UEFA Nations League (League A Group 3)",
+    "kickoff_et": "2026-10-03 14:45 (hour ESTIMATE per log)",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 2,
+    "selection": "Yes",
+    "market": "Both teams to score",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Spain v Czechia",
+    "home": "Spain",
+    "away": "Czechia",
+    "league": "UEFA Nations League (League A Group 3)",
+    "kickoff_et": "2026-10-03 14:45 (hour ESTIMATE per log)",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total goals",
+    "line": 3.5,
+    "leg_price_american": null,
+    "fixture": "Spain v Czechia",
+    "home": "Spain",
+    "away": "Czechia",
+    "league": "UEFA Nations League (League A Group 3)",
+    "kickoff_et": "2026-10-03 14:45 (hour ESTIMATE per log)",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 4,
+    "selection": "Spain",
+    "market": "First team to score",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Spain v Czechia",
+    "home": "Spain",
+    "away": "Czechia",
+    "league": "UEFA Nations League (League A Group 3)",
+    "kickoff_et": "2026-10-03 14:45 (hour ESTIMATE per log)",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Spain 3-1"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "Czechia scored (Slama 69')"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "4 goals"
+    },
+    {
+     "leg": 4,
+     "result": "W",
+     "evidence": "Yamal 6' opened the scoring (goal order cross-read on futboltotal.futbol)"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 38.0,
+   "final_score_cited": "Spain 3-1 Czechia (Yamal 6', Rodrigo 35', Slama 69', Merino 89')",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "The first-team-to-score leg needs goal order, not just the final score. The fourth goal came at 89', so the Over 3.5 leg was only decided late. A clean four-leg win to use as a positive control."
+ },
+ {
+  "case_id": "B05",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "SGP",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "50% boost (inferred from arithmetic; token identity unconfirmed, presumed Pro Soccer Kick Off Pack 50% SGP Boost)",
+  "ticket_price_american": "+862",
+  "printed_payout": 38.5,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Newcastle",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "+120",
+    "fixture": "Coventry City v Newcastle United",
+    "home": "Coventry City",
+    "away": "Newcastle United",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-12 15:00",
+    "market_wording_on_slip": "NEW vs COV, Tomorrow 3:00pm"
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 1.5,
+    "leg_price_american": "-500",
+    "fixture": "Coventry City v Newcastle United",
+    "home": "Coventry City",
+    "away": "Newcastle United",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-12 15:00",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "No",
+    "market": "Both Teams to Score",
+    "line": null,
+    "leg_price_american": "+145",
+    "fixture": "Coventry City v Newcastle United",
+    "home": "Coventry City",
+    "away": "Newcastle United",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-12 15:00",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 4,
+    "selection": "Under",
+    "market": "1st Half Total Goals",
+    "line": 2.5,
+    "leg_price_american": "-800",
+    "fixture": "Coventry City v Newcastle United",
+    "home": "Coventry City",
+    "away": "Newcastle United",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-12 15:00",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "Coventry won 4-1"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "five goals"
+    },
+    {
+     "leg": 3,
+     "result": "L",
+     "evidence": "Newcastle scored (Botman 70')"
+    },
+    {
+     "leg": 4,
+     "result": "W",
+     "evidence": "only first-half goal Rudoni 6' pen (inferred from scorer minutes)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -4.0,
+   "final_score_cited": "Coventry City 4-1 Newcastle United (Rudoni 6' pen, Cherif 48', Botman 70' for Newcastle, Simms 81', Mfuni 86') (Newcastle United match report; ESPN and VAVEL headlines)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "A first-half totals leg graded only by inference from goal minutes (no half-time score cited). The fixture was moved from Sat 10 Oct, the slip lists the away side first, and two legs win while two lose."
+ },
+ {
+  "case_id": "B06",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "theScore Bet",
+  "bet_type": "Parlay",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "boost_or_token": "theScore 50% Parlay Profit Boost ($8 max wager, +400 or longer)",
+  "ticket_price_american": "+853",
+  "printed_payout": 76.22,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "England",
+    "market": "2-Way Handicap",
+    "line": -2.5,
+    "leg_price_american": "-115",
+    "fixture": "England v Czechia",
+    "home": "England",
+    "away": "Czechia",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": "Today at 14:45"
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 1.5,
+    "leg_price_american": "-190",
+    "fixture": "Scotland v Slovenia",
+    "home": "Scotland",
+    "away": "Slovenia",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Switzerland",
+    "market": "2-Way Handicap",
+    "line": -2.5,
+    "leg_price_american": "-120",
+    "fixture": "Switzerland v North Macedonia",
+    "home": "Switzerland",
+    "away": "North Macedonia",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 4,
+    "selection": "Spain",
+    "market": "Match Result",
+    "line": null,
+    "leg_price_american": "-360",
+    "fixture": "Croatia v Spain (inferred; fixture line cut off on the capture)",
+    "home": "Croatia",
+    "away": "Spain",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "England 3-0 clears -2.5"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "Scotland 1-2 Slovenia = 3 goals"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "Switzerland 3-0 clears -2.5"
+    },
+    {
+     "leg": 4,
+     "result": "W",
+     "evidence": "Croatia 1-2 Spain"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 68.22,
+   "final_score_cited": "England 3-0 Czechia; Scotland 1-2 Slovenia; Switzerland 3-0 North Macedonia; Croatia 1-2 Spain (UEFA results page; 101greatgoals)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "Two -2.5 handicaps clear by exactly half a goal (3-0), and the Spain leg's fixture was inferred because the capture cut it off. A 50% boost on a cross-match parlay with one totals leg from a different match."
+ },
+ {
+  "case_id": "B08",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "Caesars",
+  "bet_type": "SGP",
+  "stake": 2.0,
+  "stake_kind": "bonus_bet",
+  "boost_or_token": "Bonus Bet (provenance not recorded; cash-out disabled on bonus bets)",
+  "ticket_price_american": "+325",
+  "printed_payout": 6.5,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "USA",
+    "market": "90 Minutes (to win, regulation)",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "USA v Canada",
+    "home": "USA",
+    "away": "Canada",
+    "league": "International friendly",
+    "kickoff_et": "2026-10-06 20:00",
+    "market_wording_on_slip": "USA 90 Minutes; Today 20:00"
+   },
+   {
+    "leg": 2,
+    "selection": "Julian Hall",
+    "market": "Anytime Goalscorer",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "USA v Canada",
+    "home": "USA",
+    "away": "Canada",
+    "league": "International friendly",
+    "kickoff_et": "2026-10-06 20:00",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Yes",
+    "market": "Both Teams To Score",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "USA v Canada",
+    "home": "USA",
+    "away": "Canada",
+    "league": "International friendly",
+    "kickoff_et": "2026-10-06 20:00",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "USA 1-0"
+    },
+    {
+     "leg": 2,
+     "result": "L",
+     "evidence": "Hall came on at half-time and did not score"
+    },
+    {
+     "leg": 3,
+     "result": "L",
+     "evidence": "Canada did not score"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": 0.0,
+   "final_score_cited": "USA 1-0 Canada (Justin Ellis 29') (11v11; futboltotal.futbol)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "A bonus-bet stake: printed $6.50 is profit only, and a loss is $0.00 cash, not -$2. The anytime-scorer leg involves a half-time substitute, which tests the player-must-take-part rule (he played, so the leg is live and loses)."
+ },
+ {
+  "case_id": "B09",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "Boost-SGP",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "boost_or_token": "Profit Boost (% not stated; +400 -> +532)",
+  "ticket_price_american": "+532",
+  "printed_payout": 63.2,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Over",
+    "market": "Total Goals by Manchester City (team total)",
+    "line": 0.5,
+    "leg_price_american": null,
+    "fixture": "Manchester City v Bournemouth",
+    "home": "Manchester City",
+    "away": "Bournemouth",
+    "league": "Premier League",
+    "kickoff_et": "2026-08-23 09:00",
+    "market_wording_on_slip": "Over 0.5 Total Goals by Manchester City"
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals (match)",
+    "line": 1.5,
+    "leg_price_american": null,
+    "fixture": "Manchester City v Bournemouth",
+    "home": "Manchester City",
+    "away": "Bournemouth",
+    "league": "Premier League",
+    "kickoff_et": "2026-08-23 09:00",
+    "market_wording_on_slip": "Over 1.5 Total Goals"
+   },
+   {
+    "leg": 3,
+    "selection": "Tie/Manchester City",
+    "market": "Half Time/Regular Time (HT/FT double result)",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Manchester City v Bournemouth",
+    "home": "Manchester City",
+    "away": "Bournemouth",
+    "league": "Premier League",
+    "kickoff_et": "2026-08-23 09:00",
+    "market_wording_on_slip": "Tie/Manchester City (Half Time/Regular Time)"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "City scored 2 (Guehi 84', Gvardiol 92')"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "3 total goals"
+    },
+    {
+     "leg": 3,
+     "result": "L",
+     "evidence": "HT Bournemouth 1-0 City (Tavernier 26'); neither tied nor City ahead at the break"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -10.0,
+   "final_score_cited": "Manchester City 2-1 Bournemouth; HT 0-1 (Vavel, TNT Sports, OneFootball, NBC Sports, Sky Sports; Heavy.com halftime)",
+   "was_corrected": true,
+   "correction_note": "First graded LOSS at ~10:25 AM ET 23 Aug from a live Sofascore headline read as a 1-1 final; retracted at ~10:36 AM and reopened; regraded LOSS later from five FT sources (final 2-1). The ticket result did not change, but the evidence did."
+  },
+  "why_interesting": "An HT/FT leg with an unusual label (the log itself flags the wording as ambiguous), plus a historical premature grade from a live headline. The correct answer needs the half-time score, not just the final."
+ },
+ {
+  "case_id": "B10",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "Caesars",
+  "bet_type": "Prop",
+  "stake": 3.2,
+  "stake_kind": "cash",
+  "boost_or_token": "Odds Boost (fixed)",
+  "ticket_price_american": "+780",
+  "printed_payout": 28.16,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Ousmane Dembele & Ollie Watkins each score in 90 min",
+    "market": "Odds Boost goalscorer combo (both players to score)",
+    "line": null,
+    "leg_price_american": "+780",
+    "fixture": "PSG v Aston Villa",
+    "home": null,
+    "away": null,
+    "league": "UEFA Super Cup (neutral venue: Red Bull Arena, Salzburg)",
+    "kickoff_et": "2026-08-12 15:00",
+    "market_wording_on_slip": "Odds Boost: Ousmane Dembele & Ollie Watkins each score in 90 min"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "VOID",
+     "evidence": "Caesars voided the market: one named player (Dembele or Watkins, the log does not say which) was not in the match"
+    }
+   ],
+   "ticket_result": "VOID",
+   "net": 0.0,
+   "final_score_cited": "PSG 2-1 Aston Villa (Kvaratskhelia, Doue) in 90 minutes, no shootout",
+   "was_corrected": true,
+   "correction_note": "First-pass grade was LOSS; corrected to VOID (stake refunded) after a tracker cross-check and Beni's confirmation that the book voided it."
+  },
+  "why_interesting": "The scoreline alone says LOSS (neither player scored), but the book voided because a named player did not take part. This is the textbook non-participant trap, and it was mis-graded once. Neutral venue, so home and away are left null."
+ },
+ {
+  "case_id": "B12",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "Prop",
+  "stake": 10.0,
+  "stake_kind": "second_chance",
+  "boost_or_token": "Second Chance (refund as bonus bet on a loss)",
+  "ticket_price_american": "+450",
+  "printed_payout": 55.0,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Bukayo Saka",
+    "market": "First Goal Scorer",
+    "line": null,
+    "leg_price_american": "+450",
+    "fixture": "Arsenal v Leeds United",
+    "home": "Arsenal",
+    "away": "Leeds United",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-10 07:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "First goal James Justin (Leeds) 55'"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -10.0,
+   "final_score_cited": "Arsenal 2-1 Leeds United (Justin 55'; Calafiori 62', Bruno Guimaraes 70') (theScore, futboltotal.futbol, footballwebpages.co.uk)",
+   "was_corrected": false,
+   "correction_note": "The entry text at placement said a lost Second Chance books as a PUSH; that wording was superseded (5 Sep rule) and the ledger books a full -$10.00 cash loss plus a separate $10 bonus bet (unconfirmed). One tracker appears to carry it as a push."
+  },
+  "why_interesting": "The opponent scored first, so the leg loses cleanly. The token convention conflicts inside the same entry (push vs full loss), and the trackers disagree with each other, which makes this a label-semantics test."
+ },
+ {
+  "case_id": "B13",
+  "category": "B_market",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetMGM",
+  "bet_type": "Boost-SGP",
+  "stake": 35.2,
+  "stake_kind": "cash",
+  "boost_or_token": "BetMGM 33% Parlay Boost token",
+  "ticket_price_american": "+532",
+  "printed_payout": 222.46,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Columbus Crew",
+    "market": "Moneyline (90 minutes)",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Columbus Crew v Pumas UNAM",
+    "home": "Columbus Crew",
+    "away": "Pumas UNAM",
+    "league": "Leagues Cup",
+    "kickoff_et": "2026-08-11 19:30",
+    "market_wording_on_slip": "Columbus Crew ML"
+   },
+   {
+    "leg": 2,
+    "selection": "Yes",
+    "market": "Both Teams to Score",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Columbus Crew v Pumas UNAM",
+    "home": "Columbus Crew",
+    "away": "Pumas UNAM",
+    "league": "Leagues Cup",
+    "kickoff_et": "2026-08-11 19:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 1.5,
+    "leg_price_american": null,
+    "fixture": "Columbus Crew v Pumas UNAM",
+    "home": "Columbus Crew",
+    "away": "Pumas UNAM",
+    "league": "Leagues Cup",
+    "kickoff_et": "2026-08-11 19:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 4,
+    "selection": "Under",
+    "market": "Total Corners",
+    "line": 8.5,
+    "leg_price_american": null,
+    "fixture": "Columbus Crew v Pumas UNAM",
+    "home": "Columbus Crew",
+    "away": "Pumas UNAM",
+    "league": "Leagues Cup",
+    "kickoff_et": "2026-08-11 19:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "1-1 after 90 minutes; Columbus advanced on penalties, which does not count"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "both teams scored (1-1)"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "2 total goals"
+    },
+    {
+     "leg": 4,
+     "result": "MOOT",
+     "evidence": "corners unconfirmed; ticket already dead"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -35.2,
+   "final_score_cited": "Columbus Crew 1-1 Pumas UNAM after 90; Columbus won on penalties (LeaguesCup.com, Columbus Crew, NBC4, OurSports Central)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "The closest stand-in for the requested 'to advance' case: the team advanced on penalties, but the 90-minute ML leg loses. No true to-advance, to-qualify or to-lift ticket exists in the logs."
+ },
+ {
+  "case_id": "C02",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "Parlay",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "30% profit boost (Fanatics Soccer Kickoff Pack token)",
+  "ticket_price_american": "+671",
+  "printed_payout": 30.86,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Netherlands",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "-550",
+    "fixture": "Netherlands v Serbia",
+    "home": "Netherlands",
+    "away": "Serbia",
+    "league": "UEFA Nations League (league phase)",
+    "kickoff_et": "2026-10-04 14:45",
+    "market_wording_on_slip": "SRB vs NED, Today 2:45pm"
+   },
+   {
+    "leg": 2,
+    "selection": "Portugal",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "-150",
+    "fixture": "Portugal v Norway",
+    "home": "Portugal",
+    "away": "Norway",
+    "league": "UEFA Nations League (league phase)",
+    "kickoff_et": "2026-10-04 14:45",
+    "market_wording_on_slip": "NOR vs POR, Today 2:45pm"
+   },
+   {
+    "leg": 3,
+    "selection": "Germany",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "-130",
+    "fixture": "Greece v Germany",
+    "home": "Greece",
+    "away": "Germany",
+    "league": "UEFA Nations League (league phase)",
+    "kickoff_et": "2026-10-04 14:45",
+    "market_wording_on_slip": "GER vs GRE, Today 2:45pm"
+   },
+   {
+    "leg": 4,
+    "selection": "Sweden",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "-130",
+    "fixture": "Romania v Sweden",
+    "home": "Romania",
+    "away": "Sweden",
+    "league": "UEFA Nations League (league phase)",
+    "kickoff_et": "2026-10-05 14:45",
+    "market_wording_on_slip": "SWE vs ROM, Tomorrow 2:45pm"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Netherlands 2-1 Serbia"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "Portugal 2-1 Norway"
+    },
+    {
+     "leg": 3,
+     "result": "L",
+     "evidence": "Greece 0-0 Germany"
+    },
+    {
+     "leg": 4,
+     "result": "MOOT",
+     "evidence": "ticket settled LOSS on 5 Oct ~9:50 AM ET before Romania v Sweden kicked off; Sweden later won 1-0 (Romania 0-1 Sweden)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -4.0,
+   "final_score_cited": "Netherlands 2-1 Serbia; Portugal 2-1 Norway; Greece 0-0 Germany (footballwebpages.co.uk Oct 4); Romania 0-1 Sweden (UEFA results page; 101greatgoals)",
+   "was_corrected": false,
+   "correction_note": "A first note held the log open until the trackers posted; a later update settled it immediately on the dead leg. The grade itself did not change."
+  },
+  "why_interesting": "The parlay is dead before its last leg kicks off, and that leg later wins. A grader must not wait for, or be swayed by, the moot leg. The slip labels are away-first (e.g. 'GER vs GRE' for Greece at home)."
+ },
+ {
+  "case_id": "C03",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "Parlay",
+  "stake": 4.0,
+  "stake_kind": "bonus_bet",
+  "boost_or_token": "FanCash stake (Fanatics bonus currency; stake not returned); no boost",
+  "ticket_price_american": "+514",
+  "printed_payout": 20.57,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Spain",
+    "market": "Spread",
+    "line": -1.5,
+    "leg_price_american": null,
+    "fixture": "Croatia v Spain",
+    "home": "Croatia",
+    "away": "Spain",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": "Spain Spread -1.5"
+   },
+   {
+    "leg": 2,
+    "selection": "Switzerland",
+    "market": "Spread",
+    "line": -1.5,
+    "leg_price_american": null,
+    "fixture": "Switzerland v North Macedonia",
+    "home": "Switzerland",
+    "away": "North Macedonia",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": "Switzerland Spread -1.5"
+   },
+   {
+    "leg": 3,
+    "selection": "England",
+    "market": "Spread",
+    "line": -2.5,
+    "leg_price_american": null,
+    "fixture": "England v Czechia",
+    "home": "England",
+    "away": "Czechia",
+    "league": "UEFA Nations League",
+    "kickoff_et": "2026-10-06 14:45",
+    "market_wording_on_slip": "England Spread -2.5"
+   },
+   {
+    "leg": 4,
+    "selection": "USA",
+    "market": "ML 3-Way",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "USA v Canada",
+    "home": "USA",
+    "away": "Canada",
+    "league": "International friendly",
+    "kickoff_et": "2026-10-06 20:00",
+    "market_wording_on_slip": "USA ML 3-Way"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "Croatia 1-2 Spain: won by one, -1.5 fails"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "Switzerland 3-0"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "England 3-0"
+    },
+    {
+     "leg": 4,
+     "result": "W",
+     "evidence": "USA 1-0 Canada (played after the ticket was already dead)"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": 0.0,
+   "final_score_cited": "Croatia 1-2 Spain; Switzerland 3-0 North Macedonia; England 3-0 Czechia; USA 1-0 Canada",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "A FanCash stake: the payout is profit only and the loss is $0.00 cash, not -$4. Spain's one-goal win kills -1.5 while three legs win. A cash twin (Entry 3, same legs, +499 to +623 boosted) printed a different base price one minute later."
+ },
+ {
+  "case_id": "C04",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "Caesars",
+  "bet_type": "Parlay",
+  "stake": 2.0,
+  "stake_kind": "cash",
+  "boost_or_token": "30% profit boost (inferred from payout; % not printed)",
+  "ticket_price_american": null,
+  "printed_payout": 14.34,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 3.5,
+    "leg_price_american": null,
+    "fixture": "Borussia Dortmund v Werder Bremen",
+    "home": "Borussia Dortmund",
+    "away": "Werder Bremen",
+    "league": "Bundesliga",
+    "kickoff_et": "2026-10-09 14:30",
+    "market_wording_on_slip": "Over 3.5 Total Goals"
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 2.5,
+    "leg_price_american": null,
+    "fixture": "Lens v Lyon",
+    "home": "Lens",
+    "away": "Lyon",
+    "league": "Ligue 1",
+    "kickoff_et": "2026-10-09 14:45",
+    "market_wording_on_slip": "Over 2.5 Total Goals"
+   },
+   {
+    "leg": 3,
+    "selection": "Under",
+    "market": "Total Goals",
+    "line": 2.5,
+    "leg_price_american": null,
+    "fixture": "Malaga v Espanyol",
+    "home": "Malaga",
+    "away": "Espanyol",
+    "league": "La Liga",
+    "kickoff_et": "2026-10-09 15:00",
+    "market_wording_on_slip": "Under 2.5 Total Goals"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "2-2 = 4 goals"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "2-1 = 3 goals"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "1-1 = 2 goals"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 12.34,
+   "final_score_cited": "Dortmund 2-2 Werder Bremen; Lens 2-1 Lyon; Malaga 1-1 Espanyol (two sources per fixture)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "The slip headline +475 is the unboosted price; the $14.34 payout implies about +617 boosted (not printed, so the field is left null). Mixed Over/Over/Under totals across three matches, and the Under clears only at exactly 2 goals."
+ },
+ {
+  "case_id": "C06",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 10.0,
+  "stake_kind": "free_bet",
+  "boost_or_token": "Free Bet (stake not returned)",
+  "ticket_price_american": "+150",
+  "printed_payout": 15.0,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Brighton",
+    "market": "Moneyline",
+    "line": null,
+    "leg_price_american": "+150",
+    "fixture": "Sunderland v Brighton",
+    "home": "Sunderland",
+    "away": "Brighton",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-10 10:00",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Sunderland 0-2 Brighton"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 15.0,
+   "final_score_cited": "Sunderland 0-2 Brighton (Pascal Gross 53', Georginio Rutter 90+4') (theScore, footballwebpages.co.uk)",
+   "was_corrected": false,
+   "correction_note": "The entry's own 'Cash-basis impact: $0' line was wrong for a win; the grading line books +$15.00 cash (winnings only)."
+  },
+  "why_interesting": "A free-bet win pays profit only: +$15.00 net, not $25.00 returned. The entry's own cash-impact line contradicts the grade. Placed 25 Sep, two weeks before the match."
+ },
+ {
+  "case_id": "C08",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "FanDuel",
+  "bet_type": "Boost-SGP",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "30% Profit Boost",
+  "ticket_price_american": "+655",
+  "printed_payout": 30.2,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Man City",
+    "market": "Moneyline (3-way)",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Liverpool v Man City",
+    "home": "Liverpool",
+    "away": "Man City",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-11 11:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 2,
+    "selection": "Over",
+    "market": "Goals (match total)",
+    "line": 1.5,
+    "leg_price_american": null,
+    "fixture": "Liverpool v Man City",
+    "home": "Liverpool",
+    "away": "Man City",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-11 11:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "No",
+    "market": "BTTS",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Liverpool v Man City",
+    "home": "Liverpool",
+    "away": "Man City",
+    "league": "Premier League",
+    "kickoff_et": "2026-10-11 11:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Man City won 3-0"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "3 goals"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "Liverpool did not score"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 26.2,
+   "final_score_cited": "Liverpool 0-3 Man City (Haaland 65', Doku 68', Cherki 78') (theScore, ESPN, mancity.com, beIN Sports)",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "An away-team SGP win placed three weeks before the match. A12 (the DK Draw single) covers it, and the log rejects two older Liverpool v City reports that surfaced in search, so it is a positive control with a stale-source trap."
+ },
+ {
+  "case_id": "C09",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "Parlay",
+  "stake": 4.0,
+  "stake_kind": "cash",
+  "boost_or_token": "30% Parlay/SGP Boost (Pro Soccer Kick Off Pack; max wager $4, 4+ legs, min odds +400)",
+  "ticket_price_american": "+1200",
+  "printed_payout": 52.03,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Betis",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "-225",
+    "fixture": "Osasuna v Betis (as written in the log)",
+    "home": null,
+    "away": null,
+    "league": "La Liga",
+    "kickoff_et": "2026-10-11 12:30",
+    "market_wording_on_slip": "Today 12:30 PM ET"
+   },
+   {
+    "leg": 2,
+    "selection": "Juventus",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "-175",
+    "fixture": "Cagliari v Juventus",
+    "home": "Cagliari",
+    "away": "Juventus",
+    "league": "Serie A",
+    "kickoff_et": "2026-10-11 14:45",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Marseille",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "+105",
+    "fixture": "Troyes v Marseille",
+    "home": "Troyes",
+    "away": "Marseille",
+    "league": "Ligue 1",
+    "kickoff_et": "2026-10-11 14:45",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 4,
+    "selection": "Racing Santander",
+    "market": "Money Line 3-Way (regulation time only)",
+    "line": null,
+    "leg_price_american": "+120",
+    "fixture": "Racing Santander v Valencia",
+    "home": "Racing Santander",
+    "away": "Valencia",
+    "league": "La Liga",
+    "kickoff_et": "2026-10-11 15:00",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "Betis won 5-2 (Fox Sports only; moot)"
+    },
+    {
+     "leg": 2,
+     "result": "L",
+     "evidence": "Cagliari 1-1 Juventus (Maldini 20', Kolo Muani 81')"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "Troyes 0-2 Marseille (Harit 50', Abdelli pen 90+)"
+    },
+    {
+     "leg": 4,
+     "result": "L",
+     "evidence": "Racing Santander 2-2 Valencia"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -4.0,
+   "final_score_cited": "Betis 5-2 Osasuna (played at La Cartuja); Cagliari 1-1 Juventus; Troyes 0-2 Marseille; Racing Santander 2-2 Valencia",
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "Home/away for leg 1 is ambiguous: the slip prints away-first, the log writes 'Osasuna v Betis', but the match was at La Cartuja (Betis's ground), so it is left null. The build screen showed +1201 and the slip +1200, and two legs die on draws."
+ },
+ {
+  "case_id": "C10",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "theScore Bet",
+  "bet_type": "Parlay",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "boost_or_token": "20% Profit Boost for Soccer (theScore 2-pack; $8 max, 3+ legs, +300 total)",
+  "ticket_price_american": "+385",
+  "printed_payout": 38.82,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "VfB Stuttgart",
+    "market": "Match Result (regulation time)",
+    "line": null,
+    "leg_price_american": "-340",
+    "fixture": "SK Slovan Bratislava v VfB Stuttgart",
+    "home": "SK Slovan Bratislava",
+    "away": "VfB Stuttgart",
+    "league": "UEFA Champions League",
+    "kickoff_et": "2026-10-14 15:00",
+    "market_wording_on_slip": "Oct 14, 2026 at 15:00"
+   },
+   {
+    "leg": 2,
+    "selection": "Real Madrid",
+    "market": "Match Result (regulation time)",
+    "line": null,
+    "leg_price_american": "-105",
+    "fixture": "Roma v Real Madrid",
+    "home": "Roma",
+    "away": "Real Madrid",
+    "league": "UEFA Champions League",
+    "kickoff_et": "2026-10-14 15:00",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Aston Villa",
+    "market": "Match Result (regulation time)",
+    "line": null,
+    "leg_price_american": "-150",
+    "fixture": "Aston Villa v Fenerbahce",
+    "home": "Aston Villa",
+    "away": "Fenerbahce",
+    "league": "UEFA Champions League",
+    "kickoff_et": "2026-10-14 15:00",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "OPEN",
+     "evidence": "not played at extraction (14 Oct ~10:45 AM ET)"
+    },
+    {
+     "leg": 2,
+     "result": "OPEN",
+     "evidence": "not played at extraction"
+    },
+    {
+     "leg": 3,
+     "result": "OPEN",
+     "evidence": "not played at extraction"
+    }
+   ],
+   "ticket_result": "UNSETTLED",
+   "net": null,
+   "final_score_cited": null,
+   "was_corrected": false,
+   "correction_note": null
+  },
+  "why_interesting": "An open ticket. UNSETTLED is correct only before about 5 PM ET on 14 Oct 2026: all three legs kick off at 3:00 PM ET that day, so the label goes stale the same evening. A grader with live web access must not invent a result before full time."
+ },
+ {
+  "case_id": "C12",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "ML",
+  "stake": 8.0,
+  "stake_kind": "cash",
+  "boost_or_token": "Profit Boost (+117 -> +156)",
+  "ticket_price_american": "+156",
+  "printed_payout": 20.45,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Manchester City",
+    "market": "Moneyline (live, placed in-play at 0-1, 34:06 1st half)",
+    "line": null,
+    "leg_price_american": "+117",
+    "fixture": "Manchester City v Bournemouth",
+    "home": "Manchester City",
+    "away": "Bournemouth",
+    "league": "Premier League",
+    "kickoff_et": "2026-08-23 09:00",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "W",
+     "evidence": "City won 2-1 (Guehi 84', Gvardiol 92')"
+    }
+   ],
+   "ticket_result": "WIN",
+   "net": 12.45,
+   "final_score_cited": "Manchester City 2-1 Bournemouth (Tavernier 26'; Guehi 84', Gvardiol 92') (Vavel, TNT Sports, OneFootball, NBC Sports, Sky Sports)",
+   "was_corrected": true,
+   "correction_note": "Mis-graded LOSS at ~10:25 AM ET 23 Aug off a Sofascore live headline ('Bournemouth 1-1 Manchester City: late Haaland goal not enough...') read as a 1-1 final; retracted ~10:36 AM; regraded WIN after a 92' winner."
+  },
+  "why_interesting": "The canonical premature-grade trap: a mid-match headline showed a 1-1 'final' and the actual result came from a stoppage-time winner. The grade flips from LOSS to WIN, and it was a live bet placed while trailing."
+ },
+ {
+  "case_id": "C13",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "Fanatics",
+  "bet_type": "Boost-SGP",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "boost_or_token": "25% Profit Boost (cash-paid; a $0.15 'Cash' tag on the slip was never resolved)",
+  "ticket_price_american": "+568",
+  "printed_payout": 66.88,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Bayern Munich",
+    "market": "Moneyline 3-Way",
+    "line": null,
+    "leg_price_american": "-630",
+    "fixture": "FC Schalke 04 v FC Bayern Munich",
+    "home": "FC Schalke 04",
+    "away": "FC Bayern Munich",
+    "league": "Bundesliga",
+    "kickoff_et": "2026-09-05 12:30",
+    "market_wording_on_slip": "All wagers apply to regulation time only (excluding Extra Time), unless otherwise stated."
+   },
+   {
+    "leg": 2,
+    "selection": "No",
+    "market": "Both Teams to Score",
+    "line": null,
+    "leg_price_american": "+110",
+    "fixture": "FC Schalke 04 v FC Bayern Munich",
+    "home": "FC Schalke 04",
+    "away": "FC Bayern Munich",
+    "league": "Bundesliga",
+    "kickoff_et": "2026-09-05 12:30",
+    "market_wording_on_slip": null
+   },
+   {
+    "leg": 3,
+    "selection": "Under",
+    "market": "Total Goals",
+    "line": 2.5,
+    "leg_price_american": "+300",
+    "fixture": "FC Schalke 04 v FC Bayern Munich",
+    "home": "FC Schalke 04",
+    "away": "FC Bayern Munich",
+    "league": "Bundesliga",
+    "kickoff_et": "2026-09-05 12:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "L",
+     "evidence": "0-0 draw, not a Bayern win"
+    },
+    {
+     "leg": 2,
+     "result": "W",
+     "evidence": "neither team scored"
+    },
+    {
+     "leg": 3,
+     "result": "W",
+     "evidence": "0 total goals"
+    }
+   ],
+   "ticket_result": "LOSS",
+   "net": -10.0,
+   "final_score_cited": "FC Schalke 04 0-0 FC Bayern Munich (per Beni's first-hand correction; no independent source cited)",
+   "was_corrected": true,
+   "correction_note": "First graded WIN +$56.88 off a claimed 0-2 Bayern win (a Yahoo Sports '0-2' page plus a Soccerway recap, both bad sources); corrected to LOSS when Beni reported 0-0."
+  },
+  "why_interesting": "Two agreeing but bad web sources produced a wrong WIN. The corrected label rests only on the user's word, with no source cited, so verify the ground truth independently before scoring a grader against it."
+ },
+ {
+  "case_id": "C14",
+  "category": "C_parlay_edge",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "Boost-SGP",
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "boost_or_token": "Profit Boost (+330 -> +439)",
+  "ticket_price_american": "+439",
+  "printed_payout": 53.89,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Over",
+    "market": "Total Corners",
+    "line": 8.5,
+    "leg_price_american": null,
+    "fixture": "Celta Vigo v Osasuna",
+    "home": "Celta Vigo",
+    "away": "Osasuna",
+    "league": "La Liga",
+    "kickoff_et": "originally 2026-08-17 (first carried as 2026-08-16 15:30, corrected); postponed to 2026-08-27 ~14:30",
+    "market_wording_on_slip": "Over 8.5 Total Corners"
+   },
+   {
+    "leg": 2,
+    "selection": "Celta Vigo",
+    "market": "Full Time 2Up Early Payout",
+    "line": null,
+    "leg_price_american": null,
+    "fixture": "Celta Vigo v Osasuna",
+    "home": "Celta Vigo",
+    "away": "Osasuna",
+    "league": "La Liga",
+    "kickoff_et": "originally 2026-08-17; postponed to 2026-08-27 ~14:30",
+    "market_wording_on_slip": "Celta Vigo Full Time 2Up Early Payout"
+   },
+   {
+    "leg": 3,
+    "selection": "Over",
+    "market": "Total Goals",
+    "line": 2.5,
+    "leg_price_american": null,
+    "fixture": "Celta Vigo v Osasuna",
+    "home": "Celta Vigo",
+    "away": "Osasuna",
+    "league": "La Liga",
+    "kickoff_et": "originally 2026-08-17; postponed to 2026-08-27 ~14:30",
+    "market_wording_on_slip": "Over 2.5 Total Goals"
+   }
+  ],
+  "log_grade": {
+   "legs": [
+    {
+     "leg": 1,
+     "result": "VOID",
+     "evidence": "match postponed (pitch fungus outbreak); BetRivers voided the slip"
+    },
+    {
+     "leg": 2,
+     "result": "VOID",
+     "evidence": "same"
+    },
+    {
+     "leg": 3,
+     "result": "VOID",
+     "evidence": "same"
+    }
+   ],
+   "ticket_result": "VOID",
+   "net": 0.0,
+   "final_score_cited": null,
+   "was_corrected": false,
+   "correction_note": "The fixture date (not the grade) was corrected: first filed under 8/16, the actual original date was Sun 17 Aug, and the match was then postponed to 27 Aug."
+  },
+  "why_interesting": "A postponed match the book voided instead of carrying to the new date, confirmed by Beni rather than inferred, since void handling is book-specific. A grader that finds the rescheduled 27 Aug result and grades on it would be wrong."
+ }
+]
