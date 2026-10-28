@@ -137,6 +137,8 @@ it agrees with human labels.
 **Shipped**: the grader, the 32-case gold set, a full baseline run with traces, the failure
 taxonomy, the independent code check and the frozen match facts.
 
+The eleven plain-code checks are calibrated in sample against the human labels on the v1 traces.
+
 **Next**: turn the eleven code-checkable failures into a scorer; calibrate one LLM judge against
 human labels before it is allowed to grade anything; red-team the slip-text injection and report
 both how many attacks it catches and how many honest tickets it wrongly blocks; verify the 28
@@ -150,6 +152,9 @@ ollama pull qwen3:8b
 python3 run_eval.py data/gold.json                  # all 32 cases
 python3 run_eval.py data/gold.json --only A01,C03   # a few
 python3 check_gold.py data/candidates.json /tmp/review.md   # the independent code check
+python3 -m scorer.calibrate traces/v1               # agreement with the human labels, in sample
+python3 -m scorer.score traces/v1                   # which codes each ticket shows
+python3 -m scorer.report traces/v1 --out reports/calibration-v1.html --json reports/calibration-v1.json
 ```
 
 Tested on Python 3.9 and 3.14, standard library only. In the first run, a ticket took a median of about 18 seconds;
