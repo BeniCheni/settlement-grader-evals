@@ -19,7 +19,7 @@ is still your work; a skill that listed findings in advance would be the sealed-
 | Pass | Seat | Reads | Leaves behind |
 |---|---|---|---|
 | 0 | PM | the PR and the repo, fresh | the Pass 1 prompt: `/grader-pr-review <N>` plus context and a sealed appendix |
-| 1 | Claude Code | the prompt, then the repo | fix commits for what it reproduced; one PR comment (`pr-comment.md`); stops at the comment |
+| 1 | Claude Code; Codex when Claude authored the PR | the prompt, then the repo | fix commits for what it reproduced; one PR comment (`pr-comment.md`); stops at the comment |
 | 1.5 | PM | Pass 1's comment | the Pass 2 prompt: each finding to accept, contest, or accept while contesting the characterisation |
 | 2 | Codex | the prompt, then the head | fix commits and one comment in the same table; its own independent read as well |
 | 2.5 | PM | Pass 2's comment and commits | corroboration re-run at the head, the Executive Summary Brief (`executive-brief.md`), the merge or the escalation |
@@ -53,8 +53,8 @@ is still your work; a skill that listed findings in advance would be the sealed-
 
 ## 2. Baseline
 
-On the head, on **every Python the machine has (3.9 and 3.14 at least)**: `python3 -m unittest discover -t . -s tests` and
-`python3 -m compileall -q .`. Report the versions and the real counts, never a count from a document. Then check the
+On the head, on **every Python the machine has (3.9 and 3.14 at least)**: run `<python> -m unittest discover -t . -s tests` and
+`<python> -m compileall -q .`, replacing `<python>` with each interpreter's executable. If `tests/` does not yet exist, report the failed discovery and zero discovered tests; do not call it green. Report the versions and the real counts, never a count from a document. Then check the
 standard library only: parse every import in the diff and name any that is not. Reproduce every acceptance figure the spec
 names (for example the oracle in `data/`) with the command the spec gives, and say which matched. If either test run is
 red, that is your first finding.
