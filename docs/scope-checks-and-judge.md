@@ -49,7 +49,7 @@ Reproduce: `python3 -m scorer.calibrate traces/v1`, `python3 -m scorer.report tr
 | 3. Held-out labels | A human labels the failure codes on a second run's traces (a blank `annotations.csv` is written per run). The checks are then scored on labels they were never tuned on. | The calibration is re-run on the held-out run and every disagreement is read. |
 | 4. One judge | `SELF_CONTRADICTING_EVIDENCE`: does the grader's own evidence for a leg state a fact its grade contradicts? One binary question, a role, a concrete PASS and FAIL, one boundary example, reasoning then one word. About 100 evidence units exist across the two runs (47 and 53, placeholders removed); tune on one run and test on the other. | The judge meets the bar on held-out labels and every false pass is read. |
 | 5. One A/B | One prompt change, one variable, the full set, per-code deltas against slice 2's range, and a written ship or no-ship. | A decision with numbers, including the code that got worse. |
-| 6. The UIs | A labelling page for slice 3 and 4 (pass or fail, a note, saved in the browser, exported), and the agreement matrix, in `ui/ledger.css`. Then the trace viewer and the taxonomy page, after PR #1 lands so it does not conflict. | Each page passes the checks below. |
+| 6. The UIs | A labelling page for slice 3 and 4 (pass or fail, a note, saved in the browser, exported), and the agreement matrix, in `ui/ledger.css`. Then the trace viewer and the taxonomy page; PR #1 landed on 28 Oct (`6c5ceb7`), so they no longer conflict with it. | Each page passes the checks below. |
 
 ## Decisions that are not ours to make
 
@@ -57,7 +57,7 @@ Reproduce: `python3 -m scorer.calibrate traces/v1`, `python3 -m scorer.report tr
    A local model from another family that fits this machine costs nothing and keeps the repo dependency-free. A hosted
    model needs a key and a few dollars and is probably stronger. The judge code will take either through one adapter;
    the choice sets what a stranger needs to reproduce the result.
-2. **The two label additions.** `B01` and `A02`, in `data/codes_v1.json`. Deferred until PR #1 lands, which edits that file.
+2. **The two label additions.** `B01` and `A02`, in `data/codes_v1.json`. PR #1 landed on 28 Oct (`6c5ceb7`), so the file is free to edit.
 3. **Whether to spend the machine time on slice 2 now.** About ten minutes per run at the median wall clock.
 4. **How many held-out tickets to label.** All 32 is the clean answer; the tickets the checks flag differently between
    runs plus a random dozen is the cheap one.
