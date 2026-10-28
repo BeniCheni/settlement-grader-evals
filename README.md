@@ -67,9 +67,9 @@ code check on the answers themselves.
 │ Outcome matched ....... 11 of 32│
 │ Runs that did not finish .... 10│
 │ Win/loss flipped .... 14 tickets│
-│ Misbooked in total ..... $866.08│
+│ Flipped tickets ........ $866.08│
 ├─────────────────────────────────┤
-│ Answer keys checked by hand  4 of 32│
+│ Keys checked by hand ... 4 of 32│
 └─────────────────────────────────┘
 ```
 
@@ -104,8 +104,7 @@ it agrees with human labels.
 - **Trust an answer key because it looks right.** Of the 32 expected answers, 4 are marked
   `verified_by_beni`. The rest were drafted in an earlier LLM-assisted grading pass, so they are
   the same kind of thing the eval is testing. [`check_gold.py`](check_gold.py) re-grades every
-  match outcome from ESPN scores with plain code, and every net re-derives from stake, price and
-  printed payout. A human check against what the book paid is still open, and the numbers above
+  leg it can from ESPN facts with plain code. It reports cases it cannot fully check. A human check against what the book paid is still open, and the numbers above
   stay preliminary until it lands.
 - **Drift.** The match facts are frozen (see *Try it*): a re-run sees the facts the first run saw.
 - **Let the slip text vote.** Two adversarial cases are real tickets with a claim planted in the
@@ -151,7 +150,8 @@ python3 run_eval.py data/gold.json --only A01,C03   # a few
 python3 check_gold.py data/candidates.json /tmp/review.md   # the independent code check
 ```
 
-Python 3.10+, standard library only. A single ticket takes up to about half a minute here.
+Python 3.10+, standard library only. In the first run, a ticket took a median of about 18 seconds;
+six took over 30 seconds and the longest took about 71 seconds.
 
 ### The match facts are frozen on purpose
 
