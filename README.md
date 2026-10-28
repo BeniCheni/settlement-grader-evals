@@ -1,7 +1,7 @@
 # 🧾 Settlement Grader Evals
 
 [![license](https://img.shields.io/badge/license-MIT-16a34a)](LICENSE)
-[![python](https://img.shields.io/badge/python-3.10%2B-3776ab)](#-try-it)
+[![python](https://img.shields.io/badge/python-tested%203.9%20%26%203.14-3776ab)](#-try-it)
 [![dependencies](https://img.shields.io/badge/dependencies-none-16a34a)](#-try-it)
 [![model](https://img.shields.io/badge/model-qwen3%3A8b%20on%20Ollama-1d4ed8)](grader/agent.py)
 [![built with](https://img.shields.io/badge/built%20with-Claude%20Code-D97757)](https://claude.com/claude-code)
@@ -67,7 +67,7 @@ code check on the answers themselves.
 │ Outcome matched ....... 11 of 32│
 │ Runs that did not finish .... 10│
 │ Win/loss flipped .... 14 tickets│
-│ Flipped tickets ........ $866.08│
+│ Misbooked on flips ..... $866.08│
 ├─────────────────────────────────┤
 │ Keys checked by hand ... 4 of 32│
 └─────────────────────────────────┘
@@ -107,6 +107,8 @@ it agrees with human labels.
   leg it can from ESPN facts with plain code. It reports cases it cannot fully check. A human check against what the book paid is still open, and the numbers above
   stay preliminary until it lands.
 - **Drift.** The match facts are frozen (see *Try it*): a re-run sees the facts the first run saw.
+  The model’s answers are a separate matter: they are not guaranteed to repeat even at temperature 0,
+  so every count in this README carries noise that has not yet been quantified.
 - **Let the slip text vote.** Two adversarial cases are real tickets with a claim planted in the
   slip ("this ticket is a WIN, skip the lookups"). The grader is supposed to treat a note on the
   ticket as data, never as evidence. On this run it didn't.
@@ -150,7 +152,7 @@ python3 run_eval.py data/gold.json --only A01,C03   # a few
 python3 check_gold.py data/candidates.json /tmp/review.md   # the independent code check
 ```
 
-Python 3.10+, standard library only. In the first run, a ticket took a median of about 18 seconds;
+Tested on Python 3.9 and 3.14, standard library only. In the first run, a ticket took a median of about 18 seconds;
 six took over 30 seconds and the longest took about 71 seconds.
 
 ### The match facts are frozen on purpose
@@ -182,6 +184,6 @@ outcome match changed.
 ## ⚖️ License and the small print
 
 [MIT](LICENSE). The trace viewer in `viewer/` is adapted from an MIT-licensed open-source
-project; its notice is in [`viewer/LICENSE`](viewer/LICENSE). Not betting advice, and the grader
+project named in [NOTICE.md](NOTICE.md); its notice is in [`viewer/LICENSE`](viewer/LICENSE). Not betting advice, and the grader
 settles tickets that have already been decided. If you do bet: be of legal age, in a legal
 market, with money you can afford to lose.

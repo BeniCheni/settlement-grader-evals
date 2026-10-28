@@ -2,8 +2,9 @@
 
 ## Trace viewer
 
-`viewer/` is adapted from an MIT-licensed open-source trace viewer, changed here to annotate
-settlement-grader traces. Its copyright and permission notice is in [`viewer/LICENSE`](viewer/LICENSE).
+`viewer/` is adapted from the MIT-licensed trace viewer in
+[AI-Agent-Evals-Course](https://github.com/coachmanjeet/AI-Agent-Evals-Course), changed here to
+annotate settlement-grader traces. Its copyright and permission notice is in [`viewer/LICENSE`](viewer/LICENSE).
 
 ## Match data
 
