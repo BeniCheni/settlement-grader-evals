@@ -16,11 +16,10 @@ design file copied in and kept out of git:
 then open `[builder-checkout]` in Cursor, model Grok 4.7 High, and paste the prompt below.
 
 What happened on the run (added Wed 28 Oct 2026, after PR #2 opened). The builder started before the docs PR had merged, so the
-oracle and the readings were not on `main`. PR #2's body says it copied them unchanged from the PM's local commit `0f28bb2`, a
-commit that existed only in the shared object store under the main checkout. That departs from the prompt's "do not read
-anything under the main checkout", forced by the order of events and not hidden by the builder. The copies are byte-identical
-to the files on this branch. Whether the builder's code was written against the spec and the data, and not against the withheld
-prototype, is for the reviewers to judge from the code; the PM seat's own comparison goes into the Pass 2.5 synthesis.
+oracle and the readings were not on `main`. PR #2's body says it copied them unchanged from PM commit `0f28bb2` and says the
+prototype scorer was not read. The copies are byte-identical to the files on this branch. The body does not say how that commit
+was accessed; the sequence alone does not establish whether the prototype was withheld. Whether the builder's code was written
+against the spec and the data is for the reviewers to judge; the PM seat's own comparison goes into the Pass 2.5 synthesis.
 
 ---
 
