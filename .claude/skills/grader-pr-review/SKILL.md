@@ -60,9 +60,9 @@ On the head, on **every Python the machine has (3.9 and 3.14 at least)**: run `<
 `<python> -m compileall -q .`, replacing `<python>` with each interpreter's executable. If `tests/` does not yet exist, report the failed discovery and zero discovered tests; do not call it green. Report the versions and the real counts, never a count from a document. Then check the
 standard library only: parse every import in the diff and name any that is not. Reproduce every acceptance figure the spec
 names (for example the oracle in `data/`) with the command the spec gives, and say which matched. If either test run is
-red, that is your first finding. The one exception: a PR that adds no code, on a head with no `tests/` directory, reports
+red, that is your first finding. The one exception: a docs-only PR that changes no code, on a head with no `tests/` directory, reports
 "no suite" and is not blocked by it; the gate's `verify` clause begins when `.github/workflows/ci.yml` exists. A PR that
-adds code without tests has a red baseline, and that is its first finding.
+changes code without tests has a red baseline, and that is its first finding.
 
 ## 3. Static pass: choose the classes by what the diff touches
 
