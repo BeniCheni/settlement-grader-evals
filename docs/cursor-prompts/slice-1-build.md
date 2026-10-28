@@ -1,5 +1,6 @@
 # Slice 1: the Cursor build prompt (archived Wed 28 Oct 2026, TZ=America/New_York)
 
+Archive note: home-directory paths are redacted as placeholders; setup commands need local paths supplied before use.
 Written by the PM seat (Claude, Sonnet 5.5) from a fresh read of the repo, the trace files and the failure-code data, for the
 builder seat (Cursor, Grok 4.7 High) under the owner's flow of 28 Oct 2026: Cursor builds, Claude Code is Pass 1, Codex is
 Pass 2, Cursor merges in Pass 3. Delivered in chat in a four-backtick fence, one line per paragraph; this copy is the archive.
@@ -11,8 +12,8 @@ builder, so the build is independent and Pass 1 can compare it with something wr
 Setup that only a human can run, once, after the docs PR that carries this file, `AGENTS.md`, the spec and the oracle has
 merged: a fresh clone (not a worktree, which would share this repo's refs and expose the withheld prototype), with the one
 design file copied in and kept out of git:
-`git clone https://github.com/BeniCheni/settlement-grader-evals.git ~/settlement-grader-cursor && cd ~/settlement-grader-cursor && git switch -c cursor/slice-1-checks && mkdir -p design && cp ~/settlement-grader-evals/design/haunted-ledger-draft.html design/ && printf 'design/\n' >> .git/info/exclude`
-then open `~/settlement-grader-cursor` in Cursor, model Grok 4.7 High, and paste the prompt below.
+`git clone https://github.com/BeniCheni/settlement-grader-evals.git [builder-checkout] && cd [builder-checkout] && git switch -c cursor/slice-1-checks && mkdir -p design && cp [main-checkout]/design/haunted-ledger-draft.html design/ && printf 'design/\n' >> .git/info/exclude`
+then open `[builder-checkout]` in Cursor, model Grok 4.7 High, and paste the prompt below.
 
 What happened on the run (added Wed 28 Oct 2026, after PR #2 opened). The builder started before the docs PR had merged, so the
 oracle and the readings were not on `main`. PR #2's body says it copied them unchanged from the PM's local commit `0f28bb2`, a
@@ -25,7 +26,7 @@ prototype, is for the reviewers to judge from the code; the PM seat's own compar
 
 Slice 1 build: the eleven plain-code checks, their calibration against the human labels, and the first page, in github.com/BeniCheni/settlement-grader-evals
 
-You are the builder seat for slice 1, running in Cursor on Grok 4.7 High, in a fresh clone at ~/settlement-grader-cursor on the branch cursor/slice-1-checks. You build one draft pull request from the spec and review nothing. Claude Code reviews your PR cold, Codex adjudicates, and you merge it only after both and only on the owner's word. Your deliverables: a draft PR from cursor/slice-1-checks into main, every commit green on its own, the PR body filled in from .github/pull_request_template.md, and a final PR comment that begins "Builder: HOLD at <the full head SHA>" and says what you could not verify. Then stop. Do not merge, do not request a review, do not tag.
+You are the builder seat for slice 1, running in Cursor on Grok 4.7 High, in a fresh clone at [builder-checkout] on the branch cursor/slice-1-checks. You build one draft pull request from the spec and review nothing. Claude Code reviews your PR cold, Codex adjudicates, and you merge it only after both and only on the owner's word. Your deliverables: a draft PR from cursor/slice-1-checks into main, every commit green on its own, the PR body filled in from .github/pull_request_template.md, and a final PR comment that begins "Builder: HOLD at <the full head SHA>" and says what you could not verify. Then stop. Do not merge, do not request a review, do not tag.
 
 READ FIRST, in this order, before any code. AGENTS.md (it outranks this prompt on process; a prompt may narrow it and never loosen it). docs/slice-1-spec.md (the spec of record and the contract: names and behaviours it fixes are fixed). data/oracle_slice1.json (the acceptance data). docs/scope-checks-and-judge.md (why this slice exists and what comes after it). Then README.md, data/codes_v1.json, data/gold.json, data/calibration_readings_v1.json, check_gold.py, run_eval.py and grader/, which you reuse and do not change.
 
@@ -33,7 +34,7 @@ WHAT YOU BUILD. Everything in the spec's contract sections: scorer/traces.py, sc
 
 THE ORACLE IS THE ACCEPTANCE TEST AND IS NOT YOURS TO EDIT. data/oracle_slice1.json holds the expected output of the eleven checks on traces/v1, per code: the flagged case ids, tp, fp, fn, tn, agreement and kappa to four decimals, whether the bar is met, and the false passes and false fails. Write a test that loads it and asserts every field against your calibration. If your output differs from the oracle, do not change the oracle and do not tune a check until it matches: read the trace, decide whether your check or the oracle is wrong, and put the evidence in the PR body. A mismatch you cannot settle is a HOLD, not a guess. The two disagreements in the oracle (B01 under SKIPPED_SETTLE_TICKET and A02 under INCOMPLETE_LEG_LIST) are expected: they are flags the human labels lack, read in data/calibration_readings_v1.json, and the labels are the owner's to change, not yours.
 
-THE REFERENCE IS WITHHELD ON PURPOSE. The PM seat wrote a prototype that produced the oracle. You do not have it, and you must not look for it: do not search this machine for another copy of a scorer/ directory, and do not read anything under ~/settlement-grader-evals (the one design file you need is already copied into design/ in your clone). The spec and the oracle are the whole contract.
+THE REFERENCE IS WITHHELD ON PURPOSE. The PM seat wrote a prototype that produced the oracle. You do not have it, and you must not look for it: do not search this machine for another copy of a scorer/ directory, and do not read anything under [main-checkout] (the one design file you need is already copied into design/ in your clone). The spec and the oracle are the whole contract.
 
 BOUNDARIES.
 - Python standard library only, and no dependency of any kind. Your code must run on Python 3.9 and 3.14 (3.9 has no `X | Y` annotations, no `match`, and no nested same-quote f-strings; run both and say which interpreters you used). Do not edit check_gold.py, run_eval.py, anything under grader/, data/gold.json, data/codes_v1.json, data/oracle_slice1.json or data/calibration_readings_v1.json. Do not touch viewer/ or share/.

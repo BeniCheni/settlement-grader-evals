@@ -1,5 +1,6 @@
 # PR #2 — Pass 1: the cold-review brief for slice 1 (archived Wed 28 Oct 2026, TZ=America/New_York)
 
+Archive note: home-directory paths are redacted as placeholders; setup commands need local paths supplied before use.
 Written by the PM seat (Claude Code, Sonnet 5.5) at about 15:30 EDT from a fresh read of PR #2 at head `402c423a11b352d677e81dd68fb0b32b4bb05476`
 (Cursor, Grok 4.7; draft; `verify` green on 3.9 and 3.14). The brief is tip-agnostic: the reviewer takes the SHA from the latest
 "Builder: HOLD at" comment and checks it against GitHub. This file is the archive; the delivery is the chat message.
@@ -15,15 +16,15 @@ Two things must be true before the session starts, and only the owner can do the
 
 Setup, once, after both are done:
 
-    git clone https://github.com/BeniCheni/settlement-grader-evals.git ~/settlement-grader-pr2-review && cd ~/settlement-grader-pr2-review && git fetch origin cursor/slice-1-checks && git switch -c claude/pr2-review origin/cursor/slice-1-checks
+    git clone https://github.com/BeniCheni/settlement-grader-evals.git [PR-2-review-checkout] && cd [PR-2-review-checkout] && git fetch origin cursor/slice-1-checks && git switch -c claude/pr2-review origin/cursor/slice-1-checks
 
 A fresh clone, not a worktree: a worktree shares refs with the main checkout, and the main checkout holds the gitignored `private/`.
 
-## The builder's sync prompt (Cursor, Grok 4.7 High, in ~/settlement-grader-cursor)
+## The builder's sync prompt (Cursor, Grok 4.7 High, in [builder-checkout])
 
 Sync PR #2 with main, then re-post the HOLD
 
-You are the builder seat for PR #2, in your own clone at ~/settlement-grader-cursor on cursor/slice-1-checks. The docs PR has landed on main (AGENTS.md, the review skill, the slice 1 spec, the PR template). Merge origin/main into your branch: a merge commit, no rebase, no force-push. data/oracle_slice1.json and data/calibration_readings_v1.json exist on both sides and are byte-identical, so the merge should be clean; if any file conflicts, stop and say which and why instead of resolving it. Then run the suite on Python 3.9 and 3.14 and compileall, regenerate the three reports and cmp them against the committed ones, push to cursor/slice-1-checks only, wait for verify on both Pythons, and post a new comment that begins "Builder: HOLD at <the full head SHA>" and says what you re-ran and what you did not. Author the merge commit as `Cursor` with the email your harness uses, never the owner's. Change no other file, do not mark the PR ready, do not request a review, do not merge.
+You are the builder seat for PR #2, in your own clone at [builder-checkout] on cursor/slice-1-checks. The docs PR has landed on main (AGENTS.md, the review skill, the slice 1 spec, the PR template). Merge origin/main into your branch: a merge commit, no rebase, no force-push. data/oracle_slice1.json and data/calibration_readings_v1.json exist on both sides and are byte-identical, so the merge should be clean; if any file conflicts, stop and say which and why instead of resolving it. Then run the suite on Python 3.9 and 3.14 and compileall, regenerate the three reports and cmp them against the committed ones, push to cursor/slice-1-checks only, wait for verify on both Pythons, and post a new comment that begins "Builder: HOLD at <the full head SHA>" and says what you re-ran and what you did not. Author the merge commit as `Cursor` with the email your harness uses, never the owner's. Change no other file, do not mark the PR ready, do not request a review, do not merge.
 
 ## The Pass 1 prompt
 
@@ -33,7 +34,7 @@ You are the builder seat for PR #2, in your own clone at ~/settlement-grader-cur
 
 PR #2 — Pass 1 (cold review): slice 1, the eleven plain-code checks, their in-sample calibration and the first page, in github.com/BeniCheni/settlement-grader-evals
 
-You are Pass 1 of the full cycle, running in Claude Code on Fable 5.1 at Extra effort, in a fresh session whose working directory is a fresh clone, ~/settlement-grader-pr2-review, on the local branch claude/pr2-review, which starts at the PR's head. Cursor on Grok 4.7 wrote the PR; you wrote none of it, and Codex adjudicates after you (Pass 2). The method is /grader-pr-review, which the line above invokes; it lives at .claude/skills/grader-pr-review/, and AGENTS.md outranks it on process. Read AGENTS.md first, then the skill, then this prompt again. You may fix what you reproduce, in scope, under the skill's fix policy, and you push with `git push origin HEAD:cursor/slice-1-checks` after `git fetch origin` shows the remote tip unmoved. `--no-merge` is on: stop at the PR comment. This is not a release (no tag, no version string, no CHANGELOG), and the merge itself waits for Pass 2 and Pass 3.
+You are Pass 1 of the full cycle, running in Claude Code on Fable 5.1 at Extra effort, in a fresh session whose working directory is a fresh clone, [PR-2-review-checkout], on the local branch claude/pr2-review, which starts at the PR's head. Cursor on Grok 4.7 wrote the PR; you wrote none of it, and Codex adjudicates after you (Pass 2). The method is /grader-pr-review, which the line above invokes; it lives at .claude/skills/grader-pr-review/, and AGENTS.md outranks it on process. Read AGENTS.md first, then the skill, then this prompt again. You may fix what you reproduce, in scope, under the skill's fix policy, and you push with `git push origin HEAD:cursor/slice-1-checks` after `git fetch origin` shows the remote tip unmoved. `--no-merge` is on: stop at the PR comment. This is not a release (no tag, no version string, no CHANGELOG), and the merge itself waits for Pass 2 and Pass 3.
 
 YOUR TREE IS A FRESH CLONE ON PURPOSE. The gitignored private/ and data/espn_cache/ are physically absent; if either is present, stop and say so. Do not open any other checkout of this repo on this machine, and never print or derive the scale constant. The reviewer reads the PR against the spec and the data, not against anything else.
 
