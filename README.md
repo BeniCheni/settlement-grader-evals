@@ -179,21 +179,6 @@ After scaling I checked that re-running `settle_ticket` on all 47 recorded calls
 recorded net, that `check_gold.py` gives the same verdict on all 30 real tickets, and that no
 outcome match changed.
 
-## 🤝 Contribute
-
-If you've ever trusted an LLM's arithmetic and regretted it, you'll like it here. Honest places
-to start:
-
-- **A scorer for the eleven code-checkable failure codes**, run against the traces in `traces/v1`.
-- **A better team-name matcher for `find_match`.** In the baseline it came back empty on a ticket
-  for "Sporting KC", apparently unable to match "Sporting Kansas City", and the grader called the
-  ticket void instead of retrying.
-- **The same cases on a second local model**, for a comparison that isn't one model grading
-  itself.
-
-If you want to add cases from your own tickets, `data/gold.json` is the schema; check the
-expected answers yourself before trusting them, which is the whole point of this repo.
-
 ## ⚖️ License and the small print
 
 [MIT](LICENSE). The trace viewer in `viewer/` is adapted from an MIT-licensed open-source
