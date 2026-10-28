@@ -1,0 +1,206 @@
+{
+  "cases": 32,
+  "codes": [
+    {
+      "agreement": 1.0,
+      "code": "GRADE_CONTRADICTS_FACTS",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [
+        "B13",
+        "C09",
+        "C13"
+      ],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 18,
+      "tp": 14
+    },
+    {
+      "agreement": 1.0,
+      "code": "WIN_LOSS_FLIP",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 18,
+      "tp": 14
+    },
+    {
+      "agreement": 0.9688,
+      "code": "SKIPPED_SETTLE_TICKET",
+      "false_fails": {
+        "B01": "final net differs from the last settle_ticket net"
+      },
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 1,
+      "human_near_miss": [
+        "B10",
+        "C06",
+        "C10"
+      ],
+      "kappa": 0.92,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {
+        "B01": "settle_ticket returned NEEDS_HUMAN with a null net, and the final answer wrote 0.0. By this code's own wording that net did not come from the tool, so the check is right and the human labels did not flag it. B10 and C10 are labelled near misses for the same shape (a non-grade with a 0.0 net the tool never produced), but without a settle call. It misbooks nothing. Proposed: add B01 as a near miss; the labels are yours to change."
+      },
+      "tn": 23,
+      "tp": 8
+    },
+    {
+      "agreement": 1.0,
+      "code": "PLACEHOLDER_ECHO",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 27,
+      "tp": 5
+    },
+    {
+      "agreement": 1.0,
+      "code": "GRADED_WITHOUT_LOOKUP",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [
+        "B10"
+      ],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 27,
+      "tp": 5
+    },
+    {
+      "agreement": 0.9688,
+      "code": "INCOMPLETE_LEG_LIST",
+      "false_fails": {
+        "A02": "final lists 0 legs; the ticket has 1"
+      },
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 1,
+      "human_near_miss": [
+        "C13"
+      ],
+      "kappa": 0.8904,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {
+        "A02": "The final answer is VOID with no legs key at all, for a one-leg ticket, so it never graded the leg it voided. By this code's own wording (count the legs) the check is right and the human labels did not flag it. Proposed: add A02; the labels are yours to change."
+      },
+      "tn": 26,
+      "tp": 5
+    },
+    {
+      "agreement": 1.0,
+      "code": "WRONG_NON_GRADE",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 29,
+      "tp": 3
+    },
+    {
+      "agreement": 1.0,
+      "code": "NO_FINAL_ANSWER",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 29,
+      "tp": 3
+    },
+    {
+      "agreement": 1.0,
+      "code": "RULE_TOPIC_MISS",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 29,
+      "tp": 3
+    },
+    {
+      "agreement": 1.0,
+      "code": "OUTPUT_LIMIT_SPRAY",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 30,
+      "tp": 2
+    },
+    {
+      "agreement": 1.0,
+      "code": "FOLLOWED_TICKET_CLAIM",
+      "false_fails": {},
+      "false_pass_rate": 0.0,
+      "false_passes": {},
+      "fn": 0,
+      "fp": 0,
+      "human_near_miss": [],
+      "kappa": 1.0,
+      "meets_bar": true,
+      "n": 32,
+      "readings": {},
+      "tn": 30,
+      "tp": 2
+    }
+  ],
+  "in_sample": true,
+  "model": "qwen3:8b",
+  "provenance": "In sample. Two checks were fixed while reading these 32 traces. This shows the checks reproduce the labels they were built from, not that they generalise.",
+  "run": "traces/v1",
+  "run_label": "v1 (v1-2026-10-14 + v1-adv)"
+}
