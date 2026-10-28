@@ -149,7 +149,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 18px; display: grid; ga
 
 <div class="wrap">
 <header>
-  <div class="eyebrow">AI Evals in Practice · Week 1 · Project 1 on my own agent</div>
+  <div class="eyebrow">First run · 14 Oct 2026 · error analysis on my own agent</div>
   <h1>Settlement Grader Taxonomy</h1>
   <p class="lede">I gave a local 8B model four tools and 32 of my soccer bet tickets to settle, traced every run, and read each trace by hand. Here is how it fails, counted.</p>
   <div class="meta">
@@ -247,7 +247,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 18px; display: grid; ga
 <tr><td><code>SELF_CONTRADICTING_EVIDENCE</code></td><td>Does the grader&#x27;s own evidence or note state a fact that contradicts the grade it gave that leg?</td><td>Response</td>
 <td><span class="dim">model quality</span></td><td class="num r">6</td>
 <td class="num r">2</td><td class="num r">$132.65<br><span class="fine">33.2u</span></td>
-<td>LLM judge (Week 2), calibrated on these 6</td><td class="ex">A12 <code class="tid">9310aeee6400</code>, B13 <code class="tid">7a186320a20e</code></td></tr>
+<td>LLM judge, calibrated on these 6</td><td class="ex">A12 <code class="tid">9310aeee6400</code>, B13 <code class="tid">7a186320a20e</code></td></tr>
 <tr><td><code>PLACEHOLDER_ECHO</code></td><td>Does the final answer copy the prompt&#x27;s example text (&#x27;the score or stat you used&#x27; / &#x27;one line&#x27;)?</td><td>Response</td>
 <td><span class="dim">model quality</span></td><td class="num r">5</td>
 <td class="num r">—</td><td class="num r">$287.91<br><span class="fine">72.0u</span></td>
@@ -326,7 +326,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 18px; display: grid; ga
     <li><strong>Gates in code.</strong> Reject a final answer unless every leg went through <code>find_match</code> and <code>get_match_facts</code> and <code>settle_ticket</code> succeeded with the same result and net. Otherwise return NEEDS_HUMAN. Targets <code>SKIPPED_SETTLE_TICKET</code> and <code>GRADED_WITHOUT_LOOKUP</code>.</li>
     <li><strong>A code re-grader on simple legs.</strong> Result, totals, BTTS and handicap legs are re-graded from the fetched facts; any disagreement becomes NEEDS_HUMAN instead of a silent money error. Targets <code>GRADE_CONTRADICTS_FACTS</code>.</li>
   </ol>
-  <p>Success measure: re-run the frozen 32 and see zero <code>WIN_LOSS_FLIP</code> and zero <code>FOLLOWED_TICKET_CLAIM</code>. What remains of <code>SELF_CONTRADICTING_EVIDENCE</code> becomes the Week 2 LLM-judge target.</p>
+  <p>Success measure: re-run the frozen 32 and see zero <code>WIN_LOSS_FLIP</code> and zero <code>FOLLOWED_TICKET_CLAIM</code>. What remains of <code>SELF_CONTRADICTING_EVIDENCE</code> becomes the LLM-judge target.</p>
   <h3>Tool and harness issues (not model failures)</h3>
   <ul class="notes">
     <li><code>find_match</code> can't map some short names ("Sporting KC" to "Sporting Kansas City"), which set up A02's failure.</li>
@@ -579,7 +579,7 @@ footer { border-top: 1px solid var(--rule); padding-top: 18px; display: grid; ga
 
 <footer>
   <p>Answer key: 30 real tickets from my logs (Aug–Oct 2026), each leg re-graded by plain code against ESPN match data, with my rulings on two disputed tickets and three confirmed against the book's own slip. Two synthetic adversarial tickets (X01, X02) are copies of real losses with a note added.</p>
-  <p>Annotation: every trace was read in the course Trace Viewer. Notes were drafted by Claude from each trace; the pass / near-miss / fail verdict on every one is mine.</p>
+  <p>Annotation: every trace was read in the trace viewer in <code>viewer/</code>. Notes were drafted by Claude from each trace; the pass / near-miss / fail verdict on every one is mine.</p>
 </footer>
 </div>
 

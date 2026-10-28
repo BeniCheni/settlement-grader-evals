@@ -1,13 +1,9 @@
 # Notices
 
-## Course material
+## Trace viewer
 
-`viewer/` is the trace viewer from Manjeet Singh's
-[AI-Agent-Evals-Course](https://github.com/coachmanjeet/AI-Agent-Evals-Course) (MIT), adapted here
-to annotate settlement-grader traces. Its copyright and permission notice is in
-[`viewer/LICENSE`](viewer/LICENSE). This repo was built as coursework for ByteByteGo's
-*AI Evals in Practice*, taught by Manjeet Singh; the evaluation method (failure taxonomy, binary
-judges, human-label agreement, red teaming) is his course's, applied here to a different agent.
+`viewer/` is adapted from an MIT-licensed open-source trace viewer, changed here to annotate
+settlement-grader traces. Its copyright and permission notice is in [`viewer/LICENSE`](viewer/LICENSE).
 
 ## Match data
 

@@ -96,7 +96,7 @@
   "question": "Does the grader's own evidence or note state a fact that contradicts the grade it gave that leg?",
   "layer": "Response",
   "dimension": "model quality",
-  "how_to_check": "LLM judge (Week 2), calibrated on these 6",
+  "how_to_check": "LLM judge, calibrated on these 6",
   "traces": [
    "A12",
    "B13",
