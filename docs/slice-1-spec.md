@@ -88,11 +88,11 @@ decisions that wording leaves open, and each was learned from a trace.
 `confusion(predicted, truth)` returns `{tp, fp, fn, tn}` from two equal-length lists of booleans (a positive is a failure;
 `fn` is a real failure the check missed, the dangerous error; unequal lengths raise `ValueError`); `agreement(c)`;
 `cohen_kappa(c)`, `None` when chance agreement is 1; `wilson(k, n, z=1.96)`, `(0.0, 1.0)` when `n` is 0;
-`false_pass_rate(c)`, `None` when there are no real failures; `meets_bar(c, min_agreement=0.85, min_kappa=0.6)`, true only
+`false_pass_rate(c)`, `fn / (tp + fn)`, or `None` when there are no real failures; `meets_bar(c, min_agreement=0.85, min_kappa=0.6)`, true only
 when both are met and neither is `None`. Tests must include these hand-worked tables: `tp 8, fn 7, fp 4, tn 31` gives
 agreement 0.78, kappa about 0.444 and false-pass rate 7/15; `tp 1, fn 6, fp 0, tn 93` gives agreement 0.94 and kappa about
 0.237; an always-pass judge (`tp 0, fn 7, fp 0, tn 93`) gives agreement 0.93 and kappa 0.0; `wilson(11, 32)` is about
-(0.205, 0.518).
+(0.204, 0.517).
 
 ## Calibration (contract: `scorer/calibrate.py`)
 
