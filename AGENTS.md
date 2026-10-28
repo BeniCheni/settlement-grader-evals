@@ -33,16 +33,18 @@ failure, and the proof that any check or judge agrees with a human before it is 
 
 1. **Amounts are scaled.** Every dollar amount here was multiplied by one constant that is not published. Never print,
    derive, hint at or reconstruct it, and never compute a ratio between a published amount and anything. The constant
-   and the real amounts live only in the gitignored `private/`. Never open `private/` or `data/espn_cache/`. A build or
-   review session runs in a worktree where they are physically absent.
+   and the real amounts live only in the gitignored `private/`. Never open `private/` or `data/espn_cache/`. Every build
+   and review session works in a fresh `git clone` from GitHub, never a worktree: a worktree shares refs and objects with
+   the main checkout, which holds `private/`, `data/espn_cache/` and any withheld local branch, and a clone holds only
+   what has been pushed. If either folder is in your tree, stop and say so.
 2. **`design/` is local only** and is never committed. A brief that names a file in it grants read access to that file.
 3. **Facts are frozen.** The grader reads `data/espn_frozen.json`; a lookup that is not in it raises and never reaches
    the network. Extending it is its own PR, run with `ESPN_LIVE=1` and `build_frozen.py`.
 4. **Nothing here predicts a result.** Do not add a feature that does.
 5. **No answer key is "verified" unless `verified_by_beni` says so.** A claim about the answer keys carries that count.
-6. **Nothing private enters a PR**: no bet ids, e-mail addresses, home-directory paths, account or balance claims, and no
-   person's name beyond the repo owner and licence notices. Every PR is swept for these by pattern, with the counts
-   reported and no hit printed.
+6. **Nothing private enters a PR**: no bet ids, e-mail addresses, home-directory paths (absolute
+   and tilde forms alike), account or balance claims, and no person's name beyond the repo owner and licence notices. Every PR is swept
+   for these by pattern, with the counts reported, the patterns stated and no hit printed.
 
 ## Engineering rules
 
@@ -53,6 +55,8 @@ failure, and the proof that any check or judge agrees with a human before it is 
   assertion to make something pass.
 - **In sample is not held out.** A check or judge fixed while reading its own test set says so wherever it reports a
   number. The bar to trust one is agreement of at least 85%, Cohen's kappa of at least 0.6, and every false pass read.
+  `meets_bar` tests the two numbers only: whether every false pass was read is reported beside it and never folded into
+  it, and no tile, pill or sentence presents the numbers alone as the trust verdict.
 - **Report both numbers.** Agreement and kappa; catch rate and over-block rate. One alone hides the other's failure.
 - **A figure carries the command that reproduces it.** Say how a count is made. A count filtered by hand is not a count.
   Absolute words ("never", "every", "exactly", "up to") are claims: test them.
@@ -62,7 +66,9 @@ failure, and the proof that any check or judge agrees with a human before it is 
 
 `ui/ledger.css` is the only source of colour and type. Ink speaks, slime confirms, lamp marks where data came from and
 nothing else, blood alarms. A label earns its place only if it changes what the reader can do: no always-green status
-chips, no "local mode" banners. Both themes; AA contrast on every text pair, computed; reduced motion respected; at
+chips, no "local mode" banners. The one required exception is provenance: wherever a calibration number is shown, a
+sentence beside it says whether it is in sample or held out and what it does and does not show, because that decides how
+far the reader may trust it. It is a sentence, never a chip, and it changes when the evidence changes. Both themes; AA contrast on every text pair, computed; reduced motion respected; at
 360, 375, 390 and about 1000 px the page's `scrollWidth` equals its `innerWidth`, with the viewport set before any capture.
 
 ## How work moves
@@ -75,6 +81,11 @@ chips, no "local mode" banners. Both themes; AA contrast on every text pair, com
    fixes"; every high finding has a fix commit; `verify` is green at the tip (once `.github/workflows/ci.yml` exists);
    nothing is still contested between vendors; and it is not a release. Otherwise the pass escalates to Beni with
    questions answerable in one word.
+5. **Fast-track.** A PR that is not a release may run as a fast-track when the PM's Pass 0 brief says so: one cold review
+   by a vendor that did not write it (Codex for a Claude-authored PR) takes the place of Passes 1 to 3, fixes what it
+   reproduces, and squash-merges if the gate in item 4 holds. The default is the full sequence above, and the PM picks the
+   shape per PR. A tag and a release number stay Beni's. (Beni's ruling, 28 Oct 2026; the same shape he set for the
+   Kickoff repo on 7 Oct, and PR #1 here merged this way.)
 
 ## Commits and PRs
 

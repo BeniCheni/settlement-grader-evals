@@ -15,11 +15,15 @@ design file copied in and kept out of git:
 `git clone https://github.com/BeniCheni/settlement-grader-evals.git [builder-checkout] && cd [builder-checkout] && git switch -c cursor/slice-1-checks && mkdir -p design && cp [main-checkout]/design/haunted-ledger-draft.html design/ && printf 'design/\n' >> .git/info/exclude`
 then open `[builder-checkout]` in Cursor, model Grok 4.7 High, and paste the prompt below.
 
-What happened on the run (added Wed 28 Oct 2026, after PR #2 opened). The builder started before the docs PR had merged, so the
-oracle and the readings were not on `main`. PR #2's body says it copied them unchanged from PM commit `0f28bb2` and says the
-prototype scorer was not read. The copies are byte-identical to the files on this branch. The body does not say how that commit
-was accessed; the sequence alone does not establish whether the prototype was withheld. Whether the builder's code was written
-against the spec and the data is for the reviewers to judge; the PM seat's own comparison goes into the Pass 2.5 synthesis.
+What happened on the run (added Wed 28 Oct 2026, after PR #2 opened; amended the same day after the Pass 1 on the docs PR). The
+builder started before the docs PR had merged or been pushed, so the oracle and the readings were not on `main`. PR #2's body
+says it copied them unchanged from PM commit `0f28bb2` and that the prototype scorer was not read. GitHub's activity log
+(`gh api repos/BeniCheni/settlement-grader-evals/activity`) shows the builder's branch first pushed at 18:58Z and the docs
+branch first pushed at 19:33Z with `0f28bb2` in its history, so the commit was not on GitHub while the builder worked: it took
+the files from a local repository, and the PR body does not say which. The local repositories on that machine share one object
+store, which also holds the withheld prototype's branch. Nothing seen so far shows the builder read the prototype, and nothing
+shows it did not. The copies are byte-identical to the files on this branch. Whether the code was written against the spec and
+the data is for the reviewers to judge from the code; the PM seat's own comparison goes into the Pass 2.5 synthesis.
 
 ---
 

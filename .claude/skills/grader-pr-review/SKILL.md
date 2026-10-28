@@ -9,7 +9,8 @@ disable-model-invocation: true
 
 `$ARGUMENTS`: the first token is a PR number (or a branch, before a PR exists: the base is then `origin/main` and
 section 7 step 0 opens the PR first). `--pass` selects the seat's pass, default 1. `--no-merge` stops at the PR
-comment. Invoked by hand only, because it pushes commits. A release merge and every tag are Beni's.
+comment. Invoked by hand only, because it pushes commits. A release merge and every tag are Beni's. In the full cycle
+Pass 1 and Pass 2 always stop at the comment; only a fast-track lands the PR (section 7, step 4).
 
 `AGENTS.md` outranks this file on process, and it names the seats. This file is the method. The adversarial reading
 is still your work; a skill that listed findings in advance would be the sealed-appendix anti-pattern in costume.
@@ -19,7 +20,7 @@ is still your work; a skill that listed findings in advance would be the sealed-
 | Pass | Seat | Reads | Leaves behind |
 |---|---|---|---|
 | 0 | PM | the PR and the repo, fresh | the Pass 1 prompt: `/grader-pr-review <N>` plus context and a sealed appendix |
-| 1 | Claude Code; Codex when Claude authored the PR | the prompt, then the repo | fix commits for what it reproduced; one PR comment (`pr-comment.md`); stops at the comment |
+| 1 | Claude Code; Codex when Claude authored the PR | the prompt, then the repo | fix commits for what it reproduced; one PR comment (`pr-comment.md`); stops at the comment (a fast-track also lands the PR, section 7) |
 | 1.5 | PM | Pass 1's comment | the Pass 2 prompt: each finding to accept, contest, or accept while contesting the characterisation |
 | 2 | Codex | the prompt, then the head | fix commits and one comment in the same table; its own independent read as well |
 | 2.5 | PM | Pass 2's comment and commits | corroboration re-run at the head, the Executive Summary Brief (`executive-brief.md`), the merge or the escalation |
@@ -35,10 +36,12 @@ is still your work; a skill that listed findings in advance would be the sealed-
 ## 0. Before anything
 
 - Read `AGENTS.md`. Run `TZ=America/New_York date` before writing any date.
-- **Work in a worktree of the PR branch made with `git worktree add`**, on a local branch with a different name from
-  the PR's, and push with `git push origin HEAD:<pr-branch>` after `git fetch origin` shows the remote tip unmoved.
-  Never review in the main checkout: it holds the gitignored `private/` and `data/espn_cache/`. Never open either. If
-  `private/` is present in your tree, stop and say so.
+- **Work in a fresh clone from GitHub, never a worktree** (`git clone <url> <dir>`, `git fetch origin <pr-branch>`, then
+  `git switch -c <local-name> origin/<pr-branch>`), on a local branch with a different name from the PR's, and push with
+  `git push origin HEAD:<pr-branch>` after `git fetch origin` shows the remote tip unmoved. A worktree shares refs and
+  objects with the main checkout, which holds the gitignored `private/` and `data/espn_cache/` and any withheld local
+  branch; a clone holds only what has been pushed. Never review in the main checkout or open any other checkout of this
+  repo on the machine. If `private/` or `data/espn_cache/` is present in your tree, stop and say so.
 - Detect a release: a version string, a `CHANGELOG.md` section or a tag means Beni merges and tags. Say so first.
 - A new dependency, a live network call outside `ESPN_LIVE=1`, or a number that is not `verified_by_beni` called verified
   are each a finding before they are anything else.
@@ -57,14 +60,16 @@ On the head, on **every Python the machine has (3.9 and 3.14 at least)**: run `<
 `<python> -m compileall -q .`, replacing `<python>` with each interpreter's executable. If `tests/` does not yet exist, report the failed discovery and zero discovered tests; do not call it green. Report the versions and the real counts, never a count from a document. Then check the
 standard library only: parse every import in the diff and name any that is not. Reproduce every acceptance figure the spec
 names (for example the oracle in `data/`) with the command the spec gives, and say which matched. If either test run is
-red, that is your first finding.
+red, that is your first finding. The one exception: a PR that adds no code, on a head with no `tests/` directory, reports
+"no suite" and is not blocked by it; the gate's `verify` clause begins when `.github/workflows/ci.yml` exists. A PR that
+adds code without tests has a red baseline, and that is its first finding.
 
 ## 3. Static pass: choose the classes by what the diff touches
 
 Always, whatever the diff:
 
 - **Privacy sweep**, by pattern, reporting patterns and hit counts and printing no hit that is itself a leak: bet-id-shaped
-  tokens, e-mail addresses, home-directory paths, the names of private folders, balance or account claims, a person's name
+  tokens, e-mail addresses, home-directory paths (absolute and tilde forms), the names of private folders, balance or account claims, a person's name
   beyond the owner and a licence notice, any dollar amount not taken from a tracked, already-scaled file. Never derive or
   print the scale constant. Never describe how amounts were scaled beyond what `README.md` says.
 - **Claims.** Every figure in a doc or a report carries a command that reproduces it. Say how each count is made. A count
@@ -86,8 +91,9 @@ By touch:
 - **Determinism.** Regenerate every committed report and compare bytes. A timestamp, a path or an unordered dict in a
   generated file is a finding.
 - **UI.** Only `ui/ledger.css` for colour and type; computed AA on every text pair in both themes; reduced motion; no
-  always-on status chip or "local mode" banner (a label must change what the reader can do); every external request named
-  on the page.
+  always-on status chip or "local mode" banner (a label must change what the reader can do; the one required exception is
+  the provenance sentence beside a calibration number); no tile, pill or sentence presents `meets_bar` alone as the trust
+  verdict; every external request named on the page.
 - **Workflows.** Minimal permissions; the matrix; read the previous run's log (`gh run list`, `gh run view <id> --log`)
   before believing a step is reachable.
 - **Docs.** Every number against its command; the Python floor against what the tests ran on.
@@ -123,12 +129,14 @@ rough size, written to be read cold.
 2. **One PR comment**, shape in `pr-comment.md`: verdict, findings table, killed findings, deliberately not done, the
    environment and commands as run.
 3. If the prompt carries **human-review items** (Beni's rulings), resolve each on the branch and record it in the comment.
-4. **The gate** is in `AGENTS.md`. If it fails, or `--no-merge` was given, or the PR is a release, stop at the comment and
-   escalate: questions answerable in one word. Otherwise squash-merge pinned to the head you reviewed:
+4. **The gate** is in `AGENTS.md`. Land only when the brief names a fast-track (`AGENTS.md`, "How work moves", item 5); in
+   the full cycle Pass 1 and Pass 2 stop at the comment and the merge belongs to Pass 3, after Pass 2.5. If the gate fails,
+   or `--no-merge` was given, or the PR is a release, stop at the comment and escalate: questions answerable in one word.
+   Otherwise squash-merge pinned to the head you reviewed:
    `gh pr merge <N> --squash --match-head-commit <full SHA>`, a message in the repo's voice, terse and factual, one wink at
    most, with a `Co-authored-by:` for every vendor that wrote or reviewed.
 5. After the merge confirm the default branch's tree equals the head you merged and that the README renders. Say where
-   everything landed. Leave branches and worktrees for Beni's word.
+   everything landed. Leave branches and clones for Beni's word.
 6. On a release or an escalation, end with one fenced paste-ready block: the merge to click and its squash message with the
    trailers, the tag command with its subject written, the push, the pull, and the commands that must come back green.
 

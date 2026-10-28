@@ -7,7 +7,7 @@ session, and for a public repo: no private path, no amount that was not already 
 ## Review (Pass <1|2>): <verdict in one sentence: mergeable / mergeable after fixes / not mergeable, and why>
 
 Reviewed at `<tip sha>` on <date, `TZ=America/New_York`>; verified after fixes at `<post-fix sha>`.
-Seat and model: <agent, model, effort>. Worktree without `private/`: <yes, path-free>.
+Seat and model: <agent, model, effort>. Fresh clone without `private/`: <yes, path-free>.
 Baseline at the tip: tests <N> in <M> files on Python <3.9.x> and <3.14.x>; compileall <clean|errors>; stdlib only <yes|names>.
 Diff against `origin/main`: <F> files, +<A> / −<B>. `verify`: <run id and result | no workflow yet>.
 

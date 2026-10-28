@@ -76,7 +76,8 @@ decisions that wording leaves open, and each was learned from a trace.
     - *Which match is a leg's*: the leg's teams (`home` and `away`, else parse `A v B` from `fixture` after dropping
       parentheticals), through `check_gold.ALIASES`; a fetched match is the leg's when both names score at least 0.5 against
       `espn.team_objects(event_id)` with `grader.espn._team_score`, in either orientation. A leg with no fetched match is
-      skipped.
+      skipped. **Known gap (amendment 3):** when more than one fetched match qualifies for a leg, this spec does not say
+      which is used.
     - *Re-grade*: `check_gold.auto_grade(leg, facts)`; only `W`, `L` and `P` are decisive. `OPEN`, `None` or an exception means
       skip that leg.
     - *Committed grades*: for leg index `i`, the `i`-th entry of `leg_results` in **every** `settle_ticket` call (including
@@ -89,7 +90,8 @@ decisions that wording leaves open, and each was learned from a trace.
 `fn` is a real failure the check missed, the dangerous error; unequal lengths raise `ValueError`); `agreement(c)`;
 `cohen_kappa(c)`, `None` when chance agreement is 1; `wilson(k, n, z=1.96)`, `(0.0, 1.0)` when `n` is 0;
 `false_pass_rate(c)`, `fn / (tp + fn)`, or `None` when there are no real failures; `meets_bar(c, min_agreement=0.85, min_kappa=0.6)`, true only
-when both are met and neither is `None`. Tests must include these hand-worked tables: `tp 8, fn 7, fp 4, tn 31` gives
+when both are met and neither is `None`. `meets_bar` tests the two numbers only: the third part of the trust bar, that every
+false pass was read, is a human act reported beside it and never folded into it. Tests must include these hand-worked tables: `tp 8, fn 7, fp 4, tn 31` gives
 agreement 0.78, kappa about 0.444 and false-pass rate 7/15; `tp 1, fn 6, fp 0, tn 93` gives agreement 0.94 and kappa about
 0.237; an always-pass judge (`tp 0, fn 7, fp 0, tn 93`) gives agreement 0.93 and kappa 0.0; `wilson(11, 32)` is about
 (0.204, 0.517).
@@ -110,10 +112,11 @@ how many tickets it flags, and writes per-ticket flags with evidence.
 self-contained page with `ui/ledger.css` inlined. It is deterministic (the same inputs give the same bytes; no timestamps, no
 machine paths). The committed `reports/calibration-v1.{html,json,md}` are tested against a regeneration, so a stale report
 fails a test. Content: a cover (run, model from `run_meta.json`, ticket count; a headline question; three stat tiles: checks
-meeting the bar, false passes, flags the labels lack); **a provenance line on the cover saying the result is in sample**,
-because two checks were fixed while reading these 32 traces, and that it shows the checks reproduce the labels they were
-built from, not that they generalise; a table with one row per check (caught of the human-labelled, agreement, kappa, false
-passes, false fails, a "met" or "not met" pill); one note per disagreement with its recorded reading; a colophon naming the
+whose numbers meet the bar, false passes, flags the labels lack); **a provenance line on the cover saying the result is in
+sample**, because two checks were fixed while reading these 32 traces, and that it shows the checks reproduce the labels
+they were built from, not that they generalise; a table with one row per check (caught of the human-labelled, agreement,
+kappa, false passes, false fails, a pill that says whether the numbers meet the bar and does not say the check is trusted,
+and a figure for false passes read, "n of n"); one note per disagreement with its recorded reading; a colophon naming the
 command and that fonts load from Google Fonts. Every dynamic string is HTML-escaped (a test proves it).
 
 `ui/ledger.css` is extracted from `design/haunted-ledger-draft.html` (local only, never committed; the build prompt grants
@@ -123,7 +126,8 @@ override), the tokens, and the primitives the page uses: `.wrap`, `.panel`, `.sh
 (a table that becomes stacked cards at 760 px and narrower, with `data-label` captions), `.note`, `.colophon`, a visible focus
 ring, and `prefers-reduced-motion`. No external asset is referenced from the stylesheet; the page links the fonts. The
 voices are fixed: ink speaks, slime confirms, lamp marks where data came from and nothing else, blood alarms. A label earns
-its place only if it changes what the reader can do: no always-green status chip, no "local mode" banner.
+its place only if it changes what the reader can do: no always-green status chip, no "local mode" banner. The provenance
+line is the one required exception (`AGENTS.md`, UI rules): it is a sentence, never a chip.
 
 ## CI (contract: `.github/workflows/ci.yml`)
 
@@ -155,6 +159,30 @@ two label gaps, `B01` and `A02`, are the owner's to rule); a dependency of any k
 
 ## The reference
 
-The PM seat keeps a prototype that produced the oracle. It is not in this repo and is not shared with the builder: the
-oracle and this spec are the contract, so that the build is independent and the reviewer can compare it with something that
-was not written by the same hands.
+The PM seat keeps a prototype that produced the oracle. It is not in this repo, and the builder was not given it: the oracle
+and this spec are the contract, so that the build is meant to be independent and the reviewer can compare it with something
+that was not written by the same hands. What is and is not known about the builder's access is recorded in the run-history
+note of `docs/cursor-prompts/slice-1-build.md`.
+
+## Amendments after the build began (Wed 28 Oct 2026)
+
+Made in the docs PR after PR #2 was built against the text above. The reviewer of PR #2 holds it to the amended text and
+says which parts of the PR the amendments make stale. The oracle is unchanged, and so is every `meets_bar` value in it.
+
+1. **Page copy (owner's ruling).** The pill and the tile say what `meets_bar` is, the two numbers, and no tile, pill or
+   sentence presents the numbers alone as the trust verdict. Each row shows false passes read as "n of n" (`n` is the length
+   of `false_passes`; a read one has a non-empty reading), beside the pill and not inside it. The builder chooses the words
+   within that constraint and the reports are regenerated.
+2. **Corrections.** `wilson(11, 32)` is about (0.204, 0.517), not (0.205, 0.518); `false_pass_rate` is stated as
+   `fn / (tp + fn)`. Neither changes a test that was built from the earlier text, which accepts a band.
+3. **Known gap: match selection.** When several fetched matches qualify for one leg the spec does not choose. The oracle pins
+   the outcome on `traces/v1` only. A builder's tie rule that this spec does not state is untested complexity until the
+   Pass 1 on PR #2 measures whether the oracle needs it; the PM closes the gap in the next amendment, with that measurement.
+4. **Acceptance gaps found in review, for slice 2 and not slice 1's pass or fail.** "Every check has a test built to fail
+   it" needs a test-to-check mapping and a negative control per check. "Every dynamic string is escaped" needs the list of
+   dynamic fields and adversarial inputs. "Every text pair AA" needs an enumerated procedure (each foreground token over each
+   background it is used on, composited for gradients and scrims). Acceptance 4 does not say which command regenerates which
+   of the three reports (`report` writes the HTML and JSON, `calibrate --md` the Markdown). "About 1000 px" leaves the width
+   open. "One sentence" and "nothing else moves" in the README need a scoped textual comparison. Inputs the spec leaves open:
+   a `final` that is valid JSON and not a dict, a null or absent tool result, tool spans with equal start times, duplicate
+   candidate event ids, equal match scores.
