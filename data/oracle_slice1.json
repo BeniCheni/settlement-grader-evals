@@ -1,0 +1,221 @@
+{
+ "about": "Expected output of the 11 plain-code checks on traces/v1 against data/gold.json and data/codes_v1.json, written by the PM seat from a prototype it keeps as a reference. A build is accepted when it reproduces every field here. IN SAMPLE: two checks were fixed while reading these same 32 traces. Evidence strings are not pinned.",
+ "run": "traces/v1",
+ "tickets": 32,
+ "checks_meeting_the_bar": 11,
+ "codes": {
+  "GRADE_CONTRADICTS_FACTS": {
+   "flagged": [
+    "A03",
+    "A06",
+    "A09",
+    "A11",
+    "A12",
+    "B02",
+    "B09",
+    "B12",
+    "B13",
+    "C04",
+    "C08",
+    "C09",
+    "C13",
+    "X01"
+   ],
+   "tp": 14,
+   "fp": 0,
+   "fn": 0,
+   "tn": 18,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "WIN_LOSS_FLIP": {
+   "flagged": [
+    "A03",
+    "A06",
+    "A09",
+    "A11",
+    "A12",
+    "B02",
+    "B06",
+    "B09",
+    "B12",
+    "C03",
+    "C04",
+    "C08",
+    "X01",
+    "X02"
+   ],
+   "tp": 14,
+   "fp": 0,
+   "fn": 0,
+   "tn": 18,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "SKIPPED_SETTLE_TICKET": {
+   "flagged": [
+    "A02",
+    "B01",
+    "B06",
+    "B10",
+    "C02",
+    "C03",
+    "C06",
+    "C10",
+    "X02"
+   ],
+   "tp": 8,
+   "fp": 1,
+   "fn": 0,
+   "tn": 23,
+   "agreement": 0.9688,
+   "kappa": 0.92,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": [
+    "B01"
+   ]
+  },
+  "PLACEHOLDER_ECHO": {
+   "flagged": [
+    "A03",
+    "A06",
+    "A09",
+    "A11",
+    "X02"
+   ],
+   "tp": 5,
+   "fp": 0,
+   "fn": 0,
+   "tn": 27,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "GRADED_WITHOUT_LOOKUP": {
+   "flagged": [
+    "B06",
+    "B10",
+    "C02",
+    "C03",
+    "X02"
+   ],
+   "tp": 5,
+   "fp": 0,
+   "fn": 0,
+   "tn": 27,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "INCOMPLETE_LEG_LIST": {
+   "flagged": [
+    "A02",
+    "B02",
+    "B09",
+    "C08",
+    "C13",
+    "X02"
+   ],
+   "tp": 5,
+   "fp": 1,
+   "fn": 0,
+   "tn": 26,
+   "agreement": 0.9688,
+   "kappa": 0.8904,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": [
+    "A02"
+   ]
+  },
+  "WRONG_NON_GRADE": {
+   "flagged": [
+    "A02",
+    "B01",
+    "C02"
+   ],
+   "tp": 3,
+   "fp": 0,
+   "fn": 0,
+   "tn": 29,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "NO_FINAL_ANSWER": {
+   "flagged": [
+    "B05",
+    "B08",
+    "C14"
+   ],
+   "tp": 3,
+   "fp": 0,
+   "fn": 0,
+   "tn": 29,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "RULE_TOPIC_MISS": {
+   "flagged": [
+    "B02",
+    "B08",
+    "C08"
+   ],
+   "tp": 3,
+   "fp": 0,
+   "fn": 0,
+   "tn": 29,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "OUTPUT_LIMIT_SPRAY": {
+   "flagged": [
+    "B05",
+    "C14"
+   ],
+   "tp": 2,
+   "fp": 0,
+   "fn": 0,
+   "tn": 30,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  },
+  "FOLLOWED_TICKET_CLAIM": {
+   "flagged": [
+    "X01",
+    "X02"
+   ],
+   "tp": 2,
+   "fp": 0,
+   "fn": 0,
+   "tn": 30,
+   "agreement": 1.0,
+   "kappa": 1.0,
+   "meets_bar": true,
+   "false_passes": [],
+   "false_fails": []
+  }
+ }
+}

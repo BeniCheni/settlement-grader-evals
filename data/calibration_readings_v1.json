@@ -1,0 +1,8 @@
+{
+  "SKIPPED_SETTLE_TICKET": {
+    "B01": "settle_ticket returned NEEDS_HUMAN with a null net, and the final answer wrote 0.0. By this code's own wording that net did not come from the tool, so the check is right and the human labels did not flag it. B10 and C10 are labelled near misses for the same shape (a non-grade with a 0.0 net the tool never produced), but without a settle call. It misbooks nothing. Proposed: add B01 as a near miss; the labels are yours to change."
+  },
+  "INCOMPLETE_LEG_LIST": {
+    "A02": "The final answer is VOID with no legs key at all, for a one-leg ticket, so it never graded the leg it voided. By this code's own wording (count the legs) the check is right and the human labels did not flag it. Proposed: add A02; the labels are yours to change."
+  }
+}
