@@ -200,7 +200,7 @@
   ],
   "in_sample": true,
   "model": "qwen3:8b",
-  "provenance": "In sample. Two checks were fixed while reading these 32 traces. This shows the checks reproduce the labels they were built from, not that they generalise.",
+  "provenance": "In sample. The labels were made on these 32 traces and the checks were built against them. This shows the checks reproduce the labels they were built from, not that they generalise.",
   "run": "traces/v1",
   "run_label": "v1 (v1-2026-10-14 + v1-adv)"
 }

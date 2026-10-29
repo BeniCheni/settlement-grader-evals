@@ -1,6 +1,6 @@
 """Compare every plain-code check with the human labels.
 
-The v1 result is in sample: two checks were fixed while reading those traces.
+The v1 result is in sample: the labels were made on those traces and the checks were built against them.
 """
 import argparse
 import json
@@ -23,7 +23,7 @@ from scorer.traces import load_run
 
 
 PROVENANCE = (
-    "In sample. Two checks were fixed while reading these 32 traces. "
+    "In sample. The labels were made on these 32 traces and the checks were built against them. "
     "This shows the checks reproduce the labels they were built from, "
     "not that they generalise."
 )
@@ -38,11 +38,12 @@ def provenance_for(records):
         return True, PROVENANCE
     if current and current < sample:
         return True, (
-            "In sample. This is a subset of traces/v1, on which two checks were fixed. "
+            "In sample. This is a subset of traces/v1, the run the checks were built against. "
             "It is not independent evidence that they generalise."
         )
     return None, (
-        "Run-specific calibration is not established. These checks were tuned on traces/v1. "
+        "Run-specific calibration is not established. "
+        "The labels in data/codes_v1.json were made on traces/v1, not on this run. "
         "The supplied labels have not been established as labels for this run; "
         "these numbers do not establish held-out agreement or generalisation."
     )

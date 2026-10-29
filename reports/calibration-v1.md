@@ -1,6 +1,6 @@
 # Calibration of the plain-code checks
 
-In sample. Two checks were fixed while reading these 32 traces. This shows the checks reproduce the labels they were built from, not that they generalise.
+In sample. The labels were made on these 32 traces and the checks were built against them. This shows the checks reproduce the labels they were built from, not that they generalise.
 
 Run: traces/v1. Model: qwen3:8b. Tickets: 32. Checks at 85% and 0.6: 11 of 11. False passes: 0. Flags the labels lack: 2.
 
