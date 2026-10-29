@@ -1,5 +1,6 @@
 """The committed page is the regeneration. A stale file fails. Dynamic text is escaped."""
 import os
+import re
 import unittest
 
 from scorer.calibrate import document, render_markdown
@@ -33,6 +34,42 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn("/Users/", html)
         self.assertNotIn(os.path.expanduser("~"), html)
         self.assertIn("--slime:#56c083", html)
+
+    def test_pill_and_tile_name_the_two_numbers(self):
+        doc = document("traces/v1")
+        html = render_html(doc, "x")
+        self.assertIn("<span>checks at 85% and 0.6</span>", html)
+        self.assertIn("Beside the pill, false passes read are n of n", html)
+        self.assertNotIn("meeting the bar", html)
+        self.assertNotIn("trusted", html.lower())
+        self.assertNotIn(">met<", html)
+        self.assertNotIn(">Bar<", html)
+        self.assertIsNone(re.search(r'<span class="pill[^"]*">[^<]*\d+ of \d+', html))
+        self.assertEqual(
+            html.count('<span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span>'),
+            11,
+        )
+        self.assertNotIn("not 85% or 0.6", html)
+
+    def test_false_passes_read_counts_non_empty_readings_beside_the_pill(self):
+        doc = document("traces/v1")
+        doc["codes"][0]["meets_bar"] = False
+        doc["codes"][0]["false_passes"] = {
+            "READ": "human label; the check did not flag",
+            "SPACE": "human label; the check did not flag",
+            "BLANK": "human label; the check did not flag",
+            "MISSING": "human label; the check did not flag",
+        }
+        doc["codes"][0]["readings"] = {
+            "READ": "a reading",
+            "SPACE": " ",
+            "BLANK": "",
+            "OTHER": "not a false pass",
+        }
+        html = render_html(doc, "x")
+        self.assertIn('<span class="pill alarm">not 85% or 0.6</span> <span class="mono">2 of 4</span>', html)
+        self.assertNotIn('<span class="pill alarm">not 85% or 0.6 2 of 4</span>', html)
+        self.assertEqual(html.count(">2 of 4<"), 1)
 
     def test_committed_reports_match_regeneration(self):
         doc = document("traces/v1")
