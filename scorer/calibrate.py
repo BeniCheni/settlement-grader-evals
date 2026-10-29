@@ -42,6 +42,21 @@ def not_bar_words():
     return "not %d%% or %s" % (round(MIN_AGREEMENT * 100), MIN_KAPPA)
 
 
+def false_passes_read(row):
+    """How many false passes have a non-empty reading, over how many there are.
+
+    The second number is the length of false_passes. A reading counts when its
+    text is a non-empty string.
+    """
+    readings = row["readings"]
+    read = 0
+    for case_id in row["false_passes"]:
+        text = readings.get(case_id)
+        if isinstance(text, str) and text:
+            read += 1
+    return "%s of %s" % (read, len(row["false_passes"]))
+
+
 def load_cases(path):
     return {case["case_id"]: case for case in _load(path)}
 
@@ -139,10 +154,11 @@ def render_markdown(doc):
         "",
         doc.get("provenance") or PROVENANCE,
         "",
-        "Run: %s. Model: %s. Tickets: %s. Checks meeting the bar: %s of %s. False passes: %s. Flags the labels lack: %s." % (
+        "Run: %s. Model: %s. Tickets: %s. Checks at %s: %s of %s. False passes: %s. Flags the labels lack: %s." % (
             doc["run"],
             doc.get("model") or "unknown",
             doc["cases"],
+            bar_words(),
             meeting,
             len(rows),
             false_passes,
@@ -151,11 +167,11 @@ def render_markdown(doc):
         "",
         "Command: `python3 -m scorer.calibrate %s --json reports/calibration-v1.json --md reports/calibration-v1.md`" % doc["run"],
         "",
-        "| Code | Caught | Agreement | Kappa | False passes | False fails | Bar |",
-        "|---|---|---|---|---|---|---|",
+        "| Code | Caught | Agreement | Kappa | False passes | False fails | %s | False passes read |" % bar_words(),
+        "|---|---|---|---|---|---|---|---|",
     ]
     for row in rows:
-        lines.append("| %s | %s of %s | %s | %s | %s | %s | %s |" % (
+        lines.append("| %s | %s of %s | %s | %s | %s | %s | %s | %s |" % (
             row["code"],
             row["tp"],
             row["tp"] + row["fn"],
@@ -163,7 +179,8 @@ def render_markdown(doc):
             _fmt(row["kappa"]),
             len(row["false_passes"]),
             len(row["false_fails"]),
-            "met" if row["meets_bar"] else "not met",
+            "yes" if row["meets_bar"] else "no",
+            false_passes_read(row),
         ))
     lines.extend(["", "## Disagreements", ""])
     notes = 0

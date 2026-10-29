@@ -8,7 +8,7 @@ import os
 import sys
 from html import escape
 
-from scorer.calibrate import bar_words, document, not_bar_words, render_markdown, write_text
+from scorer.calibrate import bar_words, document, false_passes_read, not_bar_words, render_markdown, write_text
 from scorer.stats import canonical_json
 
 
@@ -36,21 +36,6 @@ def _summary(doc):
         "false_passes": sum(len(row["false_passes"]) for row in rows),
         "lacks": sum(len(row["false_fails"]) for row in rows),
     }
-
-
-def _false_passes_read(row):
-    """How many false passes have a non-empty reading, over how many there are.
-
-    The second number is the length of false_passes. A reading counts when its
-    text is a non-empty string.
-    """
-    readings = row["readings"]
-    read = 0
-    for case_id in row["false_passes"]:
-        text = readings.get(case_id)
-        if isinstance(text, str) and text:
-            read += 1
-    return "%s of %s" % (read, len(row["false_passes"]))
 
 
 def _numbers_pill(meets):
@@ -118,7 +103,7 @@ def render_html(doc, css):
     for row in doc["codes"]:
         pill, word = _numbers_pill(row["meets_bar"])
         caught = "%s of %s" % (row["tp"], row["tp"] + row["fn"])
-        read = _false_passes_read(row)
+        read = false_passes_read(row)
         agreement = "none" if row["agreement"] is None else "%.4f" % row["agreement"]
         kappa = "none" if row["kappa"] is None else "%.4f" % row["kappa"]
         lines.append("<tr>")

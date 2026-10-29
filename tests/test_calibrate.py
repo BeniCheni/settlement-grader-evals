@@ -1,11 +1,13 @@
 """The oracle is the acceptance test. A disagreement without a reading fails the suite."""
 import json
 import os
+import tempfile
 import unittest
 
-from scorer.calibrate import PROVENANCE, calibrate, document
+from scorer.calibrate import PROVENANCE, calibrate, document, false_passes_read
 from scorer.checks import CHECKS
 from scorer.score import score_run
+from scorer.stats import meets_bar
 from scorer.traces import load_run
 
 
@@ -63,6 +65,31 @@ class OracleTests(unittest.TestCase):
         self.assertEqual(doc["provenance"], PROVENANCE)
         self.assertNotIn("/Users/", json.dumps(doc))
         self.assertNotIn(os.path.expanduser("~"), json.dumps(doc))
+
+    def test_false_passes_are_bucketed_and_the_bar_is_the_defaults(self):
+        # Two tickets the check does not flag become labelled positives: tp 3, fn 2, fp 0, tn 27.
+        with open("data/codes_v1.json", encoding="utf-8") as handle:
+            codes = json.load(handle)
+        for code_obj in codes:
+            if code_obj["code"] == "NO_FINAL_ANSWER":
+                code_obj["traces"] = ["B05", "B08", "C14", "A01", "A05"]
+        path = os.path.join(tempfile.mkdtemp(), "codes.json")
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(codes, handle)
+        row = next(r for r in calibrate("traces/v1", codes_path=path)["codes"] if r["code"] == "NO_FINAL_ANSWER")
+        counts = {key: row[key] for key in ("tp", "fp", "fn", "tn")}
+        self.assertEqual(counts, {"tp": 3, "fp": 0, "fn": 2, "tn": 27})
+        self.assertEqual(row["agreement"], 0.9375)
+        self.assertEqual(row["kappa"], 0.7168)
+        self.assertEqual(row["false_pass_rate"], 0.4)
+        self.assertEqual(sorted(row["false_passes"]), ["A01", "A05"])
+        self.assertEqual(row["false_fails"], {})
+        self.assertEqual(false_passes_read(row), "0 of 2")
+        # This table clears 85% and 0.6 and would fail a stricter pair, so the row
+        # is only true when calibrate judges it at meets_bar's own defaults.
+        self.assertTrue(row["meets_bar"])
+        self.assertFalse(meets_bar(counts, min_agreement=0.95))
+        self.assertFalse(meets_bar(counts, min_kappa=0.85))
 
     def test_score_counts_match_the_oracle_flags(self):
         with open("data/oracle_slice1.json", encoding="utf-8") as handle:

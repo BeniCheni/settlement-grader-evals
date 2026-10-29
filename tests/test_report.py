@@ -73,15 +73,36 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn('<span class="pill alarm">not 85% or 0.6 2 of 4</span>', html)
         self.assertEqual(html.count(">2 of 4<"), 1)
 
+    def test_markdown_says_what_the_page_says(self):
+        doc = document("traces/v1")
+        md = render_markdown(doc)
+        self.assertNotIn("meeting the bar", md)
+        self.assertNotIn("| Bar |", md)
+        self.assertNotIn("| met |", md)
+        self.assertNotIn("trusted", md.lower())
+        self.assertIn("Checks at 85% and 0.6: 11 of 11.", md)
+        self.assertIn("| 85% and 0.6 | False passes read |", md)
+        self.assertEqual(md.count("| yes | 0 of 0 |"), 11)
+        doc["codes"][0]["meets_bar"] = False
+        doc["codes"][0]["false_passes"] = {"READ": "x", "SPACE": "x", "BLANK": "x", "MISSING": "x"}
+        doc["codes"][0]["readings"] = {"READ": "a reading", "SPACE": " ", "BLANK": ""}
+        md = render_markdown(doc)
+        self.assertIn("Checks at 85% and 0.6: 10 of 11.", md)
+        self.assertEqual(md.count("| no | 2 of 4 |"), 1)
+        self.assertEqual(md.count("| yes | 0 of 0 |"), 10)
+
     def test_page_words_follow_the_bar_constants(self):
         self.assertEqual(bar_words(), "85% and 0.6")
         doc = document("traces/v1")
         with mock.patch.object(scorer.calibrate, "MIN_AGREEMENT", 0.9), mock.patch.object(scorer.calibrate, "MIN_KAPPA", 0.7):
             html = render_html(doc, "x")
+            md = render_markdown(doc)
         self.assertIn("<span>checks at 90% and 0.7</span>", html)
         self.assertIn("<th>90% and 0.7</th>", html)
         self.assertEqual(html.count('<span class="pill ok">90% and 0.7</span>'), 11)
         self.assertNotIn("85% and 0.6", html)
+        self.assertIn("| 90% and 0.7 | False passes read |", md)
+        self.assertNotIn("85% and 0.6", md)
 
     def test_committed_reports_match_regeneration(self):
         doc = document("traces/v1")
