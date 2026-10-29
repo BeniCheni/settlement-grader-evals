@@ -139,7 +139,7 @@ label and no correctness, only the format.
 
 ## The report (`report`)
 
-`report --labels labels/<set>.jsonl [--final labels/<set>-final.jsonl] [--readings ...] [--provenance FILE]
+`report --labels labels/<set>.jsonl [--final labels/<set>-final.jsonl] [--readings ...] --provenance FILE
 --verdicts judgments/<id> [--md OUT] [--json OUT]`. Per rubric, for the first-pass labels and, when given, the final ones:
 
 - the four cells, named both ways: a failure is the positive class, so `JP_HP` is `tn`, `JP_HF` is `fn` (a false pass,
@@ -159,12 +159,15 @@ the rubric's SHA-256 in `judge_meta.json` equals the one in `labels/<set>-meta.j
 made: in sample", when they differ. Equal hashes do not show the labels are held out (a rubric tuned on a set before its
 labels were imported has equal hashes too), so nothing the report computes says "held out". Whether a set is held out also
 depends on the order of merges and on where the rubric's boundary examples came from, which code cannot prove. That
-statement is written by hand: `--provenance FILE` puts the file's text, verbatim, under a heading that says it was written
-by hand and not computed, where it cites the merges (`docs/week-2-package.md`, "Gates"). It never calls a model. The Markdown and JSON are byte-stable, and a test fails when a committed report is stale.
+statement is written by hand: the required `--provenance FILE` puts the file's text, verbatim, under a heading that says it
+was written by hand and not computed, where it cites the merges (`docs/week-2-package.md`, "Gates"). It must state, for
+each rubric, whether the result is in sample or held out and what that does and does not show; a missing or empty file is a
+validation error. The reviewer verifies those statements, since a hash cannot. It never calls a model. The Markdown and JSON
+are byte-stable, and a test fails when a committed report is stale.
 
 ## The course deliverables (`export-course`)
 
-`export-course --labels labels/<set>.jsonl [--final labels/<set>-final.jsonl] [--readings ...] [--provenance FILE]
+`export-course --labels labels/<set>.jsonl [--final labels/<set>-final.jsonl] [--readings ...] --provenance FILE
 --verdicts judgments/<id> --rubrics rubrics --out <dir>` takes the same inputs as `report` and writes:
 
 - `rubrics.md`: each rubric under its name, verbatim in a fenced block, with its SHA-256;
@@ -194,7 +197,8 @@ no traceback and writes nothing, as the slice 1 commands do. Standard library on
 6. `report`: the cell naming (a test that fails if `JP_HF` and `JF_HP` are swapped), kappa equal to `stats.cohen_kappa` on
    the same counts, an `UNPARSED` reply counted as a FAIL and on its own, first-pass and final side by side, the worst
    judge with and without `--final` and each of its tie rules, the two rubric-text states (and no "held out" in any
-   computed part of the output), a `--provenance` file reproduced verbatim under its hand-written heading, and a
+   computed part of the output), a `--provenance` file reproduced verbatim under its hand-written heading, missing and
+   empty provenance refused with status 2 and nothing written, and a
    committed fixture report that regenerates byte for byte.
 7. `check-final`: a valid change, and each refusal.
 8. `export-course`: the course row shape exactly, rubrics verbatim, `results.md` equal to `report --md` for the same

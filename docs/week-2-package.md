@@ -40,10 +40,16 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 |---|---|---|
 | Judge prompts, judge calls, per-rubric labels | None yet | |
 | Agreement matrix, agreement, kappa, the bar | Built for the code checks: `confusion`, `agreement`, `cohen_kappa`, `wilson`, `false_pass_rate`, `meets_bar` (85% and 0.6) | `scorer/stats.py` |
-| Outputs to judge, some failing | 32 tickets; 21 do not match the expected outcome, so failures are present, but how many fail each rubric is unknown until they are labelled, and only 4 of the 32 expected outcomes are marked verified | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
+| Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified, and how many outputs fail each rubric is unknown until they are labelled | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks, in sample | `data/calibration_readings_v1.json` |
 | Noise floor between identical runs, A/B | None yet | |
+
+Reproduce the repository counts in the table, from the repository root:
+
+```bash
+python3 -c 'import csv,json; from scorer.checks import CHECKS; r=list(csv.DictReader(open("traces/v1/results.csv"))); g=json.load(open("data/gold.json")); c=json.load(open("data/codes_v1.json")); a=list(csv.DictReader(open("data/annotation_provenance.csv"))); print("outputs",len(r),"mismatches",sum(x["outcome_match"]=="False" for x in r),"verified",sum(bool(x["expected"].get("verified_by_beni")) for x in g),"codes",len(c),"checks",len(CHECKS),"annotations",len(a),"recorded provenance",sum(x["note_drafted_by"]=="Claude" and x["verdict_and_edits_by"]=="Beni" for x in a))'
+```
 
 ## The three rubrics for this grader
 
@@ -59,8 +65,9 @@ key, which holds only 4 keys the owner has verified (`data/gold.json`, `expected
 | tool-call accuracy | `tool_call_accuracy` | Did it call the right tool with the right arguments, and does its `settle_ticket` call match the leg grades it gave? | `SKIPPED_SETTLE_TICKET`, `RULE_TOPIC_MISS` |
 
 The prompts are the owner's to write, from drafts the PM seat supplies; each is one criterion with its own boundary example
-drawn from a real trace outside the label set (`traces/smoke-1`, or a record of the A/A runs that the selection rule does
-not take), so that no rubric is shaped by a case it will be measured on. `SELF_CONTRADICTING_EVIDENCE` stays this repo's planned fourth judge and comes after this package.
+drawn from a real trace of a case outside the label set (such as `traces/smoke-1`), so that no rubric is shaped by a case it
+will be measured on. An A/A record for a base case shares its case ID even when that record is not selected.
+`SELF_CONTRADICTING_EVIDENCE` stays this repo's planned fourth judge and comes after this package.
 
 ## Decisions (the owner's, 29 Oct 2026)
 
@@ -103,10 +110,11 @@ runs so no label is read from a verdict. Git shows the order: each lands in its 
 
 ## Gates this repo adds to the course's
 
-- A result says whether it is in sample or held out. A judge's agreement on a label set is called held out only when three
+- A result says whether it is in sample or held out. A judge's agreement on a label set is called held out only when four
   things hold: the rubric merged before the labels did, the rubric has not changed since the labels were made, and its
-  boundary examples come from outside the set. Git shows the first (the merge order), the harness's report shows the second
-  (`docs/judge-spec.md`, "The report"), and the rubric file shows the third. No hash proves the first or the third, so
+  boundary examples come from outside the set, and the rubric was not otherwise tuned on the set. Git shows the first (the
+  merge order), the harness's report shows the second (`docs/judge-spec.md`, "The report"), and the examples and tuning
+  history require review. No hash proves the first, third or tuning history, so
   nothing the harness computes says "held out"; `results.md` says it in a provenance paragraph written by hand that cites
   the two merges, and is marked as written by hand. Once a rubric is tightened on
   set 1's disagreements, set 1 is in sample for it and only set 2 can validate it.
