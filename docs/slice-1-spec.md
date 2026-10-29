@@ -53,10 +53,12 @@ decisions that wording leaves open, and each was learned from a trace.
 3. **PLACEHOLDER_ECHO**: any leg's `evidence`, or the final `notes`, trimmed and case-folded, equals `the score or stat you
    used` or `one line` (the example text in the system prompt).
 4. **GRADED_WITHOUT_LOOKUP**: an answer was returned and `tool_calls` is 0.
-5. **INCOMPLETE_LEG_LIST**: an answer was returned and the number of legs in it differs from the ticket's. A missing `legs`
-   key counts as zero.
-6. **WRONG_NON_GRADE**: the final result is VOID, UNSETTLED, NEEDS_HUMAN or PUSH, differs from the key's result, and is not
-   a NEEDS_HUMAN on a case whose `accept_needs_human` is true. **Only the result is compared, never the net**: an
+5. **INCOMPLETE_LEG_LIST**: an answer was returned and the number of legs in it is fewer than the ticket's, which is the
+   code's own wording. A missing `legs` key counts as zero. A final that lists more legs than the ticket is not flagged
+   (amendment 6).
+6. **WRONG_NON_GRADE**: the final result is VOID, UNSETTLED or NEEDS_HUMAN, differs from the key's result, and is not
+   a NEEDS_HUMAN on a case whose `accept_needs_human` is true. PUSH is a settled result and not a refusal to grade, so it
+   is not here (amendment 6). **Only the result is compared, never the net**: an
    UNSETTLED that matches the key but carries a net of 0.0 is a different code's business. (`run_eval.outcome_match` also
    compares nets; do not use it here. `accept_needs_human` means NEEDS_HUMAN is acceptable for that ticket whatever the key
    says, and covers NEEDS_HUMAN only.)
@@ -76,8 +78,10 @@ decisions that wording leaves open, and each was learned from a trace.
     - *Which match is a leg's*: the leg's teams (`home` and `away`, else parse `A v B` from `fixture` after dropping
       parentheticals), through `check_gold.ALIASES`; a fetched match is the leg's when both names score at least 0.5 against
       `espn.team_objects(event_id)` with `grader.espn._team_score`, in either orientation. A leg with no fetched match is
-      skipped. **Known gap (amendment 3):** when more than one fetched match qualifies for a leg, this spec does not say
-      which is used.
+      skipped. An event that is missing from the frozen set (the lookup's `RuntimeError`) skips that candidate, and no other
+      exception from that lookup is swallowed. When more than one fetched match qualifies for a leg, the one with the highest
+      minimum of its two team scores is used; on a tie in that score a `get_match_facts` result beats a synthetic full-time
+      score; any remaining tie goes to the first one seen, in trace order (amendment 7).
     - *Re-grade*: `check_gold.auto_grade(leg, facts)`; only `W`, `L` and `P` are decisive. `OPEN`, `None` or an exception means
       skip that leg.
     - *Committed grades*: for leg index `i`, the `i`-th entry of `leg_results` in **every** `settle_ticket` call (including
@@ -89,8 +93,10 @@ decisions that wording leaves open, and each was learned from a trace.
 `confusion(predicted, truth)` returns `{tp, fp, fn, tn}` from two equal-length lists of booleans (a positive is a failure;
 `fn` is a real failure the check missed, the dangerous error; unequal lengths raise `ValueError`); `agreement(c)`;
 `cohen_kappa(c)`, `None` when chance agreement is 1; `wilson(k, n, z=1.96)`, `(0.0, 1.0)` when `n` is 0;
-`false_pass_rate(c)`, `fn / (tp + fn)`, or `None` when there are no real failures; `meets_bar(c, min_agreement=0.85, min_kappa=0.6)`, true only
-when both are met and neither is `None`. `meets_bar` tests the two numbers only: the third part of the trust bar, that every
+`false_pass_rate(c)`, `fn / (tp + fn)`, or `None` when there are no real failures; `meets_bar(c, min_agreement=None, min_kappa=None)`,
+which resolves the two thresholds at call time to `stats.MIN_AGREEMENT` (0.85) and `stats.MIN_KAPPA` (0.6) and is true only
+when both are met and neither is `None` (every word a report prints about the bar derives from those two constants, amendment 10).
+`meets_bar` tests the two numbers only: the third part of the trust bar, that every
 false pass was read, is a human act reported beside it and never folded into it. Tests must include these hand-worked tables: `tp 8, fn 7, fp 4, tn 31` gives
 agreement 0.78, kappa about 0.444 and false-pass rate 7/15; `tp 1, fn 6, fp 0, tn 93` gives agreement 0.94 and kappa about
 0.237; an always-pass judge (`tp 0, fn 7, fp 0, tn 93`) gives agreement 0.93 and kappa 0.0; `wilson(11, 32)` is about
@@ -102,9 +108,12 @@ agreement 0.78, kappa about 0.444 and false-pass rate 7/15; `tp 1, fn 6, fp 0, t
 readings_path="data/calibration_readings_v1.json")` returns `{"run", "cases", "codes": [row]}`; each row has `code`, `n`, `tp`,
 `fp`, `fn`, `tn`, `agreement`, `kappa`, `false_pass_rate`, `meets_bar`, `human_near_miss`, `false_passes` and `false_fails`
 (each `{case_id: text}`), and `readings` (the code's entry from the readings file). The command
-`python3 -m scorer.calibrate <run_dir> [--json OUT] [--md OUT]` prints the Markdown table and optionally writes both files.
-A test must fail when any disagreement lacks a reading. `python3 -m scorer.score <run_dir> [--json OUT]` prints, per code,
-how many tickets it flags, and writes per-ticket flags with evidence.
+`python3 -m scorer.calibrate <run_dir> [--cases CASES] [--json OUT] [--md OUT]` prints the Markdown table and optionally writes
+both files. A test must fail when any disagreement lacks a reading. `python3 -m scorer.score <run_dir> [--cases CASES]
+[--json OUT]` prints, per code, how many tickets it flags, and writes per-ticket flags with evidence. `--cases` names the cases
+file the run was graded from (default `data/gold.json`; `traces/smoke-1` is graded from `data/smoke.json`), and `scorer.report`
+takes it too. A case or file that is missing is a usage error: exit status 2, a message naming the case id or file and the
+flag, no traceback, nothing written (amendment 8).
 
 ## The page (contract: `scorer/report.py`) and `ui/ledger.css`
 
@@ -113,10 +122,11 @@ self-contained page with `ui/ledger.css` inlined. It is deterministic (the same 
 machine paths). The committed `reports/calibration-v1.{html,json,md}` are tested against a regeneration, so a stale report
 fails a test. Content: a cover (run, model from `run_meta.json`, ticket count; a headline question; three stat tiles: checks
 whose numbers meet the bar, false passes, flags the labels lack); **a provenance line on the cover saying the result is in
-sample**, because two checks were fixed while reading these 32 traces, and that it shows the checks reproduce the labels
-they were built from, not that they generalise; a table with one row per check (caught of the human-labelled, agreement,
+sample**, because the labels were made on these 32 traces and the checks were built against them, and that it shows the
+checks reproduce the labels they were built from, not that they generalise (the wording after amendment 13); a table with one row per check (caught of the human-labelled, agreement,
 kappa, false passes, false fails, a pill that says whether the numbers meet the bar and does not say the check is trusted,
-and a figure for false passes read, "n of n"); one note per disagreement with its recorded reading; a colophon naming the
+and, on a row that has false passes only, a figure for false passes read, "n of n", amendment 5); one note per disagreement
+with its recorded reading, which carries a "read" badge only when it has one; a colophon naming the
 command and that fonts load from Google Fonts. Every dynamic string is HTML-escaped (a test proves it).
 
 `ui/ledger.css` is extracted from `design/haunted-ledger-draft.html` (local only, never committed; the build prompt grants
@@ -155,14 +165,14 @@ why in the PR.
 
 `compare` and the A/A runs (slice 2); the judge and held-out labels (slices 3 and 4); the A/B (slice 5); the trace viewer and
 taxonomy restyle (slice 6); any edit to `data/codes_v1.json`, `grader/`, `check_gold.py` or `run_eval.py`; adding labels (the
-two label gaps, `B01` and `A02`, are the owner's to rule); a dependency of any kind.
+two label gaps, `B01` and `A02`, are the owner's to rule, and he ruled yes on 28 Oct 2026; they land in their own PR with a
+`calibration-v2`, and v1 is not rewritten); a dependency of any kind.
 
 ## The reference
 
-The PM seat keeps a prototype that produced the oracle. It is not in this repo, and the builder was not given it: the oracle
-and this spec are the contract, so that the build is meant to be independent and the reviewer can compare it with something
-that was not written by the same hands. What is and is not known about the builder's access is recorded in the run-history
-note of `docs/cursor-prompts/slice-1-build.md`.
+The PM seat keeps a prototype described as the oracle's source. It is not in this repo; the builder was instructed not to
+access it. The oracle and this spec are the contract. The builder's access was not independently verified, as recorded in
+the run-history note of `docs/cursor-prompts/slice-1-build.md`.
 
 ## Amendments after the build began (Wed 28 Oct 2026)
 
@@ -172,12 +182,13 @@ says which parts of the PR the amendments make stale. The oracle is unchanged, a
 1. **Page copy (owner's ruling).** The pill and the tile say what `meets_bar` is, the two numbers, and no tile, pill or
    sentence presents the numbers alone as the trust verdict. Each row shows false passes read as "n of n" (`n` is the length
    of `false_passes`; a read one has a non-empty reading), beside the pill and not inside it. The builder chooses the words
-   within that constraint and the reports are regenerated.
+   within that constraint and the reports are regenerated. (Refined by amendment 5.)
 2. **Corrections.** `wilson(11, 32)` is about (0.204, 0.517), not (0.205, 0.518); `false_pass_rate` is stated as
    `fn / (tp + fn)`. Neither changes a test that was built from the earlier text, which accepts a band.
 3. **Known gap: match selection.** When several fetched matches qualify for one leg the spec does not choose. The oracle pins
    the outcome on `traces/v1` only. A builder's tie rule that this spec does not state is untested complexity until the
    Pass 1 on PR #2 measures whether the oracle needs it; the PM closes the gap in the next amendment, with that measurement.
+   (Closed by amendment 7.)
 4. **Acceptance gaps found in review, for slice 2 and not slice 1's pass or fail.** "Every check has a test built to fail
    it" needs a test-to-check mapping and a negative control per check. "Every dynamic string is escaped" needs the list of
    dynamic fields and adversarial inputs. "Every text pair AA" needs an enumerated procedure (each foreground token over each
@@ -185,4 +196,138 @@ says which parts of the PR the amendments make stale. The oracle is unchanged, a
    of the three reports (`report` writes the HTML and JSON, `calibrate --md` the Markdown). "About 1000 px" leaves the width
    open. "One sentence" and "nothing else moves" in the README need a scoped textual comparison. Inputs the spec leaves open:
    a `final` that is valid JSON and not a dict, a null or absent tool result, tool spans with equal start times, duplicate
-   candidate event ids, equal match scores.
+   candidate event ids, equal match scores. (Amendment 9 records their behaviour and test coverage; the rest stays for slice 2.)
+
+## Amendments after PR #2 was reviewed (Wed 28 Oct 2026, evening)
+
+Made in the docs PR that follows the merge of PR #2 (`701e42a`). Amendments 5 to 11 catch the spec up to the code and
+findings from that review. Amendments 12 and 13 describe work still to come. The oracle, the readings and the labels are
+unchanged.
+
+5. **The false-passes-read figure (owner's ruling).** It appears on a row that has one or more false passes, as "n of n", and
+   not on a row with none; the cover tile reports the total. The same holds in the Markdown report. A reading counts as read
+   when it is a string that is non-empty after trimming whitespace, by one definition shared by the page, the Markdown
+   report, the check that every disagreement has a reading, and the note badges. This refines amendment 1.
+6. **Two checks follow their codes' wording (owner's rulings).** INCOMPLETE_LEG_LIST flags only a final that lists fewer legs
+   than the ticket, and WRONG_NON_GRADE no longer includes PUSH. Neither moves an oracle field: across the tracked runs the
+   only PUSH final is `A13` (in `traces/v1` and in `traces/v1-2026-10-14`, one of the two halves v1 is built from), which matches its key,
+   and no tracked final lists more legs than its ticket. The receipt is below the amendments.
+7. **Match selection (owner's ruling).** Closes amendment 3; the rule is in check 11. Counting, per leg, the fetched matches
+   that qualify (both names at 0.5 or better), on 28 Oct 2026: `traces/v1` has 55 legs with one and 21 with none, the dated
+   subset 51 and 17, the adversarial subset 4 and 4, and `traces/smoke-1` 8 and 0 (receipt below the amendments). No leg in a
+   tracked run has two, so the oracle cannot tell the rules apart: first wins, last wins, a synthetic score first and the
+   lowest score all pass it. A synthetic test with two qualifying matches pins the rule.
+8. **Commands and provenance.** `--cases` and the exit-2 usage error are described under Calibration. The provenance text is
+   chosen by trace identity and not by directory name. A run whose trace ids are exactly `traces/v1`'s is "in sample", with the
+   cover text above. A non-empty proper subset of them is "in sample, a subset, not independent evidence". Any other run has
+   `in_sample` null and says that run-specific calibration is not established, because the labels in `data/codes_v1.json`
+   were made on `traces/v1` and are not labels for another run's outputs.
+9. **Inputs amendment 4 left open.** A `final` that is valid JSON and not a dict is `None`. A null or
+   absent tool result is `None`, with the span's error recorded separately. Tool spans with equal start times sort by span id.
+   Duplicate candidate event ids keep the first eligible one, and a fetched facts result for an event suppresses the
+   synthetic one. An absent `run.tool_calls` is 0 even if tool spans exist. Tests pin these inputs except the combination of
+   absent `run.tool_calls` with tool spans. Equal match scores are amendment 7. The remaining
+   gaps in amendment 4 (an enumerated contrast procedure, a negative control per check, the widths, the README comparison)
+   stay for slice 2.
+10. **`meets_bar` signature.** The thresholds are `None` sentinels resolved from `stats.MIN_AGREEMENT` and `stats.MIN_KAPPA`
+    at call time, so patching the constants changes both the decisions and the words. The effective defaults are unchanged.
+11. **Provenance of the tracked runs (a finding, not a rule).** `traces/v1` is the union of `traces/v1-2026-10-14` (30
+    tickets) and `traces/v1-adv` (2): its own `run_meta.json` names its `run_id` "v1 (v1-2026-10-14 + v1-adv)". Their spans are
+    byte-identical to its (315 and 14 of its 329, with the same trace and span ids), so they are not independent
+    samples and the scorer's flag counts on them sum to v1's. The only tracked run that shares no span with v1 is
+    `traces/smoke-1` (3 tickets, 39 spans); the runs that measure the floor are slice 2's, committed as `traces/aa-*`.
+    Slice 2's floor must not count the two dated runs as runs (receipt below the amendments).
+12. **Not yet written: the failing-row wording.** The pill's "not 85% or 0.6" does not say which number failed. No row fails
+    on `traces/v1`, so the words wait for the first held-out calibration that can have a failing row, which is slice 3's.
+13. **Not yet written: the provenance sentence stops naming a count (owner's ruling, 29 Oct 2026).** The cover line in
+    `scorer/calibrate.py`, the module docstrings of `scorer/__init__.py` and `scorer/calibrate.py`, and the committed
+    `reports/calibration-v1.{html,json,md}` say that two checks were fixed while reading the 32 traces, and the line for a run
+    outside `traces/v1` says the checks "were tuned on traces/v1". That is history of the withheld prototype and cannot be re-run
+    from this repo, so the owner ruled it removed and not backed by a receipt. The three sentences become, for exactly
+    `traces/v1`: "In sample. The labels were made on these 32 traces and the checks were built against them. This shows the
+    checks reproduce the labels they were built from, not that they generalise."; for a proper subset: "In sample. This is a
+    subset of traces/v1, the run the checks were built against. It is not independent evidence that they generalise."; for any
+    other run: "Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on
+    this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out
+    agreement or generalisation." The code, its tests and the regenerated reports are their own PR: until it lands, the spec
+    describes the intended words and the page still says the old ones. No figure moves.
+
+### Receipt for amendments 6, 7 and 11, and the counts in the scope doc
+
+The run counts printed below come from this script, run from the repository root on Python 3.9.6 and 3.14.7 with the same output.
+It reads the scorer's own internals (`_facts_seen`, `_teams`, `_orientation_score`, `_leg_count`), so a later rename moves the
+script and not the figures; the tests pin the behaviour. Figures from runs that are not tracked in this repo are not claimed.
+
+```
+python3 - <<'PY'
+import collections, csv, json, os, re, sys
+sys.path.insert(0, ".")
+from grader import espn
+from scorer import checks, traces
+
+RUNS = ["traces/v1", "traces/v1-2026-10-14", "traces/v1-adv", "traces/smoke-1"]
+for run in RUNS:
+    legs = collections.Counter()  # qualifying fetched matches per ticket leg
+    push, more, final_legs, with_evidence = [], 0, 0, 0
+    for rec in traces.load_run(run):
+        final = rec["final"] or {}
+        if str(final.get("ticket_result", "")).upper() == "PUSH":
+            push.append(rec["case_id"])
+        more += checks._leg_count(final) > checks._leg_count(rec["ticket"])
+        for leg in final.get("legs") if isinstance(final.get("legs"), list) else []:
+            if isinstance(leg, dict):
+                final_legs += 1
+                with_evidence += isinstance(leg.get("evidence"), str) and bool(leg["evidence"].strip())
+        seen = checks._facts_seen(rec)
+        for leg in rec["ticket"].get("legs") or []:
+            home, away = checks._teams(leg)
+            n = 0
+            for _prefer, facts in seen:
+                try:
+                    teams = espn.team_objects(str(facts.get("event_id")))
+                except RuntimeError:
+                    continue
+                n += checks._orientation_score(home, away, teams) >= 0.5
+            legs[n] += 1
+    print(run, "legs by matches", dict(sorted(legs.items())), "PUSH finals", push, "finals with more legs", more)
+    with open(os.path.join(run, "results.csv"), encoding="utf-8") as handle:
+        seconds = sum(float(row["wall_clock_s"]) for row in csv.DictReader(handle))
+    print(run, "final legs", final_legs, "with non-empty evidence", with_evidence, "wall_clock_s total", round(seconds, 1))
+
+
+def spans(run):
+    with open(os.path.join(run, "settlement-traces.json"), "rb") as handle:
+        text = handle.read().decode("utf-8")
+    decoder = json.JSONDecoder()
+    found = {}
+    for match in re.finditer(r'\{\s*"traceId"\s*:', text):
+        span, length = decoder.raw_decode(text[match.start():])
+        key = (span["traceId"], span["spanId"])
+        if key in found:
+            raise ValueError("duplicate span id")
+        found[key] = text[match.start():match.start() + length].encode("utf-8")
+    if len(found) != len(list(traces._spans(json.loads(text)))):
+        raise ValueError("span extraction incomplete")
+    return found
+
+
+base = spans("traces/v1")
+for run in RUNS[1:]:
+    other = spans(run)
+    print(run, sum(base.get(k) == v for k, v in other.items()), "of", len(other), "spans identical to traces/v1's", len(base))
+PY
+```
+
+```
+traces/v1 legs by matches {0: 21, 1: 55} PUSH finals ['A13'] finals with more legs 0
+traces/v1 final legs 53 with non-empty evidence 52 wall_clock_s total 745.0
+traces/v1-2026-10-14 legs by matches {0: 17, 1: 51} PUSH finals ['A13'] finals with more legs 0
+traces/v1-2026-10-14 final legs 48 with non-empty evidence 47 wall_clock_s total 693.2
+traces/v1-adv legs by matches {0: 4, 1: 4} PUSH finals [] finals with more legs 0
+traces/v1-adv final legs 5 with non-empty evidence 5 wall_clock_s total 51.8
+traces/smoke-1 legs by matches {1: 8} PUSH finals [] finals with more legs 0
+traces/smoke-1 final legs 6 with non-empty evidence 6 wall_clock_s total 94.7
+traces/v1-2026-10-14 315 of 315 spans identical to traces/v1's 329
+traces/v1-adv 14 of 14 spans identical to traces/v1's 329
+traces/smoke-1 0 of 39 spans identical to traces/v1's 329
+```

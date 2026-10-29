@@ -36,12 +36,14 @@ is still your work; a skill that listed findings in advance would be the sealed-
 ## 0. Before anything
 
 - Read `AGENTS.md`. Run `TZ=America/New_York date` before writing any date.
-- **Work in a fresh clone from GitHub, never a worktree** (`git clone <url> <dir>`, `git fetch origin <pr-branch>`, then
+- **Work in a fresh clone from GitHub** (`git clone <url> <dir>`, `git fetch origin <pr-branch>`, then
   `git switch -c <local-name> origin/<pr-branch>`), on a local branch with a different name from the PR's, and push with
-  `git push origin HEAD:<pr-branch>` after `git fetch origin` shows the remote tip unmoved. A worktree shares refs and
-  objects with the main checkout, which holds the gitignored `private/` and `data/espn_cache/` and any withheld local
-  branch; a clone holds only what has been pushed. Never review in the main checkout or open any other checkout of this
-  repo on the machine. If `private/` or `data/espn_cache/` is present in your tree, stop and say so.
+  `git push origin HEAD:<pr-branch>` after `git fetch origin` shows the remote tip unmoved. A worktree is allowed only when
+  it is a worktree of that fresh clone; a worktree of the main checkout shares refs and objects with the gitignored
+  `private/`, `data/espn_cache/` and any withheld local branch, and a clone holds only what has been pushed. If your harness
+  places the session in a worktree, say so in the comment's environment line and check that neither folder exists and that
+  every shared ref is on origin. Never review in the main checkout or open any other checkout of this repo on the machine.
+  If `private/` or `data/espn_cache/` is present in your tree, stop and say so.
 - Detect a release: a version string, a `CHANGELOG.md` section or a tag means Beni merges and tags. Say so first.
 - A new dependency, a live network call outside `ESPN_LIVE=1`, or a number that is not `verified_by_beni` called verified
   are each a finding before they are anything else.
