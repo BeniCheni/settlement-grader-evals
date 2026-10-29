@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Do the checks agree?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&amp;family=Creepster&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Patrick+Hand&amp;display=swap">
+<style>
+/* Tokens and primitives for the Haunted Ledger.
+   Extracted from the local draft. Ink speaks, slime confirms, lamp marks where
+   data came from and nothing else, blood alarms. No external asset. */
+
+:root{
+  --ground:#0c1712; --panel:#13241b; --panel-2:#1a3325; --balloon:#efe7d2; --balloon-ink:#17120f;
+  --ink:#efe7d2; --ink-2:#b4b09c; --rule:#efe7d2; --shadow:#000;
+  --slime:#56c083; --lamp:#f7c948; --lamp-ink:#f7c948; --lamp-bg:rgb(247 201 72 / .13);
+  --blood:#ff5a40; --blood-bg:rgb(255 90 64 / .13);
+  --dot:rgb(239 231 210 / .075);
+  --cover-from:#3a2a6b; --cover-to:#241a47; --cover-ink:#f3ecda;
+  --cover-prov-bg:#fbefd3; --cover-prov-ink:#6b4a00; --cover-prov-rule:#c98a00;
+  --stat-alarm:#ff7a5f; --stat-good:#7fe0a6;
+  --f-mast:'Creepster','Bangers',Impact,fantasy;
+  --f-shout:'Bangers',Impact,'Arial Narrow',sans-serif;
+  --f-hand:'Patrick Hand','Comic Sans MS','Segoe Print',cursive;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ground:#efe4c8; --panel:#fbf6e8; --panel-2:#f2e8cc; --balloon:#ffffff; --balloon-ink:#17120f;
+    --ink:#17120f; --ink-2:#5c5345; --rule:#17120f; --shadow:#17120f;
+    --slime:#2c7a4b; --lamp:#c98a00; --lamp-ink:#8a5f00; --lamp-bg:#fbefd3;
+    --blood:#c4261b; --blood-bg:rgb(196 38 27 / .08);
+    --dot:rgb(23 18 15 / .085);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --ground:#efe4c8; --panel:#fbf6e8; --panel-2:#f2e8cc; --balloon:#ffffff; --balloon-ink:#17120f;
+  --ink:#17120f; --ink-2:#5c5345; --rule:#17120f; --shadow:#17120f;
+  --slime:#2c7a4b; --lamp:#c98a00; --lamp-ink:#8a5f00; --lamp-bg:#fbefd3;
+  --blood:#c4261b; --blood-bg:rgb(196 38 27 / .08);
+  --dot:rgb(23 18 15 / .085);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background-color:var(--ground);
+  background-image:radial-gradient(var(--dot) 1.1px, transparent 1.6px);
+  background-size:7px 7px;
+  color:var(--ink);
+  font-family:var(--f-hand);
+  font-size:17px;
+  line-height:1.4;
+}
+.wrap{
+  max-width:1180px;
+  margin:0 auto;
+  display:grid;
+  gap:30px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:22px 56px;
+}
+.mono{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--slime); outline-offset:2px}
+.panel{
+  background:var(--panel);
+  border:2.5px solid var(--rule);
+  box-shadow:4px 4px 0 var(--shadow);
+  border-radius:3px 7px 4px 6px / 6px 3px 7px 4px;
+  min-width:0;
+}
+.shout{font-family:var(--f-shout); letter-spacing:.045em; text-transform:uppercase; font-weight:400}
+.cover{
+  position:relative;
+  overflow:hidden;
+  color:var(--cover-ink);
+  padding:22px clamp(16px, 3vw, 32px) 22px;
+  background:linear-gradient(135deg, var(--cover-from), var(--cover-to));
+  border-color:var(--rule);
+}
+.cover::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background-image:radial-gradient(rgb(243 236 218 / .10) 1.3px, transparent 1.8px);
+  background-size:8px 8px;
+}
+.cover > *{position:relative}
+.issue{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:6px 18px;
+  font-size:15px;
+  border-bottom:2px solid rgb(243 236 218 / .55);
+  padding-bottom:8px;
+  margin:0;
+}
+.issue span{font-family:var(--f-shout); letter-spacing:.07em; text-transform:uppercase}
+.mast{
+  font-family:var(--f-mast);
+  font-weight:400;
+  margin:14px 0 4px;
+  line-height:.92;
+  font-size:clamp(54px, 11vw, 124px);
+  letter-spacing:.01em;
+  color:var(--cover-ink);
+  text-shadow:3px 3px 0 var(--blood), -2px -1px 0 rgb(86 192 131 / .55);
+  overflow-wrap:anywhere;
+}
+.mast small{
+  display:block;
+  font-family:var(--f-shout);
+  font-size:.24em;
+  letter-spacing:.14em;
+  text-shadow:none;
+  margin-bottom:.15em;
+}
+.dek{max-width:58ch; font-size:19px; margin:6px 0 18px}
+.stats{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-bottom:16px}
+.stat{
+  border:2px solid rgb(243 236 218 / .8);
+  border-radius:3px;
+  padding:8px 12px 10px;
+  background:rgb(10 8 24 / .28);
+  min-width:0;
+}
+.stat b{
+  display:block;
+  font-family:var(--f-mono);
+  font-weight:600;
+  font-size:clamp(28px, 4vw, 38px);
+  line-height:1.1;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.stat span{
+  display:block;
+  font-family:var(--f-shout);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:15px;
+  white-space:nowrap;
+}
+.stat.alarm b{color:var(--stat-alarm)}
+.stat.good b{color:var(--stat-good)}
+.prov{
+  margin:0;
+  background:var(--lamp-bg);
+  color:var(--lamp-ink);
+  border-left:4px solid var(--lamp);
+  padding:8px 12px;
+  font-size:16px;
+  border-radius:2px;
+}
+.cover .prov{
+  background:var(--cover-prov-bg);
+  color:var(--cover-prov-ink);
+  border-left-color:var(--cover-prov-rule);
+}
+.sec{padding:18px clamp(14px, 2.4vw, 26px) 20px}
+.sec-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 18px; margin-bottom:10px}
+.sec-head h2{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  font-size:30px;
+  margin:0;
+  line-height:1;
+}
+.sec-head p{margin:0; color:var(--ink-2); max-width:72ch}
+.pill{
+  display:inline-block;
+  font-family:var(--f-shout);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-size:13px;
+  line-height:1;
+  padding:4px 8px 3px;
+  border:1.5px solid currentColor;
+  border-radius:999px;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:normal;
+}
+.pill.ok{color:var(--slime)}
+.pill.alarm{color:var(--blood)}
+.pill.read{color:var(--lamp-ink)}
+.ledger{width:100%; border-collapse:collapse; table-layout:fixed; font-size:16px}
+.ledger th,.ledger td{padding:6px 8px; border-bottom:1px solid var(--rule); vertical-align:top; text-align:left}
+.ledger th{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:14px;
+  color:var(--ink-2);
+}
+.ledger td{overflow-wrap:anywhere}
+.ledger th:nth-child(1),.ledger td:nth-child(1){width:26%}
+.note{
+  background:var(--panel-2);
+  border:2px solid var(--rule);
+  border-left:4px solid var(--blood);
+  padding:10px 12px;
+  margin:0 0 12px;
+}
+.note p{margin:0 0 8px}
+.note .reading{
+  margin:0;
+  background:var(--lamp-bg);
+  color:var(--lamp-ink);
+  border-left:4px solid var(--lamp);
+  padding:8px 12px;
+}
+.colophon{color:var(--ink-2); font-size:15px; max-width:80ch; margin:0}
+.colophon code{overflow-wrap:anywhere}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+@media (max-width: 760px){
+  .stats{grid-template-columns:minmax(0, 1fr)}
+  .mast{font-size:clamp(40px, 12vw, 72px)}
+  .ledger,.ledger tbody,.ledger tr{display:block; width:auto}
+  .ledger td,.ledger td:nth-child(n){display:grid; width:auto}
+  .ledger thead{display:none}
+  .ledger tr{border:2px solid var(--rule); margin:0 0 12px; padding:8px 10px}
+  .ledger td{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr);
+    gap:2px;
+    border:0;
+    padding:6px 0;
+    width:auto;
+  }
+  .ledger td::before{
+    content:attr(data-label);
+    font-family:var(--f-shout);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    font-size:13px;
+    color:var(--ink-2);
+  }
+  .ledger td > span{min-width:0; text-align:left; overflow-wrap:break-word}
+}
+@media (max-width: 400px){
+  .stat span{font-size:14px; letter-spacing:.03em}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="cover panel">
+<p class="issue"><span>v1 (v1-2026-10-14 + v1-adv)</span><span class="mono">qwen3:8b · 32 tickets</span></p>
+<h1 class="mast"><small>Settlement grader</small>Do the checks agree?</h1>
+<p class="dek">Eleven plain-code checks on this run, scored against the labels a human made.</p>
+<div class="stats">
+<div class="stat good"><b>11</b><span>checks at 85% and 0.6</span></div>
+<div class="stat"><b>0</b><span>false passes</span></div>
+<div class="stat alarm"><b>2</b><span>flags the labels lack</span></div>
+</div>
+<p class="prov">In sample. Two checks were fixed while reading these 32 traces. This shows the checks reproduce the labels they were built from, not that they generalise.</p>
+</header>
+<section class="sec panel">
+<div class="sec-head">
+<h2>The eleven checks</h2>
+<p>Caught is how many of the human-labelled failures this check flagged. A false pass is one it missed. A false fail is a flag the labels lack. Beside the pill, false passes read are n of n when there are any. A reading counts when its text is non-empty after trimming.</p>
+</div>
+<table class="ledger">
+<thead><tr><th>Code</th><th>Caught</th><th>Agreement</th><th>Kappa</th><th>False passes</th><th>False fails</th><th>85% and 0.6</th></tr></thead>
+<tbody>
+<tr>
+<td data-label="Code"><span class="mono">GRADE_CONTRADICTS_FACTS</span></td>
+<td data-label="Caught"><span class="mono">14 of 14</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">WIN_LOSS_FLIP</span></td>
+<td data-label="Caught"><span class="mono">14 of 14</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">SKIPPED_SETTLE_TICKET</span></td>
+<td data-label="Caught"><span class="mono">8 of 8</span></td>
+<td data-label="Agreement"><span class="mono">0.9688</span></td>
+<td data-label="Kappa"><span class="mono">0.9200</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">1</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">PLACEHOLDER_ECHO</span></td>
+<td data-label="Caught"><span class="mono">5 of 5</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">GRADED_WITHOUT_LOOKUP</span></td>
+<td data-label="Caught"><span class="mono">5 of 5</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">INCOMPLETE_LEG_LIST</span></td>
+<td data-label="Caught"><span class="mono">5 of 5</span></td>
+<td data-label="Agreement"><span class="mono">0.9688</span></td>
+<td data-label="Kappa"><span class="mono">0.8904</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">1</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">WRONG_NON_GRADE</span></td>
+<td data-label="Caught"><span class="mono">3 of 3</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">NO_FINAL_ANSWER</span></td>
+<td data-label="Caught"><span class="mono">3 of 3</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">RULE_TOPIC_MISS</span></td>
+<td data-label="Caught"><span class="mono">3 of 3</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">OUTPUT_LIMIT_SPRAY</span></td>
+<td data-label="Caught"><span class="mono">2 of 2</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+<tr>
+<td data-label="Code"><span class="mono">FOLLOWED_TICKET_CLAIM</span></td>
+<td data-label="Caught"><span class="mono">2 of 2</span></td>
+<td data-label="Agreement"><span class="mono">1.0000</span></td>
+<td data-label="Kappa"><span class="mono">1.0000</span></td>
+<td data-label="False passes"><span class="mono">0</span></td>
+<td data-label="False fails"><span class="mono">0</span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="sec panel">
+<div class="sec-head">
+<h2>Disagreements</h2>
+<p>Each disagreement needs a reading. The labels are the owner's to change.</p>
+</div>
+<article class="note">
+<p><span class="mono">SKIPPED_SETTLE_TICKET · B01</span> <span class="pill read">read</span></p>
+<p>This is a flag the labels lack.</p>
+<p class="reading">settle_ticket returned NEEDS_HUMAN with a null net, and the final answer wrote 0.0. By this code&#x27;s own wording that net did not come from the tool, so the check is right and the human labels did not flag it. B10 and C10 are labelled near misses for the same shape (a non-grade with a 0.0 net the tool never produced), but without a settle call. It misbooks nothing. Proposed: add B01 as a near miss; the labels are yours to change.</p>
+</article>
+<article class="note">
+<p><span class="mono">INCOMPLETE_LEG_LIST · A02</span> <span class="pill read">read</span></p>
+<p>This is a flag the labels lack.</p>
+<p class="reading">The final answer is VOID with no legs key at all, for a one-leg ticket, so it never graded the leg it voided. By this code&#x27;s own wording (count the legs) the check is right and the human labels did not flag it. Proposed: add A02; the labels are yours to change.</p>
+</article>
+</section>
+<p class="colophon">Regenerated by <code class="mono">python3 -m scorer.report traces/v1 --out reports/calibration-v1.html --json reports/calibration-v1.json</code>. Fonts load from Google Fonts.</p>
+</div>
+</body>
+</html>
