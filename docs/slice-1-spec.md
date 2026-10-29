@@ -122,8 +122,8 @@ self-contained page with `ui/ledger.css` inlined. It is deterministic (the same 
 machine paths). The committed `reports/calibration-v1.{html,json,md}` are tested against a regeneration, so a stale report
 fails a test. Content: a cover (run, model from `run_meta.json`, ticket count; a headline question; three stat tiles: checks
 whose numbers meet the bar, false passes, flags the labels lack); **a provenance line on the cover saying the result is in
-sample**, because two checks were fixed while reading these 32 traces, and that it shows the checks reproduce the labels
-they were built from, not that they generalise; a table with one row per check (caught of the human-labelled, agreement,
+sample**, because the labels were made on these 32 traces and the checks were built against them, and that it shows the
+checks reproduce the labels they were built from, not that they generalise (the wording after amendment 13); a table with one row per check (caught of the human-labelled, agreement,
 kappa, false passes, false fails, a pill that says whether the numbers meet the bar and does not say the check is trusted,
 and, on a row that has false passes only, a figure for false passes read, "n of n", amendment 5); one note per disagreement
 with its recorded reading, which carries a "read" badge only when it has one; a colophon naming the
@@ -238,7 +238,19 @@ unchanged.
     `traces/smoke-1` (3 tickets, 39 spans); the runs that measure the floor are slice 2's, committed as `traces/aa-*`.
     Slice 2's floor must not count the two dated runs as runs (receipt below the amendments).
 12. **Not yet written: the failing-row wording.** The pill's "not 85% or 0.6" does not say which number failed. No row fails
-    on `traces/v1`, so the words wait for slice 4. Slice 3's held-out calibration can also have a failing row.
+    on `traces/v1`, so the words wait for the first held-out calibration that can have a failing row, which is slice 3's.
+13. **Not yet written: the provenance sentence stops naming a count (owner's ruling, 29 Oct 2026).** The cover line in
+    `scorer/calibrate.py`, the module docstrings of `scorer/__init__.py` and `scorer/calibrate.py`, and the committed
+    `reports/calibration-v1.{html,json,md}` say that two checks were fixed while reading the 32 traces, and the line for a run
+    outside `traces/v1` says the checks "were tuned on traces/v1". That is history of the withheld prototype and cannot be re-run
+    from this repo, so the owner ruled it removed and not backed by a receipt. The three sentences become, for exactly
+    `traces/v1`: "In sample. The labels were made on these 32 traces and the checks were built against them. This shows the
+    checks reproduce the labels they were built from, not that they generalise."; for a proper subset: "In sample. This is a
+    subset of traces/v1, the run the checks were built against. It is not independent evidence that they generalise."; for any
+    other run: "Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on
+    this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out
+    agreement or generalisation." The code, its tests and the regenerated reports are their own PR: until it lands, the spec
+    describes the intended words and the page still says the old ones. No figure moves.
 
 ### Receipt for amendments 6, 7 and 11, and the counts in the scope doc
 

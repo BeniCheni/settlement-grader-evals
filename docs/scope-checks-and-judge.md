@@ -36,10 +36,10 @@ Accepted when these work and reproduce the oracle: `python3 -m scorer.calibrate 
   (a final answer with no legs key). Both are literal by each code's own wording, so the check is right and
   the labels are short. The reading for each is in `data/calibration_readings_v1.json`; the labels are not
   edited here.
-- **In sample is the catch.** Two checks were fixed while reading these same 32 traces (`WRONG_NON_GRADE` compared
-  the net as well as the result; `GRADE_CONTRADICTS_FACTS` ignored the scores `find_match` returns when the grader
-  never called `get_match_facts`, as on `X01`). That is tuning on the test set. The result shows the checks
-  reproduce the labels they were built from.
+- **In sample is the catch.** The labels in `data/codes_v1.json` were made on `traces/v1`, `data/oracle_slice1.json` holds
+  the expected flags for it, and the builder had that oracle by design. Agreement here therefore shows the checks reproduce
+  the labels they were built from, not that they would agree on a new run. How the checks were adjusted before the build is
+  not tracked, so no count of fixes is claimed.
 - **The noise floor is not measured yet.** Nothing in this repo compares two runs of the same configuration, so no code
   count has a range and no change has been shown to beat noise. Slice 2 commits the runs and builds the comparison.
 
