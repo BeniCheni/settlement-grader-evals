@@ -210,14 +210,14 @@ unchanged.
    when it is a string that is non-empty after trimming whitespace, by one definition shared by the page, the Markdown
    report, the check that every disagreement has a reading, and the note badges. This refines amendment 1.
 6. **Two checks follow their codes' wording (owner's rulings).** INCOMPLETE_LEG_LIST flags only a final that lists fewer legs
-   than the ticket, and WRONG_NON_GRADE no longer includes PUSH. Neither moves an oracle field: across every run on the
-   machine the only PUSH final is `A13`, which matches its key, and no final lists more legs than its ticket.
+   than the ticket, and WRONG_NON_GRADE no longer includes PUSH. Neither moves an oracle field: across the tracked runs the
+   only PUSH final is `A13` (in `traces/v1` and in `traces/v1-2026-10-14`, which re-reads v1's spans), which matches its key,
+   and no tracked final lists more legs than its ticket. The receipt is below the amendments.
 7. **Match selection (owner's ruling).** Closes amendment 3; the rule is in check 11. Counting, per leg, the fetched matches
    that qualify (both names at 0.5 or better), on 28 Oct 2026: `traces/v1` has 55 legs with one and 21 with none, the dated
-   subset 51 and 17, the adversarial subset 4 and 4, `traces/smoke-1` 8 and 0, and the local re-runs of the gold set (not
-   committed; one full run and two one-ticket fragments) 49 and 27, one and none, none and one. No leg in any of them has two,
-   so the oracle cannot tell the rules apart: first wins, last wins, a synthetic score first and the lowest score all pass
-   it. A synthetic test with two qualifying matches pins the rule.
+   subset 51 and 17, the adversarial subset 4 and 4, and `traces/smoke-1` 8 and 0 (receipt below the amendments). No leg in a
+   tracked run has two, so the oracle cannot tell the rules apart: first wins, last wins, a synthetic score first and the
+   lowest score all pass it. A synthetic test with two qualifying matches pins the rule.
 8. **Commands and provenance.** `--cases` and the exit-2 usage error are described under Calibration. The provenance text is
    chosen by trace identity and not by directory name. A run whose trace ids are exactly `traces/v1`'s is "in sample", with the
    cover text above. A non-empty proper subset of them is "in sample, a subset, not independent evidence". Any other run has
@@ -234,7 +234,66 @@ unchanged.
     at call time, so patching the constants changes both the decisions and the words. The effective defaults are unchanged.
 11. **Provenance of the tracked runs (a finding, not a rule).** `traces/v1-2026-10-14` and `traces/v1-adv` hold spans
     byte-identical to `traces/v1`'s (315 and 14 of its 329, with the same trace and span ids), so they are not independent
-    samples and the scorer's flag counts on them sum to v1's. The independent runs are `traces/smoke-1` and the local
-    re-runs. Slice 2's floor must not count the two dated runs as runs.
+    samples and the scorer's flag counts on them sum to v1's. The only tracked run that shares no span with v1 is
+    `traces/smoke-1` (3 tickets, 39 spans); the runs that measure the floor are slice 2's, committed as `traces/aa-*`.
+    Slice 2's floor must not count the two dated runs as runs (receipt below the amendments).
 12. **Not yet written: the failing-row wording.** The pill's "not 85% or 0.6" does not say which number failed. No row fails
     on `traces/v1`, so the words wait for slice 4, the first held-out run that can have a failing row.
+
+### Receipt for amendments 6, 7 and 11
+
+Every count in them comes from this script, run from the repository root on Python 3.9.6 and 3.14.7 with the same output.
+It reads the scorer's own internals (`_facts_seen`, `_teams`, `_orientation_score`, `_leg_count`), so a later rename moves the
+script and not the figures; the tests pin the behaviour. Figures from runs that are not tracked in this repo are not claimed.
+
+```
+python3 - <<'PY'
+import collections, json, os, sys
+sys.path.insert(0, ".")
+from grader import espn
+from scorer import checks, traces
+
+RUNS = ["traces/v1", "traces/v1-2026-10-14", "traces/v1-adv", "traces/smoke-1"]
+for run in RUNS:
+    legs = collections.Counter()  # qualifying fetched matches per ticket leg
+    push, more = [], 0
+    for rec in traces.load_run(run):
+        final = rec["final"] or {}
+        if str(final.get("ticket_result", "")).upper() == "PUSH":
+            push.append(rec["case_id"])
+        more += checks._leg_count(final) > checks._leg_count(rec["ticket"])
+        seen = checks._facts_seen(rec)
+        for leg in rec["ticket"].get("legs") or []:
+            home, away = checks._teams(leg)
+            n = 0
+            for _prefer, facts in seen:
+                try:
+                    teams = espn.team_objects(str(facts.get("event_id")))
+                except RuntimeError:
+                    continue
+                n += checks._orientation_score(home, away, teams) >= 0.5
+            legs[n] += 1
+    print(run, "legs by matches", dict(sorted(legs.items())), "PUSH finals", push, "finals with more legs", more)
+
+
+def spans(run):
+    with open(os.path.join(run, "settlement-traces.json"), encoding="utf-8") as handle:
+        return {(s["traceId"], s["spanId"]): json.dumps(s, sort_keys=True) for s in traces._spans(json.load(handle))}
+
+
+base = spans("traces/v1")
+for run in RUNS[1:]:
+    other = spans(run)
+    print(run, sum(base.get(k) == v for k, v in other.items()), "of", len(other), "spans identical to traces/v1's", len(base))
+PY
+```
+
+```
+traces/v1 legs by matches {0: 21, 1: 55} PUSH finals ['A13'] finals with more legs 0
+traces/v1-2026-10-14 legs by matches {0: 17, 1: 51} PUSH finals ['A13'] finals with more legs 0
+traces/v1-adv legs by matches {0: 4, 1: 4} PUSH finals [] finals with more legs 0
+traces/smoke-1 legs by matches {1: 8} PUSH finals [] finals with more legs 0
+traces/v1-2026-10-14 315 of 315 spans identical to traces/v1's 329
+traces/v1-adv 14 of 14 spans identical to traces/v1's 329
+traces/smoke-1 0 of 39 spans identical to traces/v1's 329
+```

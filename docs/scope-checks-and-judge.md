@@ -41,27 +41,24 @@ Accepted when these work and reproduce the oracle: `python3 -m scorer.calibrate 
   the net as well as the result; `GRADE_CONTRADICTS_FACTS` ignored the scores `find_match` returns when the grader
   never called `get_match_facts`, as on `X01`). That is tuning on the test set. The result shows the checks
   reproduce the labels they were built from.
-- **The noise floor is not zero.** A local re-run of the same 32 tickets (same model, temperature 0, same frozen
-  facts, not committed) matched 10 against v1's 11. Five tickets changed outcome (B01, B05, B10, C06, C09) and code
-  counts moved by up to 2 (`NO_FINAL_ANSWER` 3 to 1, `OUTPUT_LIMIT_SPRAY` 2 to 0, `RULE_TOPIC_MISS` 3 to 5).
-  Measured with the prototype's compare tool, which slice 2 builds properly. One pair is a hint, not a floor.
+- **The noise floor is not measured yet.** Nothing in this repo compares two runs of the same configuration, so no code
+  count has a range and no change has been shown to beat noise. Slice 2 commits the runs and builds the comparison.
 
 ## What the build and its review found
 
-Each figure is from a command run on 28 Oct 2026; the passes' own counts are labelled as theirs. The first two bullets rest on
-the PM's prototype and on local runs that are not committed, so a reader of this repo cannot re-run them.
+Every figure here re-runs from this repo: the counts by the script under the spec's amendments, the calibration by the
+commands above. Nothing rests on a file that is not tracked.
 
-- **The build matches the prototype.** The same flags on every ticket of every run on the machine (101 ticket-runs, no
-  differences), at a line similarity of 0.144 between the builder's `checks.py` and the prototype's, with 14 shared lines
-  longer than 25 characters, all of them names or idioms the spec fixes. That is evidence of independent authorship and not
-  proof: the builder had the oracle by design, so agreement on `traces/v1` proves little.
-- **Only 37 of those 101 are independent of v1.** `traces/v1-2026-10-14` and `traces/v1-adv` hold spans byte-identical to
-  `traces/v1`'s (315 and 14 of its 329), and v1 itself is pinned by the oracle. The independent runs are `traces/smoke-1`
-  (3 tickets) and the local re-runs of the gold set (34 ticket-runs, not committed). Slice 2's floor must not count the two
-  dated runs.
-- **Whole-rule mutation missed the branches the data never takes.** Pass 1 reports that 27 of 58 mutants survived the first
-  suite, all inside branches `traces/v1` does not exercise; Pass 2 and the PM re-ran subsets and saw them die once the tests
-  were written. The tie rule among several matching fetched matches is not needed by any tracked or local run.
+- **Agreement on `traces/v1` proves little.** The build reproduces `data/oracle_slice1.json`, which is the acceptance, but the
+  builder had the oracle by design. The PM kept a prototype to compare against on runs the builder never saw; that comparison
+  is not in this repo and no figure from it is claimed.
+- **Only one tracked run is independent of v1.** `traces/v1-2026-10-14` and `traces/v1-adv` hold spans byte-identical to
+  `traces/v1`'s (315 and 14 of its 329), and v1 itself is pinned by the oracle. `traces/smoke-1` (3 tickets) shares none of
+  them. Slice 2's floor must not count the two dated runs.
+- **The data never takes some branches, so the tests have to.** No tracked leg has two matching fetched matches, so the oracle
+  cannot tell the tie rules apart. A test written in the review pins the order: changing `key > best_key` to
+  `key >= best_key` in `_best_facts` (first seen becomes last seen) turns
+  `test_best_facts_keeps_highest_score_then_fetched_then_trace_order` red, and no other test.
 - **The review changed the page's words.** The two numbers a check must clear are never called the trust verdict; a row shows
   false passes read only when it has any; a run with other trace ids says its calibration is not established, while a
   non-empty proper subset of v1 is identified as in sample and not independent evidence.
@@ -70,7 +67,7 @@ the PM's prototype and on local runs that are not committed, so a reader of this
 
 | Slice | Work | Done when |
 |---|---|---|
-| 2. The floor | Run the v1 configuration at least three more times; commit them as `traces/aa-*`; build `compare` (a pair of runs, then N) and report the range of every code count. (`traces/v1-2026-10-14` and `traces/v1-adv` are re-reads of v1's own spans and do not count as runs; one full local re-run exists, not committed.) | Each code has a range, and "a change must beat it" is a number. |
+| 2. The floor | Run the v1 configuration at least three more times; commit them as `traces/aa-*`; build `compare` (a pair of runs, then N) and report the range of every code count. (`traces/v1-2026-10-14` and `traces/v1-adv` are re-reads of v1's own spans and do not count as runs.) | Each code has a range, and "a change must beat it" is a number. |
 | 3. Held-out labels | A human labels the failure codes on a second run's traces (a blank `annotations.csv` is written per run). The checks are then scored on labels they were never tuned on. | The calibration is re-run on the held-out run and every disagreement is read. |
 | 4. One judge | `SELF_CONTRADICTING_EVIDENCE`: does the grader's own evidence for a leg state a fact its grade contradicts? One binary question, a role, a concrete PASS and FAIL, one boundary example, reasoning then one word. About 100 evidence units exist across the two runs (47 and 53, placeholders removed); tune on one run and test on the other. | The judge meets the bar on held-out labels and every false pass is read. |
 | 5. One A/B | One prompt change, one variable, the full set, per-code deltas against slice 2's range, and a written ship or no-ship. | A decision with numbers, including the code that got worse. |
