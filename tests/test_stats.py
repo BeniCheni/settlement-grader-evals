@@ -1,6 +1,8 @@
 """Hand-worked confusion tables. Mutate a count and the matching assertion goes red."""
-import inspect
 import unittest
+from unittest import mock
+
+from scorer import stats
 
 from scorer.stats import (
     MIN_AGREEMENT,
@@ -68,11 +70,14 @@ class ConfusionTests(unittest.TestCase):
         self.assertEqual(false_pass_rate(counts), 0.0)
         self.assertFalse(meets_bar(counts))
 
-    def test_the_bar_constants_are_the_meets_bar_defaults(self):
-        defaults = {name: p.default for name, p in inspect.signature(meets_bar).parameters.items()}
-        self.assertEqual(defaults["min_agreement"], MIN_AGREEMENT)
-        self.assertEqual(defaults["min_kappa"], MIN_KAPPA)
+    def test_the_bar_constants_are_the_live_meets_bar_defaults(self):
         self.assertEqual((MIN_AGREEMENT, MIN_KAPPA), (0.85, 0.6))
+        counts = {"tp": 3, "fp": 0, "fn": 2, "tn": 27}
+        self.assertTrue(meets_bar(counts))
+        for name, value in (("MIN_AGREEMENT", 0.95), ("MIN_KAPPA", 0.85)):
+            with self.subTest(name=name), mock.patch.object(stats, name, value):
+                self.assertFalse(meets_bar(counts))
+                self.assertTrue(meets_bar(counts, min_agreement=0.85, min_kappa=0.6))
 
     def test_empty_counts_do_not_divide_by_zero(self):
         counts = {"tp": 0, "fp": 0, "fn": 0, "tn": 0}

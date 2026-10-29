@@ -6,11 +6,12 @@ import argparse
 import json
 import os
 import sys
+from decimal import Decimal
+
+from scorer import stats
 
 from scorer.checks import CHECKS
 from scorer.stats import (
-    MIN_AGREEMENT,
-    MIN_KAPPA,
     agreement,
     canonical_json,
     cohen_kappa,
@@ -35,11 +36,11 @@ def _load(path):
 
 def bar_words():
     """The two numbers meets_bar tests, as every report prints them."""
-    return "%d%% and %s" % (round(MIN_AGREEMENT * 100), MIN_KAPPA)
+    return "%s%% and %s" % (format((Decimal(str(stats.MIN_AGREEMENT)) * 100).normalize(), "f"), stats.MIN_KAPPA)
 
 
 def not_bar_words():
-    return "not %d%% or %s" % (round(MIN_AGREEMENT * 100), MIN_KAPPA)
+    return "not " + bar_words().replace(" and ", " or ")
 
 
 def false_passes_read(row):

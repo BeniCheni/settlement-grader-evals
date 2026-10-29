@@ -81,8 +81,12 @@ def false_pass_rate(counts):
     return fn / real
 
 
-def meets_bar(counts, min_agreement=MIN_AGREEMENT, min_kappa=MIN_KAPPA):
+def meets_bar(counts, min_agreement=None, min_kappa=None):
     """True only when agreement and kappa are both defined and both clear the bar."""
+    if min_agreement is None:
+        min_agreement = MIN_AGREEMENT
+    if min_kappa is None:
+        min_kappa = MIN_KAPPA
     observed = agreement(counts)
     kappa = cohen_kappa(counts)
     if observed is None or kappa is None:

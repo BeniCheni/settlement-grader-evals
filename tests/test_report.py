@@ -5,6 +5,7 @@ import unittest
 from unittest import mock
 
 import scorer.calibrate
+import scorer.stats
 from scorer.calibrate import bar_words, document, render_markdown
 from scorer.report import render_html
 from scorer.stats import canonical_json
@@ -97,18 +98,23 @@ class ReportTests(unittest.TestCase):
         doc["codes"][0]["meets_bar"] = False
         self.assertIn('<div class="stat alarm"><b>10</b><span>checks at 85% and 0.6</span></div>', render_html(doc, "x"))
 
-    def test_page_words_follow_the_bar_constants(self):
+    def test_page_words_and_decisions_follow_non_default_bar_constants(self):
         self.assertEqual(bar_words(), "85% and 0.6")
-        doc = document("traces/v1")
-        with mock.patch.object(scorer.calibrate, "MIN_AGREEMENT", 0.9), mock.patch.object(scorer.calibrate, "MIN_KAPPA", 0.7):
-            html = render_html(doc, "x")
-            md = render_markdown(doc)
-        self.assertIn("<span>checks at 90% and 0.7</span>", html)
-        self.assertIn("<th>90% and 0.7</th>", html)
-        self.assertEqual(html.count('<span class="pill ok">90% and 0.7</span>'), 11)
-        self.assertNotIn("85% and 0.6", html)
-        self.assertIn("| 90% and 0.7 | False passes read |", md)
-        self.assertNotIn("85% and 0.6", md)
+        for agreement, kappa, words, meeting in ((0.855, 0.9, "85.5% and 0.9", 10), (0.9, 0.95, "90% and 0.95", 9)):
+            with self.subTest(words=words), mock.patch.object(scorer.stats, "MIN_AGREEMENT", agreement), mock.patch.object(scorer.stats, "MIN_KAPPA", kappa):
+                doc = document("traces/v1")
+                self.assertEqual(sum(row["meets_bar"] for row in doc["codes"]), meeting)
+                for row in doc["codes"]:
+                    counts = {key: row[key] for key in ("tp", "fp", "fn", "tn")}
+                    self.assertEqual(row["meets_bar"], scorer.stats.meets_bar(counts))
+                html = render_html(doc, "x")
+                md = render_markdown(doc)
+                self.assertIn('<div class="stat alarm"><b>%s</b><span>checks at %s</span>' % (meeting, words), html)
+                self.assertIn("<th>%s</th>" % words, html)
+                self.assertEqual(html.count('<span class="pill ok">%s</span>' % words), meeting)
+                self.assertIn("| %s | False passes read |" % words, md)
+                self.assertEqual(sum("| yes |" in line for line in md.splitlines()), meeting)
+                self.assertNotIn("85% and 0.6", html + md)
 
     def test_committed_reports_match_regeneration(self):
         doc = document("traces/v1")
