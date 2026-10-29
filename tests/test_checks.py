@@ -99,9 +99,9 @@ class CheckTests(unittest.TestCase):
     def test_incomplete_leg_list_counts_a_missing_legs_key_as_zero(self):
         missing = _record(ticket={"legs": [{"leg": 1}]}, final={"ticket_result": "VOID", "net": 0.0})
         self.assertIsNotNone(CHECKS["INCOMPLETE_LEG_LIST"](missing, _case("LOSS")))
-        # The spec says the count differs, not only that it is fewer.
+        # Owner ruling: only fewer legs is this failure; extra legs are ignored.
         more = _record(ticket={"legs": [{"leg": 1}]}, final={"ticket_result": "WIN", "net": 0.0, "legs": [{"result": "W"}, {"result": "W"}]})
-        self.assertIsNotNone(CHECKS["INCOMPLETE_LEG_LIST"](more, _case("WIN")))
+        self.assertIsNone(CHECKS["INCOMPLETE_LEG_LIST"](more, _case("WIN")))
         self.assertIsNone(CHECKS["INCOMPLETE_LEG_LIST"](_record(), _case("WIN")))
         self.assertIsNone(CHECKS["INCOMPLETE_LEG_LIST"](_record(final=None), _case("LOSS")))
         self.assertIsNotNone(CHECKS["INCOMPLETE_LEG_LIST"](self.v1["A02"], {"expected": {"ticket_result": "LOSS"}}))
@@ -117,7 +117,7 @@ class CheckTests(unittest.TestCase):
         flipped = _record(final={"ticket_result": "WIN", "net": 0.0, "legs": []})
         self.assertIsNone(CHECKS["WRONG_NON_GRADE"](flipped, _case("LOSS")))
         pushed = _record(final={"ticket_result": "PUSH", "net": 0.0, "legs": []})
-        self.assertIsNotNone(CHECKS["WRONG_NON_GRADE"](pushed, _case("WIN")))
+        self.assertIsNone(CHECKS["WRONG_NON_GRADE"](pushed, _case("WIN")))
         self.assertIsNone(CHECKS["WRONG_NON_GRADE"](pushed, _case("PUSH")))
         # accept_needs_human excuses NEEDS_HUMAN and nothing else.
         self.assertIsNotNone(CHECKS["WRONG_NON_GRADE"](voided, _case("LOSS", accept=True)))

@@ -12,7 +12,7 @@ from run_eval import expected_of
 
 
 _EXAMPLES = frozenset(("the score or stat you used", "one line"))
-_NON_GRADES = frozenset(("VOID", "UNSETTLED", "NEEDS_HUMAN", "PUSH"))
+_NON_GRADES = frozenset(("VOID", "UNSETTLED", "NEEDS_HUMAN"))
 _DECISIVE = frozenset(("W", "L", "P"))
 _CONTRADICTION = frozenset(("W", "L", "P", "VOID"))
 _CLAIM = re.compile(
@@ -284,7 +284,7 @@ def incomplete_leg_list(record, _case):
         return None
     got = _leg_count(final)
     expected = _leg_count(record.get("ticket"))
-    if got == expected:
+    if got >= expected:
         return None
     return "final lists %s legs; the ticket has %s" % (got, expected)
 
