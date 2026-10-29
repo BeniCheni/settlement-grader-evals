@@ -34,9 +34,11 @@ failure, and the proof that any check or judge agrees with a human before it is 
 1. **Amounts are scaled.** Every dollar amount here was multiplied by one constant that is not published. Never print,
    derive, hint at or reconstruct it, and never compute a ratio between a published amount and anything. The constant
    and the real amounts live only in the gitignored `private/`. Never open `private/` or `data/espn_cache/`. Every build
-   and review session works in a fresh `git clone` from GitHub, never a worktree: a worktree shares refs and objects with
-   the main checkout, which holds `private/`, `data/espn_cache/` and any withheld local branch, and a clone holds only
-   what has been pushed. If either folder is in your tree, stop and say so.
+   and review session works in a fresh `git clone` from GitHub. A worktree is allowed only when it is a worktree of that
+   fresh clone, which shares only what was pushed. Never use a worktree of the main checkout or of any checkout that holds
+   `private/`, `data/espn_cache/` or a withheld local branch: it shares refs and objects with them. A harness that places a
+   session in a worktree says so in its comment and checks that neither folder exists and that every shared ref is on
+   origin. If either folder is in your tree, stop and say so. (Beni's ruling, 28 Oct 2026.)
 2. **`design/` is local only** and is never committed. A brief that names a file in it grants read access to that file.
 3. **Facts are frozen.** The grader reads `data/espn_frozen.json`; a lookup that is not in it raises and never reaches
    the network. Extending it is its own PR, run with `ESPN_LIVE=1` and `build_frozen.py`.
