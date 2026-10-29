@@ -1,9 +1,12 @@
 """The oracle is the acceptance test. A disagreement without a reading fails the suite."""
+import contextlib
+import io
 import json
 import os
 import tempfile
 import unittest
 
+from scorer import score
 from scorer.calibrate import PROVENANCE, calibrate, document, false_passes_read
 from scorer.checks import CHECKS
 from scorer.score import score_run
@@ -90,6 +93,20 @@ class OracleTests(unittest.TestCase):
         self.assertTrue(row["meets_bar"])
         self.assertFalse(meets_bar(counts, min_agreement=0.95))
         self.assertFalse(meets_bar(counts, min_kappa=0.85))
+
+    def test_a_run_graded_from_another_cases_file_names_it(self):
+        self.assertEqual(len(score_run("traces/smoke-1", cases_path="data/smoke.json")["tickets"]), 3)
+        self.assertEqual(calibrate("traces/smoke-1", cases_path="data/smoke.json")["cases"], 3)
+        for call in (lambda: score_run("traces/smoke-1"), lambda: calibrate("traces/smoke-1")):
+            with self.assertRaises(ValueError) as raised:
+                call()
+            self.assertIn("SMOKE1", str(raised.exception))
+            self.assertIn("data/gold.json", str(raised.exception))
+            self.assertIn("--cases", str(raised.exception))
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(score.main(["traces/smoke-1", "--cases", "data/smoke.json"]), 0)
+        self.assertEqual(len(out.getvalue().splitlines()), 11)
 
     def test_score_counts_match_the_oracle_flags(self):
         with open("data/oracle_slice1.json", encoding="utf-8") as handle:

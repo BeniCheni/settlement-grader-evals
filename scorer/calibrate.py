@@ -57,6 +57,17 @@ def false_passes_read(row):
     return "%s of %s" % (read, len(row["false_passes"]))
 
 
+def case_for(cases, case_id, cases_path):
+    """The case a record was graded from, or a clear error naming the file to pass."""
+    try:
+        return cases[case_id]
+    except KeyError:
+        raise ValueError(
+            "case %s is not in %s; pass the cases file this run was graded from with --cases"
+            % (case_id, cases_path)
+        ) from None
+
+
 def load_cases(path):
     return {case["case_id"]: case for case in _load(path)}
 
@@ -84,7 +95,7 @@ def calibrate(run_dir, cases_path="data/gold.json", codes_path="data/codes_v1.js
         truth = []
         evidence = {}
         for record in records:
-            found = check(record, cases[record["case_id"]])
+            found = check(record, case_for(cases, record["case_id"], cases_path))
             predicted.append(found is not None)
             truth.append(record["case_id"] in human)
             if found is not None:
@@ -211,10 +222,12 @@ def write_text(path, text):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Calibrate the plain-code checks. The result is in sample.")
     parser.add_argument("run_dir")
+    parser.add_argument("--cases", dest="cases_path", default="data/gold.json",
+                        help="the cases file the run was graded from (default data/gold.json)")
     parser.add_argument("--json", dest="json_out")
     parser.add_argument("--md", dest="md_out")
     args = parser.parse_args(argv)
-    doc = document(args.run_dir)
+    doc = document(args.run_dir, cases_path=args.cases_path)
     text = render_markdown(doc)
     sys.stdout.write(text)
     if args.json_out:

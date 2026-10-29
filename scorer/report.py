@@ -151,11 +151,13 @@ def render_html(doc, css):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Write the calibration page. The result is in sample.")
     parser.add_argument("run_dir")
+    parser.add_argument("--cases", dest="cases_path", default="data/gold.json",
+                        help="the cases file the run was graded from (default data/gold.json)")
     parser.add_argument("--out", required=True)
     parser.add_argument("--json", dest="json_out")
     parser.add_argument("--md", dest="md_out")
     args = parser.parse_args(argv)
-    doc = document(args.run_dir)
+    doc = document(args.run_dir, cases_path=args.cases_path)
     css = _css_text()
     write_text(args.out, render_html(doc, css))
     if args.json_out:
