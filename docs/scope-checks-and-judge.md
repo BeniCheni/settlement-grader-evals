@@ -48,7 +48,8 @@ Accepted when these work and reproduce the oracle: `python3 -m scorer.calibrate 
 
 ## What the build and its review found
 
-Each figure is from a command run on 28 Oct 2026; the passes' own counts are labelled as theirs.
+Each figure is from a command run on 28 Oct 2026; the passes' own counts are labelled as theirs. The first two bullets rest on
+the PM's prototype and on local runs that are not committed, so a reader of this repo cannot re-run them.
 
 - **The build matches the prototype.** The same flags on every ticket of every run on the machine (101 ticket-runs, no
   differences), at a line similarity of 0.144 between the builder's `checks.py` and the prototype's, with 14 shared lines
