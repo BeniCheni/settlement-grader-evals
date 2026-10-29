@@ -1,7 +1,6 @@
 # Scope: the checks, the judge, and the proof they can be trusted
 
-Written Wed 28 Oct 2026. Everything here is read from this repo on that day; the commands that
-reproduce each number are next to it.
+Written Wed 28 Oct 2026 and amended after review; the tracked runs and commands below support the figures.
 
 ## The rule this stage exists to keep
 
@@ -12,9 +11,9 @@ than the noise has not been shown to do anything.
 
 ## Slice 1: what it delivers
 
-Specified in `docs/slice-1-spec.md` and built by Cursor from it (`docs/cursor-prompts/slice-1-build.md`). The PM seat keeps
-a prototype as a reference; its output is `data/oracle_slice1.json`, which the build reproduces. The prototype is not in this
-repo. Slice 1 landed on `main` on 28 Oct 2026 as `701e42a` (PR #2), after a Pass 1 by Claude Code, a Pass 2 by Codex and the
+Specified in `docs/slice-1-spec.md` and built by Cursor from it (`docs/cursor-prompts/slice-1-build.md`). The build reproduces
+the tracked oracle, `data/oracle_slice1.json`. The build prompt records a withheld PM prototype as its reference.
+Slice 1 landed on `main` on 28 Oct 2026 as `701e42a` (PR #2), after a Pass 1 by Claude Code, a Pass 2 by Codex and the
 PM's Pass 2.5; every result in it is in sample.
 
 | Piece | What it does |
@@ -30,7 +29,7 @@ PM's Pass 2.5; every result in it is in sample.
 Accepted when these work and reproduce the oracle: `python3 -m scorer.calibrate traces/v1`,
 `python3 -m scorer.report traces/v1 --out reports/calibration-v1.html`, `python3 -m unittest discover -t . -s tests`.
 
-## What the prototype found
+## Calibration on the tracked run
 
 - **In sample, all 11 checks clear the bar.** Agreement 97% to 100%, kappa 0.89 to 1.00, no false passes.
   The two disagreements are `B01` (a net of 0.0 written where `settle_ticket` returned null) and `A02`
@@ -46,13 +45,13 @@ Accepted when these work and reproduce the oracle: `python3 -m scorer.calibrate 
 
 ## What the build and its review found
 
-Every figure here re-runs from this repo: the counts by the script under the spec's amendments, the calibration by the
-commands above. Nothing rests on a file that is not tracked.
+The span counts re-run from the script under the spec's amendments; the ticket count comes from the tracked run metadata.
+The calibration re-runs by the commands above.
 
 - **Agreement on `traces/v1` proves little.** The build reproduces `data/oracle_slice1.json`, which is the acceptance, but the
-  builder had the oracle by design. The PM kept a prototype to compare against on runs the builder never saw; that comparison
-  is not in this repo and no figure from it is claimed.
-- **Only one tracked run is independent of v1.** `traces/v1` is the union of `traces/v1-2026-10-14` and `traces/v1-adv` (its
+  builder had the oracle by design. The PM kept a prototype for comparison; that comparison is not in this repo and no figure from it is claimed.
+  The builder was instructed not to access the prototype; access was not independently verified (see the build prompt archive).
+- **Only one other tracked run shares no spans with v1.** `traces/v1` is the union of `traces/v1-2026-10-14` and `traces/v1-adv` (its
   `run_meta.json` says so), whose spans are byte-identical to its own (315 and 14 of its 329), and v1 itself is pinned by the
   oracle. `traces/smoke-1` (3 tickets) shares none of them. Slice 2's floor must not count the two dated runs.
 - **The data never takes some branches, so the tests have to.** No tracked leg has two matching fetched matches, so the oracle
@@ -69,9 +68,15 @@ commands above. Nothing rests on a file that is not tracked.
 |---|---|---|
 | 2. The floor | Run the v1 configuration at least three more times; commit them as `traces/aa-*`; build `compare` (a pair of runs, then N) and report the range of every code count. (`traces/v1-2026-10-14` and `traces/v1-adv` are the two halves v1 was built from and do not count as runs.) | Each code has a range, and "a change must beat it" is a number. |
 | 3. Held-out labels | A human labels the failure codes on a second run's traces (a blank `annotations.csv` is written per run). The checks are then scored on labels they were never tuned on. | The calibration is re-run on the held-out run and every disagreement is read. |
-| 4. One judge | `SELF_CONTRADICTING_EVIDENCE`: does the grader's own evidence for a leg state a fact its grade contradicts? One binary question, a role, a concrete PASS and FAIL, one boundary example, reasoning then one word. `traces/v1` holds 53 final legs, 52 with non-empty evidence, and the dated run supplies 47 of those 52 and the adversarial run the other 5, so there is one run's worth of evidence units and not two. Tuning and testing need the independent runs that slices 2 and 3 commit. | The judge meets the bar on held-out labels and every false pass is read. |
+| 4. One judge | `SELF_CONTRADICTING_EVIDENCE`: does the grader's own evidence for a leg state a fact its grade contradicts? One binary question, a role, a concrete PASS and FAIL, one boundary example, reasoning then one word. `traces/v1` holds 53 final legs, 52 with non-empty evidence, and the dated run supplies 47 of those 52 and the adversarial run the other 5, including 5 placeholder strings (4 dated and 1 adversarial). These are one run's worth of non-empty strings, not two independent sets. Tuning and testing need the independent runs that slices 2 and 3 commit. | The judge meets the bar on held-out labels and every false pass is read. |
 | 5. One A/B | One prompt change, one variable, the full set, per-code deltas against slice 2's range, and a written ship or no-ship. | A decision with numbers, including the code that got worse. |
 | 6. The UIs | A labelling page for slice 3 and 4 (pass or fail, a note, saved in the browser, exported), and the agreement matrix, in `ui/ledger.css`. Then the trace viewer and the taxonomy page; PR #1 landed on 28 Oct (`6c5ceb7`), so they no longer conflict with it. | Each page passes the checks below. |
+
+Placeholder counts in slice 4 (v1, dated, adversarial):
+
+```bash
+python3 -c 'from scorer.traces import load_run; print([sum(isinstance(l,dict) and isinstance(l.get("evidence"),str) and l["evidence"].strip().casefold()=="the score or stat you used" for r in load_run("traces/"+n) for l in ((r.get("final") or {}).get("legs") or [])) for n in ("v1","v1-2026-10-14","v1-adv")])'
+```
 
 ## Decisions that are not ours to make
 
@@ -82,7 +87,7 @@ commands above. Nothing rests on a file that is not tracked.
 2. **The two label additions.** `B01` and `A02`, in `data/codes_v1.json`. The owner ruled yes to both on 28 Oct 2026. They land in
    their own PR, with a `calibration-v2` beside the v1 report and the v1 oracle left as it is, because labels edited after
    reading what the checks flag make the agreement better by construction, and both versions should stay visible.
-3. **Whether to spend the machine time on slice 2 now.** About twelve minutes per run: the 32 tickets' `wall_clock_s` in `traces/v1/results.csv` sum to 745 s on the machine that made it.
+3. **Whether to spend the machine time on slice 2 now.** The 32 tickets' `wall_clock_s` in `traces/v1/results.csv` sum to 745 s, about twelve minutes, on the machine that made that run; future runs may differ.
 4. **How many held-out tickets to label.** All 32 is the clean answer; the tickets the checks flag differently between
    runs plus a random dozen is the cheap one.
 

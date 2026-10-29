@@ -170,10 +170,9 @@ two label gaps, `B01` and `A02`, are the owner's to rule, and he ruled yes on 28
 
 ## The reference
 
-The PM seat keeps a prototype that produced the oracle. It is not in this repo, and the builder was not given it: the oracle
-and this spec are the contract, so that the build is meant to be independent and the reviewer can compare it with something
-that was not written by the same hands. What is and is not known about the builder's access is recorded in the run-history
-note of `docs/cursor-prompts/slice-1-build.md`.
+The PM seat keeps a prototype described as the oracle's source. It is not in this repo; the builder was instructed not to
+access it. The oracle and this spec are the contract. The builder's access was not independently verified, as recorded in
+the run-history note of `docs/cursor-prompts/slice-1-build.md`.
 
 ## Amendments after the build began (Wed 28 Oct 2026)
 
@@ -243,7 +242,7 @@ unchanged.
 
 ### Receipt for amendments 6, 7 and 11, and the counts in the scope doc
 
-Every count in them comes from this script, run from the repository root on Python 3.9.6 and 3.14.7 with the same output.
+The run counts printed below come from this script, run from the repository root on Python 3.9.6 and 3.14.7 with the same output.
 It reads the scorer's own internals (`_facts_seen`, `_teams`, `_orientation_score`, `_leg_count`), so a later rename moves the
 script and not the figures; the tests pin the behaviour. Figures from runs that are not tracked in this repo are not claimed.
 
