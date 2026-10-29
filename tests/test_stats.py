@@ -1,7 +1,10 @@
 """Hand-worked confusion tables. Mutate a count and the matching assertion goes red."""
+import inspect
 import unittest
 
 from scorer.stats import (
+    MIN_AGREEMENT,
+    MIN_KAPPA,
     agreement,
     cohen_kappa,
     confusion,
@@ -13,9 +16,10 @@ from scorer.stats import (
 
 class ConfusionTests(unittest.TestCase):
     def test_counts_tp_fp_fn_tn_in_that_meaning(self):
-        predicted = [True, True, False, False, True]
-        truth = [True, False, True, False, True]
-        self.assertEqual(confusion(predicted, truth), {"tp": 2, "fp": 1, "fn": 1, "tn": 1})
+        # fp and fn differ on purpose: a swap of the two inside confusion must fail here.
+        predicted = [True, True, True, False, False, True]
+        truth = [True, False, False, True, False, True]
+        self.assertEqual(confusion(predicted, truth), {"tp": 2, "fp": 2, "fn": 1, "tn": 1})
 
     def test_unequal_lengths_raise(self):
         with self.assertRaises(ValueError):
@@ -56,6 +60,19 @@ class ConfusionTests(unittest.TestCase):
         self.assertIsNone(cohen_kappa(counts))
         self.assertIsNone(false_pass_rate(counts))
         self.assertFalse(meets_bar(counts))
+
+    def test_one_class_only_has_no_kappa(self):
+        counts = {"tp": 5, "fp": 0, "fn": 0, "tn": 0}
+        self.assertEqual(agreement(counts), 1.0)
+        self.assertIsNone(cohen_kappa(counts))
+        self.assertEqual(false_pass_rate(counts), 0.0)
+        self.assertFalse(meets_bar(counts))
+
+    def test_the_bar_constants_are_the_meets_bar_defaults(self):
+        defaults = {name: p.default for name, p in inspect.signature(meets_bar).parameters.items()}
+        self.assertEqual(defaults["min_agreement"], MIN_AGREEMENT)
+        self.assertEqual(defaults["min_kappa"], MIN_KAPPA)
+        self.assertEqual((MIN_AGREEMENT, MIN_KAPPA), (0.85, 0.6))
 
     def test_empty_counts_do_not_divide_by_zero(self):
         counts = {"tp": 0, "fp": 0, "fn": 0, "tn": 0}

@@ -2,8 +2,10 @@
 import os
 import re
 import unittest
+from unittest import mock
 
-from scorer.calibrate import document, render_markdown
+import scorer.calibrate
+from scorer.calibrate import bar_words, document, render_markdown
 from scorer.report import render_html
 from scorer.stats import canonical_json
 
@@ -70,6 +72,16 @@ class ReportTests(unittest.TestCase):
         self.assertIn('<span class="pill alarm">not 85% or 0.6</span> <span class="mono">2 of 4</span>', html)
         self.assertNotIn('<span class="pill alarm">not 85% or 0.6 2 of 4</span>', html)
         self.assertEqual(html.count(">2 of 4<"), 1)
+
+    def test_page_words_follow_the_bar_constants(self):
+        self.assertEqual(bar_words(), "85% and 0.6")
+        doc = document("traces/v1")
+        with mock.patch.object(scorer.calibrate, "MIN_AGREEMENT", 0.9), mock.patch.object(scorer.calibrate, "MIN_KAPPA", 0.7):
+            html = render_html(doc, "x")
+        self.assertIn("<span>checks at 90% and 0.7</span>", html)
+        self.assertIn("<th>90% and 0.7</th>", html)
+        self.assertEqual(html.count('<span class="pill ok">90% and 0.7</span>'), 11)
+        self.assertNotIn("85% and 0.6", html)
 
     def test_committed_reports_match_regeneration(self):
         doc = document("traces/v1")

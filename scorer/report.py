@@ -8,7 +8,7 @@ import os
 import sys
 from html import escape
 
-from scorer.calibrate import document, render_markdown, write_text
+from scorer.calibrate import bar_words, document, not_bar_words, render_markdown, write_text
 from scorer.stats import canonical_json
 
 
@@ -54,10 +54,10 @@ def _false_passes_read(row):
 
 
 def _numbers_pill(meets):
-    """What meets_bar is: agreement at 85% and kappa at 0.6."""
+    """What meets_bar is: the two numbers in stats.MIN_AGREEMENT and stats.MIN_KAPPA."""
     if meets:
-        return "ok", "85% and 0.6"
-    return "alarm", "not 85% or 0.6"
+        return "ok", bar_words()
+    return "alarm", not_bar_words()
 
 
 def _notes(doc):
@@ -100,7 +100,7 @@ def render_html(doc, css):
         "<h1 class=\"mast\"><small>Settlement grader</small>Do the checks agree?</h1>",
         "<p class=\"dek\">Eleven plain-code checks on this run, scored against the labels a human made.</p>",
         "<div class=\"stats\">",
-        "<div class=\"%s\"><b>%s</b><span>checks at 85%% and 0.6</span></div>" % (meeting_class, esc(summary["meeting"])),
+        "<div class=\"%s\"><b>%s</b><span>checks at %s</span></div>" % (meeting_class, esc(summary["meeting"]), esc(bar_words())),
         "<div class=\"%s\"><b>%s</b><span>false passes</span></div>" % (passes_class, esc(summary["false_passes"])),
         "<div class=\"%s\"><b>%s</b><span>flags the labels lack</span></div>" % (lacks_class, esc(summary["lacks"])),
         "</div>",
@@ -112,7 +112,7 @@ def render_html(doc, css):
         "<p>Caught is how many of the human-labelled failures this check flagged. A false pass is one it missed. A false fail is a flag the labels lack. Beside the pill, false passes read are n of n. A reading counts when its text is non-empty.</p>",
         "</div>",
         "<table class=\"ledger\">",
-        "<thead><tr><th>Code</th><th>Caught</th><th>Agreement</th><th>Kappa</th><th>False passes</th><th>False fails</th><th>85% and 0.6</th></tr></thead>",
+        "<thead><tr><th>Code</th><th>Caught</th><th>Agreement</th><th>Kappa</th><th>False passes</th><th>False fails</th><th>%s</th></tr></thead>" % esc(bar_words()),
         "<tbody>",
     ]
     for row in doc["codes"]:
@@ -129,8 +129,8 @@ def render_html(doc, css):
         lines.append("<td data-label=\"False passes\"><span class=\"mono\">%s</span></td>" % esc(len(row["false_passes"])))
         lines.append("<td data-label=\"False fails\"><span class=\"mono\">%s</span></td>" % esc(len(row["false_fails"])))
         lines.append(
-            "<td data-label=\"85%% and 0.6\"><span><span class=\"pill %s\">%s</span> <span class=\"mono\">%s</span></span></td>"
-            % (pill, esc(word), esc(read))
+            "<td data-label=\"%s\"><span><span class=\"pill %s\">%s</span> <span class=\"mono\">%s</span></span></td>"
+            % (esc(bar_words()), pill, esc(word), esc(read))
         )
         lines.append("</tr>")
     lines.extend([

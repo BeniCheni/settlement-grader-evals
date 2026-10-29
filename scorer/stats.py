@@ -7,6 +7,12 @@ import json
 import math
 
 
+# The two numbers meets_bar tests. The third part of the trust bar, every false
+# pass read, is a human act reported beside them and never folded in.
+MIN_AGREEMENT = 0.85
+MIN_KAPPA = 0.6
+
+
 def confusion(predicted, truth):
     """Count tp, fp, fn, tn from two equal-length lists of booleans."""
     if len(predicted) != len(truth):
@@ -75,7 +81,7 @@ def false_pass_rate(counts):
     return fn / real
 
 
-def meets_bar(counts, min_agreement=0.85, min_kappa=0.6):
+def meets_bar(counts, min_agreement=MIN_AGREEMENT, min_kappa=MIN_KAPPA):
     """True only when agreement and kappa are both defined and both clear the bar."""
     observed = agreement(counts)
     kappa = cohen_kappa(counts)
