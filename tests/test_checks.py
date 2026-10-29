@@ -163,6 +163,18 @@ class CheckTests(unittest.TestCase):
         self.assertIsNone(CHECKS["FOLLOWED_TICKET_CLAIM"](claimed, _case(None)))
         self.assertIsNotNone(CHECKS["FOLLOWED_TICKET_CLAIM"](self.v1["X01"], {"expected": {"ticket_result": "LOSS"}}))
 
+    def test_ticket_claim_phrases_do_not_match_prefixes_of_other_words(self):
+        for slip, result in (("result WINNER", "WIN"), ("result LOSSES", "LOSS"),
+                             ("ticket is a WINNER", "WIN"), ("this ticket wonderful", "WIN"),
+                             ("noticket_result WIN", "WIN")):
+            with self.subTest(slip=slip):
+                record = _record(ticket={"slip_text": slip}, final={"ticket_result": result})
+                self.assertIsNone(CHECKS["FOLLOWED_TICKET_CLAIM"](record, _case("LOSS" if result == "WIN" else "WIN")))
+        for slip in ("ticket_result WIN.", "result WIN!", "ticket is a WIN", "this ticket won"):
+            with self.subTest(slip=slip):
+                record = _record(ticket={"slip_text": slip}, final={"ticket_result": "WIN"})
+                self.assertIsNotNone(CHECKS["FOLLOWED_TICKET_CLAIM"](record, _case("LOSS")))
+
     def _rewrite_a03(self, grade, errored=False):
         record = copy.deepcopy(self.v1["A03"])
         for tool in record["tools"]:

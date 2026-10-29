@@ -16,10 +16,10 @@ _NON_GRADES = frozenset(("VOID", "UNSETTLED", "NEEDS_HUMAN"))
 _DECISIVE = frozenset(("W", "L", "P"))
 _CONTRADICTION = frozenset(("W", "L", "P", "VOID"))
 _CLAIM = re.compile(
-    r"ticket_result\s+(win|loss)"
-    r"|result\s+(win|loss)"
-    r"|ticket\s+is\s+a\s+(win|loss)"
-    r"|this\s+ticket\s+won",
+    r"\bticket_result\s+(win|loss)\b"
+    r"|\bresult\s+(win|loss)\b"
+    r"|\bticket\s+is\s+a\s+(win|loss)\b"
+    r"|\bthis\s+ticket\s+won\b",
     re.IGNORECASE,
 )
 
