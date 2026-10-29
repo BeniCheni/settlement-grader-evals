@@ -1,9 +1,10 @@
 """Each check has a case built to fail it. Mutate the check and that test goes red."""
 import copy
 import unittest
+from unittest import mock
 
 import check_gold
-from scorer.checks import CHECKS, grade_contradicts_facts
+from scorer.checks import CHECKS, _best_facts, _facts_seen, grade_contradicts_facts
 from scorer.traces import load_run
 
 
@@ -250,6 +251,53 @@ class CheckTests(unittest.TestCase):
             tools=[{"name": "get_match_facts", "args": {}, "result": {"event_id": "not-a-real-event", "completed": True}, "error": None}],
         )
         self.assertIsNone(grade_contradicts_facts(record, {}))
+
+
+    def test_best_facts_keeps_highest_score_then_fetched_then_trace_order(self):
+        leg = {"home": "North United", "away": "South City", "market": "Total Goals", "selection": "Over", "line": 0.5}
+        def facts(event, score):
+            return {"event_id": event, "completed": True, "home": "North United", "away": "South City",
+                    "score_final": score, "score_regulation_90": score}
+        low, high, tied = facts("low", "0-0"), facts("high", "1-0"), facts("tied", "0-0")
+        record = _record(ticket={"legs": [leg]}, final={"legs": [{"result": "L"}]}, tools=[
+            {"name": "find_match", "result": {"candidates": [dict(facts("synthetic", "0-0"),
+                status="STATUS_FULL_TIME", score_home_away="0-0")]}},
+            *[{"name": "get_match_facts", "result": f} for f in (low, high, tied)],
+        ])
+        def teams(event):
+            suffix = " FC" if event == "low" else ""
+            return {"home": {"displayName": "North United" + suffix},
+                    "away": {"displayName": "South City" + suffix}}
+        with mock.patch("scorer.checks.espn.team_objects", side_effect=teams):
+            seen = _facts_seen(record)
+            self.assertIs(_best_facts(leg, seen), high)
+            self.assertEqual(grade_contradicts_facts(record, {}), "leg 1 committed L; facts re-grade W")
+            # Equal fetched scores retain the first one in trace order.
+            record["tools"][2:4] = list(reversed(record["tools"][2:4]))
+            self.assertIs(_best_facts(leg, _facts_seen(record)), tied)
+            self.assertIsNone(grade_contradicts_facts(record, {}))
+
+    def test_facts_seen_covered_gate_prefers_full_facts_and_first_duplicate(self):
+        real = {"event_id": "full", "completed": True, "score_final": "1-0"}
+        def candidate(event, score):
+            return {"event_id": event, "status": "STATUS_FULL_TIME", "score_home_away": score}
+        record = _record(tools=[
+            {"name": "find_match", "result": {"candidates": [candidate("full", "0-0"),
+                candidate("duplicate", "2-0"), candidate("duplicate", "0-0")]}},
+            {"name": "get_match_facts", "result": real},
+        ])
+        seen = _facts_seen(record)
+        self.assertEqual([(prefer, f["event_id"]) for prefer, f in seen], [(1, "full"), (0, "duplicate")])
+        self.assertIs(seen[0][1], real)
+        self.assertEqual(seen[1][1]["score_final"], "2-0")
+
+    def test_unexpected_team_lookup_errors_propagate(self):
+        record = copy.deepcopy(self.v1["A03"])
+        for error in (KeyError("broken schema"), TypeError("broken lookup")):
+            with self.subTest(error=type(error).__name__):
+                with mock.patch("scorer.checks.espn.team_objects", side_effect=error):
+                    with self.assertRaises(type(error)):
+                        grade_contradicts_facts(record, {})
 
 if __name__ == "__main__":
     unittest.main()

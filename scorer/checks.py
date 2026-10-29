@@ -162,7 +162,7 @@ def _best_facts(leg, seen):
             continue
         try:
             teams = espn.team_objects(str(event_id))
-        except Exception:
+        except RuntimeError:
             continue
         score = _orientation_score(home, away, teams)
         if score < 0.5:
