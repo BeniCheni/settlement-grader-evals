@@ -63,7 +63,8 @@ the PM's prototype and on local runs that are not committed, so a reader of this
   suite, all inside branches `traces/v1` does not exercise; Pass 2 and the PM re-ran subsets and saw them die once the tests
   were written. The tie rule among several matching fetched matches is not needed by any tracked or local run.
 - **The review changed the page's words.** The two numbers a check must clear are never called the trust verdict; a row shows
-  false passes read only when it has any; a run other than `traces/v1` says its calibration is not established.
+  false passes read only when it has any; a run with other trace ids says its calibration is not established, while a
+  non-empty proper subset of v1 is identified as in sample and not independent evidence.
 
 ## What is next
 

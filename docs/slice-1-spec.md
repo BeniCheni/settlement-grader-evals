@@ -78,7 +78,7 @@ decisions that wording leaves open, and each was learned from a trace.
     - *Which match is a leg's*: the leg's teams (`home` and `away`, else parse `A v B` from `fixture` after dropping
       parentheticals), through `check_gold.ALIASES`; a fetched match is the leg's when both names score at least 0.5 against
       `espn.team_objects(event_id)` with `grader.espn._team_score`, in either orientation. A leg with no fetched match is
-      skipped. An event that is missing from the frozen set (the lookup's `RuntimeError`) skips the leg, and no other
+      skipped. An event that is missing from the frozen set (the lookup's `RuntimeError`) skips that candidate, and no other
       exception from that lookup is swallowed. When more than one fetched match qualifies for a leg, the one with the highest
       minimum of its two team scores is used; on a tie in that score a `get_match_facts` result beats a synthetic full-time
       score; any remaining tie goes to the first one seen, in trace order (amendment 7).
@@ -197,7 +197,7 @@ says which parts of the PR the amendments make stale. The oracle is unchanged, a
    of the three reports (`report` writes the HTML and JSON, `calibrate --md` the Markdown). "About 1000 px" leaves the width
    open. "One sentence" and "nothing else moves" in the README need a scoped textual comparison. Inputs the spec leaves open:
    a `final` that is valid JSON and not a dict, a null or absent tool result, tool spans with equal start times, duplicate
-   candidate event ids, equal match scores. (The open inputs are pinned by amendment 9; the rest stays for slice 2.)
+   candidate event ids, equal match scores. (Amendment 9 records their behaviour and test coverage; the rest stays for slice 2.)
 
 ## Amendments after PR #2 was reviewed (Wed 28 Oct 2026, evening)
 
@@ -220,13 +220,14 @@ unchanged.
    it. A synthetic test with two qualifying matches pins the rule.
 8. **Commands and provenance.** `--cases` and the exit-2 usage error are described under Calibration. The provenance text is
    chosen by trace identity and not by directory name. A run whose trace ids are exactly `traces/v1`'s is "in sample", with the
-   cover text above. A proper subset of them is "in sample, a subset, not independent evidence". Any other run has
+   cover text above. A non-empty proper subset of them is "in sample, a subset, not independent evidence". Any other run has
    `in_sample` null and says that run-specific calibration is not established, because the labels in `data/codes_v1.json`
    were made on `traces/v1` and are not labels for another run's outputs.
-9. **Inputs amendment 4 left open, now pinned by tests.** A `final` that is valid JSON and not a dict is `None`. A null or
+9. **Inputs amendment 4 left open.** A `final` that is valid JSON and not a dict is `None`. A null or
    absent tool result is `None`, with the span's error recorded separately. Tool spans with equal start times sort by span id.
    Duplicate candidate event ids keep the first eligible one, and a fetched facts result for an event suppresses the
-   synthetic one. An absent `run.tool_calls` is 0 even if tool spans exist. Equal match scores are amendment 7. The remaining
+   synthetic one. An absent `run.tool_calls` is 0 even if tool spans exist. Tests pin these inputs except the combination of
+   absent `run.tool_calls` with tool spans. Equal match scores are amendment 7. The remaining
    gaps in amendment 4 (an enumerated contrast procedure, a negative control per check, the widths, the README comparison)
    stay for slice 2.
 10. **`meets_bar` signature.** The thresholds are `None` sentinels resolved from `stats.MIN_AGREEMENT` and `stats.MIN_KAPPA`
