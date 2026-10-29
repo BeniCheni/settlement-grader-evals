@@ -200,8 +200,8 @@ says which parts of the PR the amendments make stale. The oracle is unchanged, a
 
 ## Amendments after PR #2 was reviewed (Wed 28 Oct 2026, evening)
 
-Made in the docs PR that follows the merge of PR #2 (`701e42a`). The code on `main` already does what these say, because the
-owner's rulings were applied in PR #2's Pass 2; this text catches the spec up. The oracle, the readings and the labels are
+Made in the docs PR that follows the merge of PR #2 (`701e42a`). Amendments 5 to 11 catch the spec up to the code and
+findings from that review. Amendments 12 and 13 describe work still to come. The oracle, the readings and the labels are
 unchanged.
 
 5. **The false-passes-read figure (owner's ruling).** It appears on a row that has one or more false passes, as "n of n", and
