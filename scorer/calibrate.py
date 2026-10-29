@@ -58,12 +58,16 @@ def false_passes_read(row):
     return "%s of %s" % (read, len(row["false_passes"]))
 
 
+class MissingCaseError(ValueError):
+    """A run was paired with a cases file that does not contain its ticket."""
+
+
 def case_for(cases, case_id, cases_path):
     """The case a record was graded from, or a clear error naming the file to pass."""
     try:
         return cases[case_id]
     except KeyError:
-        raise ValueError(
+        raise MissingCaseError(
             "case %s is not in %s; pass the cases file this run was graded from with --cases"
             % (case_id, cases_path)
         ) from None
@@ -228,7 +232,10 @@ def main(argv=None):
     parser.add_argument("--json", dest="json_out")
     parser.add_argument("--md", dest="md_out")
     args = parser.parse_args(argv)
-    doc = document(args.run_dir, cases_path=args.cases_path)
+    try:
+        doc = document(args.run_dir, cases_path=args.cases_path)
+    except (MissingCaseError, FileNotFoundError) as error:
+        parser.error(str(error))
     text = render_markdown(doc)
     sys.stdout.write(text)
     if args.json_out:

@@ -8,7 +8,7 @@ import os
 import sys
 from html import escape
 
-from scorer.calibrate import bar_words, document, false_passes_read, not_bar_words, render_markdown, write_text
+from scorer.calibrate import MissingCaseError, bar_words, document, false_passes_read, not_bar_words, render_markdown, write_text
 from scorer.stats import canonical_json
 
 
@@ -157,7 +157,10 @@ def main(argv=None):
     parser.add_argument("--json", dest="json_out")
     parser.add_argument("--md", dest="md_out")
     args = parser.parse_args(argv)
-    doc = document(args.run_dir, cases_path=args.cases_path)
+    try:
+        doc = document(args.run_dir, cases_path=args.cases_path)
+    except (MissingCaseError, FileNotFoundError) as error:
+        parser.error(str(error))
     css = _css_text()
     write_text(args.out, render_html(doc, css))
     if args.json_out:

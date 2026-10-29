@@ -5,7 +5,7 @@ Comparing two runs is a later slice. Anything this prints is in sample.
 import argparse
 import sys
 
-from scorer.calibrate import PROVENANCE, case_for, load_cases, write_text
+from scorer.calibrate import MissingCaseError, PROVENANCE, case_for, load_cases, write_text
 from scorer.checks import CHECKS
 from scorer.stats import canonical_json
 from scorer.traces import load_run
@@ -49,7 +49,10 @@ def main(argv=None):
                         help="the cases file the run was graded from (default data/gold.json)")
     parser.add_argument("--json", dest="json_out")
     args = parser.parse_args(argv)
-    scored = score_run(args.run_dir, cases_path=args.cases_path)
+    try:
+        scored = score_run(args.run_dir, cases_path=args.cases_path)
+    except (MissingCaseError, FileNotFoundError) as error:
+        parser.error(str(error))
     sys.stdout.write(format_counts(scored))
     if args.json_out:
         write_text(args.json_out, canonical_json(scored))
