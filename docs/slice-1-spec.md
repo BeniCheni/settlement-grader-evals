@@ -123,7 +123,7 @@ machine paths). The committed `reports/calibration-v1.{html,json,md}` are tested
 fails a test. Content: a cover (run, model from `run_meta.json`, ticket count; a headline question; three stat tiles: checks
 whose numbers meet the bar, false passes, flags the labels lack); **a provenance line on the cover saying the result is in
 sample**, because the labels were made on these 32 traces and the checks were built against them, and that it shows the
-checks reproduce the labels they were built from, not that they generalise (the wording after amendment 13); a table with one row per check (caught of the human-labelled, agreement,
+checks reproduce the labels they were built from, not that they generalise (amendment 13); a table with one row per check (caught of the human-labelled, agreement,
 kappa, false passes, false fails, a pill that says whether the numbers meet the bar and does not say the check is trusted,
 and, on a row that has false passes only, a figure for false passes read, "n of n", amendment 5); one note per disagreement
 with its recorded reading, which carries a "read" badge only when it has one; a colophon naming the
@@ -201,8 +201,8 @@ says which parts of the PR the amendments make stale. The oracle is unchanged, a
 ## Amendments after PR #2 was reviewed (Wed 28 Oct 2026, evening)
 
 Made in the docs PR that follows the merge of PR #2 (`701e42a`). Amendments 5 to 11 catch the spec up to the code and
-findings from that review. Amendments 12 and 13 describe work still to come. The oracle, the readings and the labels are
-unchanged.
+findings from that review. Amendment 12 describes work still to come; amendment 13 was carried out in PR #5. The oracle's
+flags, the readings and the labels are unchanged.
 
 5. **The false-passes-read figure (owner's ruling).** It appears on a row that has one or more false passes, as "n of n", and
    not on a row with none; the cover tile reports the total. The same holds in the Markdown report. A reading counts as read
@@ -239,18 +239,21 @@ unchanged.
     Slice 2's floor must not count the two dated runs as runs (receipt below the amendments).
 12. **Not yet written: the failing-row wording.** The pill's "not 85% or 0.6" does not say which number failed. No row fails
     on `traces/v1`, so the words wait for the first held-out calibration that can have a failing row, which is slice 3's.
-13. **Not yet written: the provenance sentence stops naming a count (owner's ruling, 29 Oct 2026).** The cover line in
-    `scorer/calibrate.py`, the module docstrings of `scorer/__init__.py` and `scorer/calibrate.py`, and the committed
-    `reports/calibration-v1.{html,json,md}` say that two checks were fixed while reading the 32 traces, and the line for a run
-    outside `traces/v1` says the checks "were tuned on traces/v1". That is history of the withheld prototype and cannot be re-run
-    from this repo, so the owner ruled it removed and not backed by a receipt. The three sentences become, for exactly
+13. **Done in PR #5: the provenance sentence stops naming a count (owner's ruling, 29 Oct 2026).** Six files carried the old
+    words: the cover line in `scorer/calibrate.py`, the module docstrings of `scorer/__init__.py` and `scorer/calibrate.py`,
+    the committed `reports/calibration-v1.{html,json,md}`, and the `about` value of `data/oracle_slice1.json`. They said that two
+    checks were fixed while reading the 32 traces, and the line for a run outside `traces/v1` said the checks "were tuned on
+    traces/v1". That is history of the withheld prototype and cannot be re-run from this repo, so the owner ruled it removed
+    and not backed by a receipt. The first version of this amendment listed five files and omitted the oracle, because its
+    search covered `scorer/` and `reports/` only; the builder's prompt resolved the gap, and the only change to the oracle is
+    that one string. The three sentences are now, for exactly
     `traces/v1`: "In sample. The labels were made on these 32 traces and the checks were built against them. This shows the
     checks reproduce the labels they were built from, not that they generalise."; for a proper subset: "In sample. This is a
     subset of traces/v1, the run the checks were built against. It is not independent evidence that they generalise."; for any
     other run: "Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on
     this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out
-    agreement or generalisation." The code, its tests and the regenerated reports are their own PR: until it lands, the spec
-    describes the intended words and the page still says the old ones. No figure moves.
+    agreement or generalisation." `tests/test_provenance_words.py` pins the three sentences and fails if any of four retired
+    phrases returns to `scorer/*.py`, to the files directly in `reports/`, or to the oracle. No figure moves.
 
 ### Receipt for amendments 6, 7 and 11, and the counts in the scope doc
 
