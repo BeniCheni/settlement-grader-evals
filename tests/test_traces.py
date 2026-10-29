@@ -80,6 +80,10 @@ class TraceLoaderTests(unittest.TestCase):
         records = load_run(_write([root]))
         self.assertIsNone(records[0]["final"])
 
+        root["attributes"] = [item for item in root["attributes"] if item["key"] != "run.tool_calls"]
+        records = load_run(_write([root]))
+        self.assertEqual(records[0]["tool_calls"], 0)
+
     def test_tool_error_follows_status_code_not_the_result_body(self):
         root = _span("grade_ticket", "root", {"case.id": "T02", "input.ticket": "{}", "run.status": "complete"})
         clean = _span(
@@ -98,6 +102,14 @@ class TraceLoaderTests(unittest.TestCase):
         self.assertIsNone(tools[0]["error"])
         self.assertEqual(tools[0]["result"]["error"], "UNKNOWN_TOPIC")
         self.assertEqual(tools[1]["error"], "PRICE_REQUIRED")
+
+    def test_records_are_sorted_by_case_id(self):
+        second = _span("grade_ticket", "r2", {"case.id": "T02", "input.ticket": "{}"})
+        second["traceId"] = "t2"
+        first = _span("grade_ticket", "r1", {"case.id": "T01", "input.ticket": "{}"})
+        first["traceId"] = "t1"
+        records = load_run(_write([second, first]))
+        self.assertEqual([record["case_id"] for record in records], ["T01", "T02"])
 
     def test_other_runs_use_the_same_shape(self):
         self.assertEqual(len(load_run("traces/v1-adv")), 2)

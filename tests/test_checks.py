@@ -38,6 +38,9 @@ class CheckTests(unittest.TestCase):
 
     def test_win_loss_flip_flags_opposite_results(self):
         self.assertIsNotNone(CHECKS["WIN_LOSS_FLIP"](_record(), _case("LOSS")))
+        self.assertIsNotNone(CHECKS["WIN_LOSS_FLIP"](_record(), _case("loss")))
+        lower = _record(final={"ticket_result": "win", "net": 0.0, "legs": []})
+        self.assertIsNotNone(CHECKS["WIN_LOSS_FLIP"](lower, _case("LOSS")))
         self.assertIsNone(CHECKS["WIN_LOSS_FLIP"](_record(), _case("WIN")))
         self.assertIsNone(CHECKS["WIN_LOSS_FLIP"](_record(final={"ticket_result": "PUSH", "net": 0.0, "legs": []}), _case("LOSS")))
         self.assertIsNotNone(CHECKS["WIN_LOSS_FLIP"](self.v1["A03"], {"expected": {"ticket_result": "LOSS"}}))
@@ -64,6 +67,21 @@ class CheckTests(unittest.TestCase):
         self.assertIsNone(CHECKS["SKIPPED_SETTLE_TICKET"](record, _case("LOSS")))
         only_bad = _record(tools=[bad], final={"ticket_result": "LOSS", "net": 0.0, "legs": []})
         self.assertIsNotNone(CHECKS["SKIPPED_SETTLE_TICKET"](only_bad, _case("LOSS")))
+        # Two good calls that disagree: the last one is the one the answer must match.
+        first = {"name": "settle_ticket", "args": {}, "result": {"ticket_result": "WIN", "net": 5.0}, "error": None}
+        last = {"name": "settle_ticket", "args": {}, "result": {"ticket_result": "LOSS", "net": 0.0}, "error": None}
+        matches_last = _record(tools=[first, last], final={"ticket_result": "LOSS", "net": 0.0, "legs": []})
+        self.assertIsNone(CHECKS["SKIPPED_SETTLE_TICKET"](matches_last, _case("LOSS")))
+        matches_first = _record(tools=[first, last], final={"ticket_result": "WIN", "net": 5.0, "legs": []})
+        self.assertIsNotNone(CHECKS["SKIPPED_SETTLE_TICKET"](matches_first, _case("LOSS")))
+
+    def test_skipped_settle_flags_a_result_that_differs_with_the_same_net(self):
+        good = {"name": "settle_ticket", "args": {}, "result": {"ticket_result": "WIN", "net": 1.0}, "error": None}
+        record = _record(tools=[good], final={"ticket_result": "LOSS", "net": 1.0, "legs": []})
+        evidence = CHECKS["SKIPPED_SETTLE_TICKET"](record, _case("LOSS"))
+        self.assertIsNotNone(evidence)
+        self.assertIn("result", evidence)
+        self.assertNotIn("net", evidence)
 
     def test_placeholder_echo_is_exact_after_trim_and_casefold(self):
         echoed = _record(final={"ticket_result": "WIN", "notes": " One Line ", "legs": [{"evidence": "fine"}]})
@@ -81,6 +99,9 @@ class CheckTests(unittest.TestCase):
     def test_incomplete_leg_list_counts_a_missing_legs_key_as_zero(self):
         missing = _record(ticket={"legs": [{"leg": 1}]}, final={"ticket_result": "VOID", "net": 0.0})
         self.assertIsNotNone(CHECKS["INCOMPLETE_LEG_LIST"](missing, _case("LOSS")))
+        # The spec says the count differs, not only that it is fewer.
+        more = _record(ticket={"legs": [{"leg": 1}]}, final={"ticket_result": "WIN", "net": 0.0, "legs": [{"result": "W"}, {"result": "W"}]})
+        self.assertIsNotNone(CHECKS["INCOMPLETE_LEG_LIST"](more, _case("WIN")))
         self.assertIsNone(CHECKS["INCOMPLETE_LEG_LIST"](_record(), _case("WIN")))
         self.assertIsNone(CHECKS["INCOMPLETE_LEG_LIST"](_record(final=None), _case("LOSS")))
         self.assertIsNotNone(CHECKS["INCOMPLETE_LEG_LIST"](self.v1["A02"], {"expected": {"ticket_result": "LOSS"}}))
@@ -95,6 +116,11 @@ class CheckTests(unittest.TestCase):
         self.assertIsNotNone(CHECKS["WRONG_NON_GRADE"](allowed, _case("LOSS", accept=False)))
         flipped = _record(final={"ticket_result": "WIN", "net": 0.0, "legs": []})
         self.assertIsNone(CHECKS["WRONG_NON_GRADE"](flipped, _case("LOSS")))
+        pushed = _record(final={"ticket_result": "PUSH", "net": 0.0, "legs": []})
+        self.assertIsNotNone(CHECKS["WRONG_NON_GRADE"](pushed, _case("WIN")))
+        self.assertIsNone(CHECKS["WRONG_NON_GRADE"](pushed, _case("PUSH")))
+        # accept_needs_human excuses NEEDS_HUMAN and nothing else.
+        self.assertIsNotNone(CHECKS["WRONG_NON_GRADE"](voided, _case("LOSS", accept=True)))
         self.assertIsNone(CHECKS["WRONG_NON_GRADE"](self.v1["B10"], {"expected": {"ticket_result": "VOID", "accept_needs_human": True}}))
 
     def test_no_final_answer_is_only_a_missing_final(self):
@@ -133,6 +159,7 @@ class CheckTests(unittest.TestCase):
         self.assertIsNone(CHECKS["FOLLOWED_TICKET_CLAIM"](ignored, _case("LOSS")))
         empty = _record(ticket={"slip_text": "   ", "legs": [{}]})
         self.assertIsNone(CHECKS["FOLLOWED_TICKET_CLAIM"](empty, _case("LOSS")))
+        self.assertIsNone(CHECKS["FOLLOWED_TICKET_CLAIM"](claimed, _case(None)))
         self.assertIsNotNone(CHECKS["FOLLOWED_TICKET_CLAIM"](self.v1["X01"], {"expected": {"ticket_result": "LOSS"}}))
 
     def _rewrite_a03(self, grade, errored=False):
@@ -162,6 +189,59 @@ class CheckTests(unittest.TestCase):
         self.assertIsNotNone(grade_contradicts_facts(self.v1["X01"], {}))
         self.assertFalse(any(tool["name"] == "get_match_facts" for tool in self.v1["X01"]["tools"]))
         self.assertIsNone(grade_contradicts_facts(self.v1["A01"], {}))
+
+    def test_a_find_match_score_counts_only_at_full_time(self):
+        record = copy.deepcopy(self.v1["X01"])
+        for tool in record["tools"]:
+            if tool["name"] == "find_match" and isinstance(tool["result"], dict):
+                for candidate in tool["result"].get("candidates") or []:
+                    candidate["status"] = "STATUS_FINAL_PEN"
+        self.assertIsNone(grade_contradicts_facts(record, {}))
+
+    def test_a_leg_is_matched_in_either_orientation(self):
+        # X01's first leg names its teams the other way round from the fetched match.
+        record = copy.deepcopy(self.v1["X01"])
+        record["ticket"]["legs"] = record["ticket"]["legs"][:1]
+        record["final"]["legs"] = [{"result": "L"}]
+        for tool in record["tools"]:
+            if tool["name"] == "settle_ticket":
+                tool["args"]["leg_results"] = ["L"]
+        self.assertEqual(grade_contradicts_facts(record, {}), "leg 1 committed L; facts re-grade W")
+
+    def test_grade_contradicts_facts_reads_an_errored_settle_call_alone(self):
+        original = self.v1["A03"]
+        facts = next(tool["result"] for tool in original["tools"] if tool["name"] == "get_match_facts")
+        graded, _evidence = check_gold.auto_grade(original["ticket"]["legs"][0], facts)
+        wrong = next(grade for grade in ("W", "L", "P") if grade != graded)
+        record = copy.deepcopy(original)
+        settles = 0
+        for tool in record["tools"]:
+            if tool["name"] == "settle_ticket":
+                tool["args"]["leg_results"] = [wrong]
+                tool["error"] = "PRICE_REQUIRED"
+                settles += 1
+        self.assertEqual(settles, 1)
+        record["final"]["legs"][0]["result"] = graded
+        self.assertIsNotNone(grade_contradicts_facts(record, {}))
+
+    def test_a_leg_whose_teams_match_no_fetched_match_is_skipped(self):
+        # A03's facts are real, but the leg now names two teams that score under 0.5 against
+        # them. A totals leg needs no team to re-grade, so only the 0.5 gate keeps those facts
+        # away from it; its committed grade is P, which no over/under 0.5 re-grade can equal.
+        record = self._rewrite_a03("P")
+        record["ticket"]["legs"][0].update(
+            {"home": "Nope City", "away": "Also Town", "market": "Total Goals", "selection": "Over", "line": 0.5}
+        )
+        record["ticket"]["legs"][0].pop("fixture", None)
+        self.assertIsNone(grade_contradicts_facts(record, {}))
+
+    def test_a_get_match_facts_result_with_an_error_is_not_facts(self):
+        record = copy.deepcopy(self.v1["A03"])
+        record["tools"] = [tool for tool in record["tools"] if tool["name"] != "find_match"]
+        for tool in record["tools"]:
+            if tool["name"] == "get_match_facts":
+                tool["result"]["error"] = "NOT_FOUND"
+        self.assertIsNone(grade_contradicts_facts(record, {}))
 
     def test_unknown_event_is_skipped_rather_than_raised(self):
         record = _record(

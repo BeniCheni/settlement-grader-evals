@@ -91,6 +91,12 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(md.count("| no | 2 of 4 |"), 1)
         self.assertEqual(md.count("| yes | 0 of 0 |"), 10)
 
+    def test_tile_is_alarm_when_a_check_misses_the_numbers(self):
+        doc = document("traces/v1")
+        self.assertIn('<div class="stat good"><b>11</b><span>checks at 85% and 0.6</span></div>', render_html(doc, "x"))
+        doc["codes"][0]["meets_bar"] = False
+        self.assertIn('<div class="stat alarm"><b>10</b><span>checks at 85% and 0.6</span></div>', render_html(doc, "x"))
+
     def test_page_words_follow_the_bar_constants(self):
         self.assertEqual(bar_words(), "85% and 0.6")
         doc = document("traces/v1")
