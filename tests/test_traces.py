@@ -111,6 +111,15 @@ class TraceLoaderTests(unittest.TestCase):
         records = load_run(_write([second, first]))
         self.assertEqual([record["case_id"] for record in records], ["T01", "T02"])
 
+    def test_equal_start_times_use_span_ids_and_null_results_stay_none(self):
+        root = _span("grade_ticket", "root", {"case.id": "T03", "input.ticket": "{}"})
+        last = _span("tool.lookup_rule", "z", {"tool.name": "lookup_rule", "tool.call.result": "null"}, parent="root", start=2)
+        first = _span("tool.find_match", "a", {"tool.name": "find_match"}, parent="root", start=2)
+        tools = load_run(_write([root, last, first]))[0]["tools"]
+        self.assertEqual([t["name"] for t in tools], ["find_match", "lookup_rule"])
+        self.assertEqual([t["result"] for t in tools], [None, None])
+        self.assertEqual([t["error"] for t in tools], [None, None])
+
     def test_other_runs_use_the_same_shape(self):
         self.assertEqual(len(load_run("traces/v1-adv")), 2)
         self.assertEqual(len(load_run("traces/smoke-1")), 3)

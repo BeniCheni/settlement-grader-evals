@@ -1,5 +1,6 @@
 """The committed page is the regeneration. A stale file fails. Dynamic text is escaped."""
 import os
+from html import escape
 import re
 import unittest
 from unittest import mock
@@ -24,6 +25,33 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn("<img", html)
         self.assertIn("&lt;img src=x onerror=alert(1)&gt;", html)
         self.assertIn("traces/&lt;v1&gt;", html)
+
+    def test_every_dynamic_text_field_is_escaped_including_derived_words(self):
+        doc = document("traces/v1")
+        values = {name: name + "<tag>&\"'" for name in
+                  ("model", "run", "run_label", "cases", "provenance", "code", "case_id", "reading", "bar", "not_bar", "read_count")}
+        for field in ("model", "run", "run_label", "cases", "provenance"):
+            doc[field] = values[field]
+        row = doc["codes"][0]
+        row["code"] = values["code"]
+        row["false_passes"] = {values["case_id"]: "missed"}
+        row["readings"] = {values["case_id"]: values["reading"]}
+        doc["codes"][1]["meets_bar"] = False
+        with mock.patch("scorer.report.bar_words", return_value=values["bar"]), mock.patch("scorer.report.not_bar_words", return_value=values["not_bar"]), mock.patch("scorer.report.false_passes_read", return_value=values["read_count"]):
+            html = render_html(doc, "x")
+        for field, value in values.items():
+            with self.subTest(field=field):
+                self.assertNotIn(value, html)
+                self.assertIn(escape(value, quote=True), html)
+        # Disagreement mapping insertion order must not affect note order.
+        row["false_passes"] = {"Z": "z", "A": "a"}
+        row["readings"] = {"Z": "last", "A": "first"}
+        first = render_html(doc, "x")
+        row["false_passes"] = {"A": "a", "Z": "z"}
+        self.assertEqual(render_html(doc, "x"), first)
+        markdown = render_markdown(doc)
+        row["false_passes"] = {"Z": "z", "A": "a"}
+        self.assertEqual(render_markdown(doc), markdown)
 
     def test_page_says_in_sample_and_names_the_command(self):
         doc = document("traces/v1")
