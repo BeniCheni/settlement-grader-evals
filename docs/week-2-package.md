@@ -29,9 +29,9 @@ change it. Flag any judge below the trust bar and say which delta it makes least
 the diagnosis, and the comparison from Braintrust "or the equivalent from your tool of choice".
 
 Assignment 1's README says the rubrics and the validation are graded, not the platform ("Prefer LangSmith or another tool?
-Fine"), and Assignment 2's accepts the equivalent of Braintrust's comparison from another tool. The lesson page also
-describes a cycle that tightens the weakest judge and validates it again; Assignment 2's README does not list it. This plan
-does it, and whether it is graded is a question for the course.
+Fine"), and Assignment 2's accepts the equivalent of Braintrust's comparison from another tool. Step 9 below, which
+tightens the weakest judge once and validates it on fresh labels, is not in Assignment 2's README; it follows Assignment 1's
+pitfall "Keep a held-out slice if you iterate". Whether the course grades it is a question for the course.
 
 ## Where this repo stands
 
