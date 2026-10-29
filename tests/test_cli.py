@@ -39,6 +39,36 @@ class CasesCommandTests(unittest.TestCase):
                             data = json.loads(output.read_text())
                             self.assertEqual(len(data["tickets"]) if module == "score" else data["cases"], expected_cases)
 
+    def test_smoke_outputs_do_not_claim_the_v1_calibration_and_keep_the_cases_command(self):
+        from scorer.calibrate import document, render_markdown
+        from scorer.report import render_html
+        from scorer.score import score_run
+        doc = document("traces/smoke-1", cases_path="data/smoke.json")
+        scored = score_run("traces/smoke-1", cases_path="data/smoke.json")
+        for output in (doc, scored):
+            self.assertIsNone(output["in_sample"])
+            self.assertIn("not established", output["provenance"])
+            self.assertNotIn("these 32 traces", output["provenance"])
+
+    def test_alternate_cases_file_is_retained_in_report_commands(self):
+        from scorer.calibrate import document, render_markdown
+        from scorer.report import render_html
+        from scorer.score import score_run
+        doc = document("traces/smoke-1", cases_path="data/smoke.json")
+        scored = score_run("traces/smoke-1", cases_path="data/smoke.json")
+        for name, output in (("document", doc), ("score", scored)):
+            with self.subTest(name=name):
+                self.assertEqual(output.get("cases_path"), "data/smoke.json")
+        for name, text in (("markdown", render_markdown(doc)), ("html", render_html(doc, "x"))):
+            with self.subTest(name=name):
+                self.assertIn("--cases data/smoke.json", text)
+
+    def test_v1_subsets_are_named_as_in_sample_subsets(self):
+        from scorer.calibrate import document
+        subset = document("traces/v1-adv")
+        self.assertTrue(subset["in_sample"])
+        self.assertIn("subset", subset["provenance"])
+
 
 if __name__ == "__main__":
     unittest.main()

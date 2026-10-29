@@ -29,8 +29,8 @@ class ReportTests(unittest.TestCase):
     def test_every_dynamic_text_field_is_escaped_including_derived_words(self):
         doc = document("traces/v1")
         values = {name: name + "<tag>&\"'" for name in
-                  ("model", "run", "run_label", "cases", "provenance", "code", "case_id", "reading", "bar", "not_bar", "read_count")}
-        for field in ("model", "run", "run_label", "cases", "provenance"):
+                  ("model", "run", "run_label", "cases", "cases_path", "provenance", "code", "case_id", "reading", "bar", "not_bar", "read_count")}
+        for field in ("model", "run", "run_label", "cases", "cases_path", "provenance"):
             doc[field] = values[field]
         row = doc["codes"][0]
         row["code"] = values["code"]

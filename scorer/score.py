@@ -1,11 +1,11 @@
 """Score one run: which failure codes each ticket shows.
 
-Comparing two runs is a later slice. Anything this prints is in sample.
+Comparing two runs is a later slice. The output identifies the tuning sample and its limits.
 """
 import argparse
 import sys
 
-from scorer.calibrate import MissingCaseError, PROVENANCE, case_for, load_cases, write_text
+from scorer.calibrate import MissingCaseError, case_for, load_cases, provenance_for, write_text
 from scorer.checks import CHECKS
 from scorer.stats import canonical_json
 from scorer.traces import load_run
@@ -28,13 +28,17 @@ def score_run(run_dir, cases_path="data/gold.json"):
             counts[code] += 1
             flags.append({"code": code, "evidence": evidence})
         tickets.append({"case_id": record["case_id"], "flags": flags})
-    return {
+    in_sample, provenance = provenance_for(records)
+    output = {
         "run": run_dir,
-        "in_sample": True,
-        "provenance": PROVENANCE,
+        "in_sample": in_sample,
+        "provenance": provenance,
         "counts": counts,
         "tickets": tickets,
     }
+    if cases_path != "data/gold.json":
+        output["cases_path"] = cases_path
+    return output
 
 
 def format_counts(scored):

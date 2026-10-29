@@ -1,6 +1,6 @@
 """Compare every plain-code check with the human labels.
 
-The result is in sample: two checks were fixed while reading these same traces.
+The v1 result is in sample: two checks were fixed while reading those traces.
 """
 import argparse
 import json
@@ -27,6 +27,25 @@ PROVENANCE = (
     "This shows the checks reproduce the labels they were built from, "
     "not that they generalise."
 )
+
+
+def provenance_for(records):
+    """Identify the tuning sample by trace identity, never by the directory name."""
+    sample_path = os.path.join(os.path.dirname(__file__), "..", "traces", "v1")
+    sample = {record["trace_id"] for record in load_run(sample_path)}
+    current = {record["trace_id"] for record in records}
+    if current and current == sample:
+        return True, PROVENANCE
+    if current and current < sample:
+        return True, (
+            "In sample. This is a subset of traces/v1, on which two checks were fixed. "
+            "It is not independent evidence that they generalise."
+        )
+    return None, (
+        "Run-specific calibration is not established. These checks were tuned on traces/v1. "
+        "The supplied labels have not been established as labels for this run; "
+        "these numbers do not establish held-out agreement or generalisation."
+    )
 
 
 def _load(path):
@@ -147,8 +166,9 @@ def document(run_dir, **paths):
     run_label = meta.get("run_id")
     doc["model"] = model if isinstance(model, str) and model.strip() else None
     doc["run_label"] = run_label if isinstance(run_label, str) and run_label.strip() else run_dir
-    doc["in_sample"] = True
-    doc["provenance"] = PROVENANCE
+    doc["in_sample"], doc["provenance"] = provenance_for(load_run(run_dir))
+    if paths.get("cases_path", "data/gold.json") != "data/gold.json":
+        doc["cases_path"] = paths["cases_path"]
     return doc
 
 
@@ -179,7 +199,7 @@ def render_markdown(doc):
             lacks,
         ),
         "",
-        "Command: `python3 -m scorer.calibrate %s --json reports/calibration-v1.json --md reports/calibration-v1.md`" % doc["run"],
+        "Command: `python3 -m scorer.calibrate %s%s --json reports/calibration-v1.json --md reports/calibration-v1.md`" % (doc["run"], " --cases " + doc["cases_path"] if "cases_path" in doc else ""),
         "",
         "| Code | Caught | Agreement | Kappa | False passes | False fails | %s | False passes read |" % bar_words(),
         "|---|---|---|---|---|---|---|---|",
