@@ -1,14 +1,14 @@
 # Provenance words: the Cursor build prompt (archived Thu 29 Oct 2026, TZ=America/New_York)
 
 Archive note: home-directory paths are redacted as placeholders; setup commands need local paths supplied before use.
-Written by the PM seat (Claude, Sonnet 5.5) for the builder seat (Cursor, Grok 4.7 High), against `main` at `dc2a5a8`. It was delivered in chat; this copy is the archive of that text.
+The text of the build prompt for the builder seat (Cursor, Grok 4.7 High), against `main` at `dc2a5a8`, as archived by the PM seat (Claude, Sonnet 5.5).
 
 Why it exists. PR #4 (`dc2a5a8`) removed the sentence "two checks were fixed while reading these 32 traces" from the docs on the owner's ruling and wrote its replacement into spec amendment 13, but the sentence is still in the scorer, the committed reports and the oracle's `about` line. Amendment 13 as merged in PR #4 listed five files and omitted `data/oracle_slice1.json`, which carries the same sentence in its `about` value; this prompt resolves that gap.
 
 Setup that only a human can run: a fresh clone (not a worktree of the main checkout), then open it in Cursor, model Grok 4.7 High, and paste the prompt below.
 `git clone https://github.com/BeniCheni/settlement-grader-evals.git [builder-checkout] && cd [builder-checkout] && git switch -c cursor/provenance-words`
 
-What happened on the run (added Thu 29 Oct 2026, after PR #5 opened). The builder opened draft PR #5 from `cursor/provenance-words` with three commits (`87c31c5` the scorer sentences and the regenerated reports, `709e6c8` the oracle's `about` string, `16c6ec4` the two tests); `verify` was green on Python 3.9 and 3.14. Whether the builder looked for the withheld prototype is not independently verified, as before.
+The run, as GitHub shows it (added Thu 29 Oct 2026, after PR #5 opened). Draft PR #5 is on `cursor/provenance-words`, and its first three commits are by Cursor (`87c31c5` the scorer sentences and the regenerated reports, `709e6c8` the oracle's `about` string, `16c6ec4` the two tests); `verify` was green on Python 3.9 and 3.14 at that head. Whether the builder looked for the withheld prototype is not independently verified, as before.
 
 ---
 

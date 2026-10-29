@@ -244,8 +244,8 @@ flags, the readings and the labels are unchanged.
     the committed `reports/calibration-v1.{html,json,md}`, and the `about` value of `data/oracle_slice1.json`. They said that two
     checks were fixed while reading the 32 traces, and the line for a run outside `traces/v1` said the checks "were tuned on
     traces/v1". That is history of the withheld prototype and cannot be re-run from this repo, so the owner ruled it removed
-    and not backed by a receipt. The first version of this amendment listed five files and omitted the oracle; the builder's
-    prompt resolved the gap, and the only change to the oracle is that one string. The three sentences are now, for exactly
+    and not backed by a receipt. The first version of this amendment listed five files and omitted the oracle; PR #5 changes
+    the oracle's `about` string as well, and that string is the only change to the oracle. The three sentences are now, for exactly
     `traces/v1`: "In sample. The labels were made on these 32 traces and the checks were built against them. This shows the
     checks reproduce the labels they were built from, not that they generalise."; for a proper subset: "In sample. This is a
     subset of traces/v1, the run the checks were built against. It is not independent evidence that they generalise."; for any
