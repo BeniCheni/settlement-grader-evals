@@ -1,8 +1,8 @@
 # Judge harness spec: rubrics, labels, a local judge, and its agreement with a human
 
 Written Thu 29 Oct 2026 by the PM seat, for step 3 of `docs/week-2-package.md`. It is the spec of record for the judge
-harness's build prompt. Precedence: the owner's rulings, then this spec, then the build prompt, then
-`docs/week-2-package.md`. Where this spec says "contract" the name, format or behaviour is fixed, because the labels, the
+harness's build prompt. `AGENTS.md` outranks it on process, and no line here loosens it. Within that, precedence runs: the
+owner's rulings, then this spec, then the build prompt, then `docs/week-2-package.md`. Where this spec says "contract" the name, format or behaviour is fixed, because the labels, the
 reports or the course deliverables depend on it; elsewhere the builder decides and says why in the PR.
 
 ## Why this slice exists
@@ -91,13 +91,18 @@ rubric, how many verdicts were `UNPARSED`. None is hidden.
 **Selection** (`select`). The rows are every record of `--base` (here `traces/v1`), then `--n-fresh` records (here 8)
 from the `--fresh` runs, taken in the order the runs are named and, within a run, in `case_id` order: a record is taken
 when its `final`, as canonical JSON, differs from the base record's `final` for the same `case_id`, and its `case_id` has not
-been taken from a fresh run already. If fewer than `--n-fresh` qualify, the command says how many and exits with status 2;
-it never fills the set by another rule. The output, `labels/<set>-plan.json`, lists `{"run", "case_id", "trace_id"}` rows,
-base rows first, each group in `case_id` order. Nobody reads an output before it is chosen.
+been taken from a fresh run already. A fresh record whose `case_id` is not in the base is skipped, because it has nothing to
+differ from; the command prints how many it skipped. A run, base or fresh, that holds two records with the same `case_id` is
+an error: the command exits with status 2 and names the run and the case. If fewer than `--n-fresh` qualify, the command
+says how many and exits with status 2; it never fills the set by another rule. The output, `labels/<set>-plan.json`, lists
+`{"run", "case_id", "trace_id"}` rows, base rows first, each group in `case_id` order, and the same inputs give the same
+bytes. Nobody reads an output before it is chosen.
 
 **The sheet** (`sheet`). From a plan and the rubrics it writes, into a directory that is not committed (`sheets/` is
 added to `.gitignore`), `case-files.md` (each row's case file under a heading `<n>. <run> <case_id>`) and `labels.csv`
-(columns `n`, `run`, `case_id`, `trace_id`, one per rubric, `unsure`, `note`; rubric cells empty).
+(columns `n`, `run`, `case_id`, `trace_id`, one per rubric, `unsure`, `note`). Every rubric, `unsure` and `note` cell is
+empty: the sheet carries no verdict, note or hint from a model or from the code checks. `sheet` refuses, with status 2, a
+rubric file that contains a `case_id` from the plan, as a guard against a boundary example taken from the label set.
 
 **Import** (`import-labels`). It reads the filled sheet and writes `labels/<set>.jsonl`, one row per plan row, in plan
 order: `{"run", "case_id", "trace_id", "human": {<rubric>: "PASS" | "FAIL"}, "unsure": [<rubric>, ...], "note": "..."}`.
@@ -123,15 +128,19 @@ every rubric and writes `judgments/<id>/verdicts.jsonl`, one row per (row, rubri
 labels file's SHA-256. The human labels are not sent to the model and not copied into the verdicts. Neither file has a
 timestamp or a machine path. Both are committed: every report is computed from them without calling a model.
 
-**Choosing the model** (`pick-model`). Before any labelled row is judged, each candidate model the owner has approved for
-download is run on the three records of `traces/smoke-1` against every rubric. The first candidate whose every reply parses
-is chosen, and `judgments/model-choice.json` records each candidate's parse counts and the choice. The choice uses no label
-and no correctness, only the format, so the labelled rows stay unseen.
+**Choosing the model** (`pick-model --candidates <a,b,...> --grader-run traces/v1 --plan labels/<set>-plan.json`).
+Before any labelled row is judged, each candidate model the owner has approved for download, in the order the owner gave
+them on the command line, is run on the three records of `traces/smoke-1` against every rubric. It refuses, with status 2: a
+candidate whose `details.family` (Ollama's `/api/show`) equals that of the model named in the grader run's `run_meta.json`;
+and a smoke record whose `case_id` is in the plan, so the choice never sees a labelled row (today the smoke cases are
+`SMOKE1` to `SMOKE3` and the gold cases are not). The first candidate whose every reply parses is chosen, and
+`judgments/model-choice.json` records each candidate's family, digest, parse counts and the choice. The choice uses no
+label and no correctness, only the format.
 
 ## The report (`report`)
 
-`report --labels labels/<set>.jsonl [--final labels/<set>-final.jsonl] [--readings ...] --verdicts judgments/<id>
-[--md OUT] [--json OUT]`. Per rubric, for the first-pass labels and, when given, the final ones:
+`report --labels labels/<set>.jsonl [--final labels/<set>-final.jsonl] [--readings ...] [--provenance FILE]
+--verdicts judgments/<id> [--md OUT] [--json OUT]`. Per rubric, for the first-pass labels and, when given, the final ones:
 
 - the four cells, named both ways: a failure is the positive class, so `JP_HP` is `tn`, `JP_HF` is `fn` (a false pass,
   the judge passed a real failure), `JF_HP` is `fp` (a false fail) and `JF_HF` is `tp`, computed with `stats.confusion`;
@@ -141,20 +150,28 @@ and no correctness, only the format, so the labelled rows stay unseen.
 - the false passes and the false fails, each as `<run> <case_id>`, with the judge's reason, and whether it has a reading;
 - the rubric's SHA-256, the labels file's SHA-256 and the model and digest from `judge_meta.json`.
 
-It names the worst judge as the one with the lowest kappa on the final labels (a kappa that cannot be computed ranks
-lowest), with ties going to the one with more false passes. For each rubric it says whether the labels are held out or in
-sample, by one rule: held out when the rubric's SHA-256 in `judge_meta.json` equals the one in `labels/<set>-meta.json`,
-because the rubric is then the text the labels were made against; in sample otherwise, because the rubric changed after the
-labels existed. It never calls a model. The Markdown and JSON are byte-stable, and a test fails when a committed report is stale.
+It names the worst judge on the final labels when `--final` is given and on the first-pass labels otherwise, and says
+which. The worst is the lowest kappa, a kappa that cannot be computed ranking lowest; then more false passes; then the
+rubric name in sorted order. When the first two keys tie, it says the judges tied and names each.
+
+For each rubric it reports one of two facts about the text, and only these: "same text as when the labels were made", when
+the rubric's SHA-256 in `judge_meta.json` equals the one in `labels/<set>-meta.json`; or "changed since the labels were
+made: in sample", when they differ. Equal hashes do not show the labels are held out (a rubric tuned on a set before its
+labels were imported has equal hashes too), so nothing the report computes says "held out". Whether a set is held out also
+depends on the order of merges and on where the rubric's boundary examples came from, which code cannot prove. That
+statement is written by hand: `--provenance FILE` puts the file's text, verbatim, under a heading that says it was written
+by hand and not computed, where it cites the merges (`docs/week-2-package.md`, "Gates"). It never calls a model. The Markdown and JSON are byte-stable, and a test fails when a committed report is stale.
 
 ## The course deliverables (`export-course`)
 
-`export-course --final labels/<set>-final.jsonl --verdicts judgments/<id> --rubrics rubrics --out <dir>` writes:
+`export-course --labels labels/<set>.jsonl [--final labels/<set>-final.jsonl] [--readings ...] [--provenance FILE]
+--verdicts judgments/<id> --rubrics rubrics --out <dir>` takes the same inputs as `report` and writes:
 
 - `rubrics.md`: each rubric under its name, verbatim in a fenced block, with its SHA-256;
-- `labels.jsonl`: one row per label row, in the course's shape and only that shape: `{"input": <the ticket section of the
-  case file>, "output": <the tool calls, final answer and run status sections>, "human": {<rubric>: "PASS" | "FAIL"}}`;
-- `results.md`: the report's Markdown.
+- `labels.jsonl`: one row per label row, from the final labels when `--final` is given and the first-pass ones otherwise,
+  in the course's shape and only that shape: `{"input": <the ticket section of the case file>, "output": <the tool calls,
+  final answer and run status sections>, "human": {<rubric>: "PASS" | "FAIL"}}`;
+- `results.md`: byte for byte the Markdown that `report --md` writes for the same inputs, which says which labels it used.
 
 `diagnosis.md` is the owner's to write and is not generated.
 
@@ -168,18 +185,25 @@ no traceback and writes nothing, as the slice 1 commands do. Standard library on
 
 1. `parse_reply` against a table of replies, including the strict cases above, each with its verdict and reason.
 2. `render_case` on one `traces/v1` record, compared with a committed golden file, and the size-limit error.
-3. `select` on fixture runs: the rule above, a case with too few qualifying records, and the same output twice.
-4. `sheet` then `import-labels` round-trip, and each refusal in "Import", each with status 2 and nothing written.
+3. `select` on fixture runs: the rule above, a fresh case absent from the base, a run with a duplicate `case_id`, a case
+   with too few qualifying records, and the same output twice.
+4. `sheet` then `import-labels` round-trip, the empty sheet cells, the rubric that names a plan `case_id`, and each refusal
+   in "Import", each with status 2 and nothing written.
 5. `run` with the fake adapter: one verdict per row and rubric, the meta file's hashes, and no network call (a test that
    makes `urllib.request.urlopen` raise and still passes).
 6. `report`: the cell naming (a test that fails if `JP_HF` and `JF_HP` are swapped), kappa equal to `stats.cohen_kappa` on
    the same counts, an `UNPARSED` reply counted as a FAIL and on its own, first-pass and final side by side, the worst
-   judge and its tie rule, and a committed fixture report that regenerates byte for byte.
+   judge with and without `--final` and each of its tie rules, the two rubric-text states (and no "held out" in any
+   computed part of the output), a `--provenance` file reproduced verbatim under its hand-written heading, and a
+   committed fixture report that regenerates byte for byte.
 7. `check-final`: a valid change, and each refusal.
-8. `export-course`: the course row shape exactly, rubrics verbatim, `results.md` equal to the report.
-9. At least three mutations named in the PR body, each turning the suite red for the right reason, among them: accepting
-   `Pass`, counting `UNPARSED` as PASS, and swapping the two disagreement cells.
-10. The suite and `python3 -m compileall -q .` on 3.9 and 3.14, the existing tests unmodified, and the privacy sweep.
+8. `export-course`: the course row shape exactly, rubrics verbatim, `results.md` equal to `report --md` for the same
+   inputs, with and without `--final`.
+9. `pick-model` with a fake `/api/show` and fake replies: the candidate order, the same-family refusal, the overlap
+   refusal, and the first fully parsing candidate chosen.
+10. At least three mutations named in the PR body, each turning the suite red for the right reason, among them: accepting
+    `Pass`, counting `UNPARSED` as PASS, and swapping the two disagreement cells.
+11. The suite and `python3 -m compileall -q .` on 3.9 and 3.14, the existing tests unmodified, and the privacy sweep.
 
 ## Out of scope here
 
