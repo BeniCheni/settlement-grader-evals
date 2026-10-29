@@ -211,7 +211,7 @@ unchanged.
    report, the check that every disagreement has a reading, and the note badges. This refines amendment 1.
 6. **Two checks follow their codes' wording (owner's rulings).** INCOMPLETE_LEG_LIST flags only a final that lists fewer legs
    than the ticket, and WRONG_NON_GRADE no longer includes PUSH. Neither moves an oracle field: across the tracked runs the
-   only PUSH final is `A13` (in `traces/v1` and in `traces/v1-2026-10-14`, which re-reads v1's spans), which matches its key,
+   only PUSH final is `A13` (in `traces/v1` and in `traces/v1-2026-10-14`, one of the two halves v1 is built from), which matches its key,
    and no tracked final lists more legs than its ticket. The receipt is below the amendments.
 7. **Match selection (owner's ruling).** Closes amendment 3; the rule is in check 11. Counting, per leg, the fetched matches
    that qualify (both names at 0.5 or better), on 28 Oct 2026: `traces/v1` has 55 legs with one and 21 with none, the dated
@@ -232,15 +232,16 @@ unchanged.
    stay for slice 2.
 10. **`meets_bar` signature.** The thresholds are `None` sentinels resolved from `stats.MIN_AGREEMENT` and `stats.MIN_KAPPA`
     at call time, so patching the constants changes both the decisions and the words. The effective defaults are unchanged.
-11. **Provenance of the tracked runs (a finding, not a rule).** `traces/v1-2026-10-14` and `traces/v1-adv` hold spans
-    byte-identical to `traces/v1`'s (315 and 14 of its 329, with the same trace and span ids), so they are not independent
+11. **Provenance of the tracked runs (a finding, not a rule).** `traces/v1` is the union of `traces/v1-2026-10-14` (30
+    tickets) and `traces/v1-adv` (2): its own `run_meta.json` names its `run_id` "v1 (v1-2026-10-14 + v1-adv)". Their spans are
+    byte-identical to its (315 and 14 of its 329, with the same trace and span ids), so they are not independent
     samples and the scorer's flag counts on them sum to v1's. The only tracked run that shares no span with v1 is
     `traces/smoke-1` (3 tickets, 39 spans); the runs that measure the floor are slice 2's, committed as `traces/aa-*`.
     Slice 2's floor must not count the two dated runs as runs (receipt below the amendments).
 12. **Not yet written: the failing-row wording.** The pill's "not 85% or 0.6" does not say which number failed. No row fails
     on `traces/v1`, so the words wait for slice 4, the first held-out run that can have a failing row.
 
-### Receipt for amendments 6, 7 and 11
+### Receipt for amendments 6, 7 and 11, and the counts in the scope doc
 
 Every count in them comes from this script, run from the repository root on Python 3.9.6 and 3.14.7 with the same output.
 It reads the scorer's own internals (`_facts_seen`, `_teams`, `_orientation_score`, `_leg_count`), so a later rename moves the
@@ -248,7 +249,7 @@ script and not the figures; the tests pin the behaviour. Figures from runs that 
 
 ```
 python3 - <<'PY'
-import collections, json, os, sys
+import collections, csv, json, os, sys
 sys.path.insert(0, ".")
 from grader import espn
 from scorer import checks, traces
@@ -256,12 +257,16 @@ from scorer import checks, traces
 RUNS = ["traces/v1", "traces/v1-2026-10-14", "traces/v1-adv", "traces/smoke-1"]
 for run in RUNS:
     legs = collections.Counter()  # qualifying fetched matches per ticket leg
-    push, more = [], 0
+    push, more, final_legs, with_evidence = [], 0, 0, 0
     for rec in traces.load_run(run):
         final = rec["final"] or {}
         if str(final.get("ticket_result", "")).upper() == "PUSH":
             push.append(rec["case_id"])
         more += checks._leg_count(final) > checks._leg_count(rec["ticket"])
+        for leg in final.get("legs") if isinstance(final.get("legs"), list) else []:
+            if isinstance(leg, dict):
+                final_legs += 1
+                with_evidence += isinstance(leg.get("evidence"), str) and bool(leg["evidence"].strip())
         seen = checks._facts_seen(rec)
         for leg in rec["ticket"].get("legs") or []:
             home, away = checks._teams(leg)
@@ -274,6 +279,9 @@ for run in RUNS:
                 n += checks._orientation_score(home, away, teams) >= 0.5
             legs[n] += 1
     print(run, "legs by matches", dict(sorted(legs.items())), "PUSH finals", push, "finals with more legs", more)
+    with open(os.path.join(run, "results.csv"), encoding="utf-8") as handle:
+        seconds = sum(float(row["wall_clock_s"]) for row in csv.DictReader(handle))
+    print(run, "final legs", final_legs, "with non-empty evidence", with_evidence, "wall_clock_s total", round(seconds, 1))
 
 
 def spans(run):
@@ -290,9 +298,13 @@ PY
 
 ```
 traces/v1 legs by matches {0: 21, 1: 55} PUSH finals ['A13'] finals with more legs 0
+traces/v1 final legs 53 with non-empty evidence 52 wall_clock_s total 745.0
 traces/v1-2026-10-14 legs by matches {0: 17, 1: 51} PUSH finals ['A13'] finals with more legs 0
+traces/v1-2026-10-14 final legs 48 with non-empty evidence 47 wall_clock_s total 693.2
 traces/v1-adv legs by matches {0: 4, 1: 4} PUSH finals [] finals with more legs 0
+traces/v1-adv final legs 5 with non-empty evidence 5 wall_clock_s total 51.8
 traces/smoke-1 legs by matches {1: 8} PUSH finals [] finals with more legs 0
+traces/smoke-1 final legs 6 with non-empty evidence 6 wall_clock_s total 94.7
 traces/v1-2026-10-14 315 of 315 spans identical to traces/v1's 329
 traces/v1-adv 14 of 14 spans identical to traces/v1's 329
 traces/smoke-1 0 of 39 spans identical to traces/v1's 329

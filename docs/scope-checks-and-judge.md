@@ -52,9 +52,9 @@ commands above. Nothing rests on a file that is not tracked.
 - **Agreement on `traces/v1` proves little.** The build reproduces `data/oracle_slice1.json`, which is the acceptance, but the
   builder had the oracle by design. The PM kept a prototype to compare against on runs the builder never saw; that comparison
   is not in this repo and no figure from it is claimed.
-- **Only one tracked run is independent of v1.** `traces/v1-2026-10-14` and `traces/v1-adv` hold spans byte-identical to
-  `traces/v1`'s (315 and 14 of its 329), and v1 itself is pinned by the oracle. `traces/smoke-1` (3 tickets) shares none of
-  them. Slice 2's floor must not count the two dated runs.
+- **Only one tracked run is independent of v1.** `traces/v1` is the union of `traces/v1-2026-10-14` and `traces/v1-adv` (its
+  `run_meta.json` says so), whose spans are byte-identical to its own (315 and 14 of its 329), and v1 itself is pinned by the
+  oracle. `traces/smoke-1` (3 tickets) shares none of them. Slice 2's floor must not count the two dated runs.
 - **The data never takes some branches, so the tests have to.** No tracked leg has two matching fetched matches, so the oracle
   cannot tell the tie rules apart. A test written in the review pins the order: changing `key > best_key` to
   `key >= best_key` in `_best_facts` (first seen becomes last seen) turns
@@ -67,9 +67,9 @@ commands above. Nothing rests on a file that is not tracked.
 
 | Slice | Work | Done when |
 |---|---|---|
-| 2. The floor | Run the v1 configuration at least three more times; commit them as `traces/aa-*`; build `compare` (a pair of runs, then N) and report the range of every code count. (`traces/v1-2026-10-14` and `traces/v1-adv` are re-reads of v1's own spans and do not count as runs.) | Each code has a range, and "a change must beat it" is a number. |
+| 2. The floor | Run the v1 configuration at least three more times; commit them as `traces/aa-*`; build `compare` (a pair of runs, then N) and report the range of every code count. (`traces/v1-2026-10-14` and `traces/v1-adv` are the two halves v1 was built from and do not count as runs.) | Each code has a range, and "a change must beat it" is a number. |
 | 3. Held-out labels | A human labels the failure codes on a second run's traces (a blank `annotations.csv` is written per run). The checks are then scored on labels they were never tuned on. | The calibration is re-run on the held-out run and every disagreement is read. |
-| 4. One judge | `SELF_CONTRADICTING_EVIDENCE`: does the grader's own evidence for a leg state a fact its grade contradicts? One binary question, a role, a concrete PASS and FAIL, one boundary example, reasoning then one word. About 100 evidence units exist across the two runs (47 and 53, placeholders removed); tune on one run and test on the other. | The judge meets the bar on held-out labels and every false pass is read. |
+| 4. One judge | `SELF_CONTRADICTING_EVIDENCE`: does the grader's own evidence for a leg state a fact its grade contradicts? One binary question, a role, a concrete PASS and FAIL, one boundary example, reasoning then one word. `traces/v1` holds 53 final legs, 52 with non-empty evidence, and the dated run supplies 47 of those 52 and the adversarial run the other 5, so there is one run's worth of evidence units and not two. Tuning and testing need the independent runs that slices 2 and 3 commit. | The judge meets the bar on held-out labels and every false pass is read. |
 | 5. One A/B | One prompt change, one variable, the full set, per-code deltas against slice 2's range, and a written ship or no-ship. | A decision with numbers, including the code that got worse. |
 | 6. The UIs | A labelling page for slice 3 and 4 (pass or fail, a note, saved in the browser, exported), and the agreement matrix, in `ui/ledger.css`. Then the trace viewer and the taxonomy page; PR #1 landed on 28 Oct (`6c5ceb7`), so they no longer conflict with it. | Each page passes the checks below. |
 
@@ -82,7 +82,7 @@ commands above. Nothing rests on a file that is not tracked.
 2. **The two label additions.** `B01` and `A02`, in `data/codes_v1.json`. The owner ruled yes to both on 28 Oct 2026. They land in
    their own PR, with a `calibration-v2` beside the v1 report and the v1 oracle left as it is, because labels edited after
    reading what the checks flag make the agreement better by construction, and both versions should stay visible.
-3. **Whether to spend the machine time on slice 2 now.** About ten minutes per run at the median wall clock.
+3. **Whether to spend the machine time on slice 2 now.** About twelve minutes per run: the 32 tickets' `wall_clock_s` in `traces/v1/results.csv` sum to 745 s on the machine that made it.
 4. **How many held-out tickets to label.** All 32 is the clean answer; the tickets the checks flag differently between
    runs plus a random dozen is the cheap one.
 
