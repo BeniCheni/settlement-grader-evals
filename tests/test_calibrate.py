@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from scorer import score
-from scorer.calibrate import PROVENANCE, calibrate, document, false_passes_read
+from scorer.calibrate import PROVENANCE, calibrate, document, false_passes_read, has_reading
 from scorer.checks import CHECKS
 from scorer.score import score_run
 from scorer.stats import meets_bar
@@ -21,7 +21,7 @@ def require_readings(rows):
         case_ids = list(row["false_passes"]) + list(row["false_fails"])
         for case_id in case_ids:
             text = readings.get(case_id)
-            if not isinstance(text, str) or not text.strip():
+            if not has_reading(text):
                 missing.append("%s %s" % (row["code"], case_id))
     if missing:
         raise AssertionError("disagreement lacks a reading: %s" % ", ".join(missing))
@@ -59,6 +59,21 @@ class OracleTests(unittest.TestCase):
         filled = dict(bare)
         filled["readings"] = {"B01": "a reading"}
         require_readings([filled])
+
+    def test_whitespace_readings_are_missing_in_every_consumer(self):
+        from scorer.report import render_html
+        from scorer.calibrate import render_markdown
+        for text in (None, "", " ", "\t\n", 1):
+            with self.subTest(text=text):
+                doc = document("traces/v1")
+                row = doc["codes"][0]
+                row["false_passes"] = {"SYNTHETIC": "missed"}
+                row["readings"] = {"SYNTHETIC": text}
+                self.assertEqual(false_passes_read(row), "0 of 1")
+                with self.assertRaises(AssertionError):
+                    require_readings([row])
+                self.assertIn(">0 of 1<", render_html(doc, "x"))
+                self.assertIn("| 0 of 1 |", render_markdown(doc))
 
     def test_the_report_says_the_result_is_in_sample(self):
         doc = document("traces/v1")

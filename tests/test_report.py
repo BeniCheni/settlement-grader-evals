@@ -49,10 +49,11 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn(">Bar<", html)
         self.assertIsNone(re.search(r'<span class="pill[^"]*">[^<]*\d+ of \d+', html))
         self.assertEqual(
-            html.count('<span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span>'),
+            html.count('<span class="pill ok">85% and 0.6</span>'),
             11,
         )
         self.assertNotIn("not 85% or 0.6", html)
+        self.assertNotIn("0 of 0", html)
 
     def test_false_passes_read_counts_non_empty_readings_beside_the_pill(self):
         doc = document("traces/v1")
@@ -70,9 +71,22 @@ class ReportTests(unittest.TestCase):
             "OTHER": "not a false pass",
         }
         html = render_html(doc, "x")
-        self.assertIn('<span class="pill alarm">not 85% or 0.6</span> <span class="mono">2 of 4</span>', html)
-        self.assertNotIn('<span class="pill alarm">not 85% or 0.6 2 of 4</span>', html)
-        self.assertEqual(html.count(">2 of 4<"), 1)
+        self.assertIn('<span class="pill alarm">not 85% or 0.6</span> <span class="mono">1 of 4</span>', html)
+        self.assertNotIn('<span class="pill alarm">not 85% or 0.6 1 of 4</span>', html)
+        self.assertEqual(html.count(">1 of 4<"), 1)
+
+    def test_disagreement_badges_require_a_trimmed_reading(self):
+        doc = document("traces/v1")
+        for row in doc["codes"]:
+            row["false_fails"] = {}
+        row = doc["codes"][0]
+        row["false_passes"] = {key: "x" for key in ("READ", "SPACE", "EMPTY", "MISSING")}
+        row["readings"] = {"READ": " a reading ", "SPACE": " \t\n", "EMPTY": ""}
+        html = render_html(doc, "x")
+        self.assertEqual(html.count('<span class="pill read">read</span>'), 1)
+        self.assertEqual(html.count('<span class="pill alarm">unread</span>'), 3)
+        self.assertEqual(html.count("No reading recorded."), 3)
+        self.assertEqual(render_markdown(doc).count("No reading recorded."), 3)
 
     def test_markdown_says_what_the_page_says(self):
         doc = document("traces/v1")
@@ -83,14 +97,14 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn("trusted", md.lower())
         self.assertIn("Checks at 85% and 0.6: 11 of 11.", md)
         self.assertIn("| 85% and 0.6 | False passes read |", md)
-        self.assertEqual(md.count("| yes | 0 of 0 |"), 11)
+        self.assertEqual(md.count("| yes |  |"), 11)
         doc["codes"][0]["meets_bar"] = False
         doc["codes"][0]["false_passes"] = {"READ": "x", "SPACE": "x", "BLANK": "x", "MISSING": "x"}
         doc["codes"][0]["readings"] = {"READ": "a reading", "SPACE": " ", "BLANK": ""}
         md = render_markdown(doc)
         self.assertIn("Checks at 85% and 0.6: 10 of 11.", md)
-        self.assertEqual(md.count("| no | 2 of 4 |"), 1)
-        self.assertEqual(md.count("| yes | 0 of 0 |"), 10)
+        self.assertEqual(md.count("| no | 1 of 4 |"), 1)
+        self.assertEqual(md.count("| yes |  |"), 10)
 
     def test_tile_is_alarm_when_a_check_misses_the_numbers(self):
         doc = document("traces/v1")

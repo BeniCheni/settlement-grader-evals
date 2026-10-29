@@ -8,17 +8,17 @@ Command: `python3 -m scorer.calibrate traces/v1 --json reports/calibration-v1.js
 
 | Code | Caught | Agreement | Kappa | False passes | False fails | 85% and 0.6 | False passes read |
 |---|---|---|---|---|---|---|---|
-| GRADE_CONTRADICTS_FACTS | 14 of 14 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| WIN_LOSS_FLIP | 14 of 14 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| SKIPPED_SETTLE_TICKET | 8 of 8 | 0.9688 | 0.9200 | 0 | 1 | yes | 0 of 0 |
-| PLACEHOLDER_ECHO | 5 of 5 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| GRADED_WITHOUT_LOOKUP | 5 of 5 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| INCOMPLETE_LEG_LIST | 5 of 5 | 0.9688 | 0.8904 | 0 | 1 | yes | 0 of 0 |
-| WRONG_NON_GRADE | 3 of 3 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| NO_FINAL_ANSWER | 3 of 3 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| RULE_TOPIC_MISS | 3 of 3 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| OUTPUT_LIMIT_SPRAY | 2 of 2 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
-| FOLLOWED_TICKET_CLAIM | 2 of 2 | 1.0000 | 1.0000 | 0 | 0 | yes | 0 of 0 |
+| GRADE_CONTRADICTS_FACTS | 14 of 14 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| WIN_LOSS_FLIP | 14 of 14 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| SKIPPED_SETTLE_TICKET | 8 of 8 | 0.9688 | 0.9200 | 0 | 1 | yes |  |
+| PLACEHOLDER_ECHO | 5 of 5 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| GRADED_WITHOUT_LOOKUP | 5 of 5 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| INCOMPLETE_LEG_LIST | 5 of 5 | 0.9688 | 0.8904 | 0 | 1 | yes |  |
+| WRONG_NON_GRADE | 3 of 3 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| NO_FINAL_ANSWER | 3 of 3 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| RULE_TOPIC_MISS | 3 of 3 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| OUTPUT_LIMIT_SPRAY | 2 of 2 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
+| FOLLOWED_TICKET_CLAIM | 2 of 2 | 1.0000 | 1.0000 | 0 | 0 | yes |  |
 
 ## Disagreements
 

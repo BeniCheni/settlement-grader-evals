@@ -8,7 +8,7 @@ import os
 import sys
 from html import escape
 
-from scorer.calibrate import MissingCaseError, bar_words, document, false_passes_read, not_bar_words, render_markdown, write_text
+from scorer.calibrate import MissingCaseError, bar_words, document, false_passes_read, has_reading, not_bar_words, render_markdown, write_text
 from scorer.stats import canonical_json
 
 
@@ -51,7 +51,7 @@ def _notes(doc):
         readings = row["readings"]
         for kind, bucket in (("flag the labels lack", row["false_fails"]), ("false pass", row["false_passes"])):
             for case_id in sorted(bucket):
-                found.append((row["code"], case_id, kind, readings.get(case_id) or "No reading recorded."))
+                found.append((row["code"], case_id, kind, readings.get(case_id)))
     return found
 
 
@@ -94,7 +94,7 @@ def render_html(doc, css):
         "<section class=\"sec panel\">",
         "<div class=\"sec-head\">",
         "<h2>The eleven checks</h2>",
-        "<p>Caught is how many of the human-labelled failures this check flagged. A false pass is one it missed. A false fail is a flag the labels lack. Beside the pill, false passes read are n of n. A reading counts when its text is non-empty.</p>",
+        "<p>Caught is how many of the human-labelled failures this check flagged. A false pass is one it missed. A false fail is a flag the labels lack. Beside the pill, false passes read are n of n when there are any. A reading counts when its text is non-empty after trimming.</p>",
         "</div>",
         "<table class=\"ledger\">",
         "<thead><tr><th>Code</th><th>Caught</th><th>Agreement</th><th>Kappa</th><th>False passes</th><th>False fails</th><th>%s</th></tr></thead>" % esc(bar_words()),
@@ -104,6 +104,7 @@ def render_html(doc, css):
         pill, word = _numbers_pill(row["meets_bar"])
         caught = "%s of %s" % (row["tp"], row["tp"] + row["fn"])
         read = false_passes_read(row)
+        read_figure = ' <span class="mono">%s</span>' % esc(read) if read else ""
         agreement = "none" if row["agreement"] is None else "%.4f" % row["agreement"]
         kappa = "none" if row["kappa"] is None else "%.4f" % row["kappa"]
         lines.append("<tr>")
@@ -114,8 +115,8 @@ def render_html(doc, css):
         lines.append("<td data-label=\"False passes\"><span class=\"mono\">%s</span></td>" % esc(len(row["false_passes"])))
         lines.append("<td data-label=\"False fails\"><span class=\"mono\">%s</span></td>" % esc(len(row["false_fails"])))
         lines.append(
-            "<td data-label=\"%s\"><span><span class=\"pill %s\">%s</span> <span class=\"mono\">%s</span></span></td>"
-            % (esc(bar_words()), pill, esc(word), esc(read))
+            "<td data-label=\"%s\"><span><span class=\"pill %s\">%s</span>%s</span></td>"
+            % (esc(bar_words()), pill, esc(word), read_figure)
         )
         lines.append("</tr>")
     lines.extend([
@@ -125,17 +126,19 @@ def render_html(doc, css):
         "<section class=\"sec panel\">",
         "<div class=\"sec-head\">",
         "<h2>Disagreements</h2>",
-        "<p>Each one has a reading. The labels are the owner's to change.</p>",
+        "<p>Each disagreement needs a reading. The labels are the owner's to change.</p>",
         "</div>",
     ])
     notes = _notes(doc)
     if not notes:
         lines.append("<p>No disagreements on this run.</p>")
     for code, case_id, kind, reading in notes:
+        read = has_reading(reading)
+        reading_class, reading_word = ("read", "read") if read else ("alarm", "unread")
         lines.append("<article class=\"note\">")
-        lines.append("<p><span class=\"mono\">%s · %s</span> <span class=\"pill read\">read</span></p>" % (esc(code), esc(case_id)))
+        lines.append("<p><span class=\"mono\">%s · %s</span> <span class=\"pill %s\">%s</span></p>" % (esc(code), esc(case_id), reading_class, reading_word))
         lines.append("<p>This is a %s.</p>" % esc(kind))
-        lines.append("<p class=\"reading\">%s</p>" % esc(reading))
+        lines.append("<p class=\"reading\">%s</p>" % esc(reading if read else "No reading recorded."))
         lines.append("</article>")
     lines.extend([
         "</section>",

@@ -43,18 +43,16 @@ def not_bar_words():
     return "not " + bar_words().replace(" and ", " or ")
 
 
-def false_passes_read(row):
-    """How many false passes have a non-empty reading, over how many there are.
+def has_reading(text):
+    """A reading is a string with at least one non-whitespace character."""
+    return isinstance(text, str) and bool(text.strip())
 
-    The second number is the length of false_passes. A reading counts when its
-    text is a non-empty string.
-    """
-    readings = row["readings"]
-    read = 0
-    for case_id in row["false_passes"]:
-        text = readings.get(case_id)
-        if isinstance(text, str) and text:
-            read += 1
+
+def false_passes_read(row):
+    """Read false passes over all false passes; no figure when there are none."""
+    if not row["false_passes"]:
+        return ""
+    read = sum(has_reading(row["readings"].get(case_id)) for case_id in row["false_passes"])
     return "%s of %s" % (read, len(row["false_passes"]))
 
 
@@ -209,7 +207,8 @@ def render_markdown(doc):
                 lines.append("")
                 lines.append("This is a %s." % kind)
                 lines.append("")
-                lines.append(readings.get(case_id) or "No reading recorded.")
+                reading = readings.get(case_id)
+                lines.append(reading if has_reading(reading) else "No reading recorded.")
                 lines.append("")
     if notes == 0:
         lines.extend(["No disagreements on this run.", ""])

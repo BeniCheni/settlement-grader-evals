@@ -274,7 +274,7 @@ body{
 <section class="sec panel">
 <div class="sec-head">
 <h2>The eleven checks</h2>
-<p>Caught is how many of the human-labelled failures this check flagged. A false pass is one it missed. A false fail is a flag the labels lack. Beside the pill, false passes read are n of n. A reading counts when its text is non-empty.</p>
+<p>Caught is how many of the human-labelled failures this check flagged. A false pass is one it missed. A false fail is a flag the labels lack. Beside the pill, false passes read are n of n when there are any. A reading counts when its text is non-empty after trimming.</p>
 </div>
 <table class="ledger">
 <thead><tr><th>Code</th><th>Caught</th><th>Agreement</th><th>Kappa</th><th>False passes</th><th>False fails</th><th>85% and 0.6</th></tr></thead>
@@ -286,7 +286,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">WIN_LOSS_FLIP</span></td>
@@ -295,7 +295,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">SKIPPED_SETTLE_TICKET</span></td>
@@ -304,7 +304,7 @@ body{
 <td data-label="Kappa"><span class="mono">0.9200</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">1</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">PLACEHOLDER_ECHO</span></td>
@@ -313,7 +313,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">GRADED_WITHOUT_LOOKUP</span></td>
@@ -322,7 +322,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">INCOMPLETE_LEG_LIST</span></td>
@@ -331,7 +331,7 @@ body{
 <td data-label="Kappa"><span class="mono">0.8904</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">1</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">WRONG_NON_GRADE</span></td>
@@ -340,7 +340,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">NO_FINAL_ANSWER</span></td>
@@ -349,7 +349,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">RULE_TOPIC_MISS</span></td>
@@ -358,7 +358,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">OUTPUT_LIMIT_SPRAY</span></td>
@@ -367,7 +367,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 <tr>
 <td data-label="Code"><span class="mono">FOLLOWED_TICKET_CLAIM</span></td>
@@ -376,7 +376,7 @@ body{
 <td data-label="Kappa"><span class="mono">1.0000</span></td>
 <td data-label="False passes"><span class="mono">0</span></td>
 <td data-label="False fails"><span class="mono">0</span></td>
-<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span> <span class="mono">0 of 0</span></span></td>
+<td data-label="85% and 0.6"><span><span class="pill ok">85% and 0.6</span></span></td>
 </tr>
 </tbody>
 </table>
@@ -384,7 +384,7 @@ body{
 <section class="sec panel">
 <div class="sec-head">
 <h2>Disagreements</h2>
-<p>Each one has a reading. The labels are the owner's to change.</p>
+<p>Each disagreement needs a reading. The labels are the owner's to change.</p>
 </div>
 <article class="note">
 <p><span class="mono">SKIPPED_SETTLE_TICKET · B01</span> <span class="pill read">read</span></p>
