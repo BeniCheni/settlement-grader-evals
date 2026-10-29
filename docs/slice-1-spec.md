@@ -238,7 +238,7 @@ unchanged.
     `traces/smoke-1` (3 tickets, 39 spans); the runs that measure the floor are slice 2's, committed as `traces/aa-*`.
     Slice 2's floor must not count the two dated runs as runs (receipt below the amendments).
 12. **Not yet written: the failing-row wording.** The pill's "not 85% or 0.6" does not say which number failed. No row fails
-    on `traces/v1`, so the words wait for slice 4, the first held-out run that can have a failing row.
+    on `traces/v1`, so the words wait for slice 4. Slice 3's held-out calibration can also have a failing row.
 
 ### Receipt for amendments 6, 7 and 11, and the counts in the scope doc
 
@@ -248,7 +248,7 @@ script and not the figures; the tests pin the behaviour. Figures from runs that 
 
 ```
 python3 - <<'PY'
-import collections, csv, json, os, sys
+import collections, csv, json, os, re, sys
 sys.path.insert(0, ".")
 from grader import espn
 from scorer import checks, traces
@@ -284,8 +284,19 @@ for run in RUNS:
 
 
 def spans(run):
-    with open(os.path.join(run, "settlement-traces.json"), encoding="utf-8") as handle:
-        return {(s["traceId"], s["spanId"]): json.dumps(s, sort_keys=True) for s in traces._spans(json.load(handle))}
+    with open(os.path.join(run, "settlement-traces.json"), "rb") as handle:
+        text = handle.read().decode("utf-8")
+    decoder = json.JSONDecoder()
+    found = {}
+    for match in re.finditer(r'\{\s*"traceId"\s*:', text):
+        span, length = decoder.raw_decode(text[match.start():])
+        key = (span["traceId"], span["spanId"])
+        if key in found:
+            raise ValueError("duplicate span id")
+        found[key] = text[match.start():match.start() + length].encode("utf-8")
+    if len(found) != len(list(traces._spans(json.loads(text)))):
+        raise ValueError("span extraction incomplete")
+    return found
 
 
 base = spans("traces/v1")
