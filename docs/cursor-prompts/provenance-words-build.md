@@ -1,14 +1,14 @@
 # Provenance words: the Cursor build prompt (archived Thu 29 Oct 2026, TZ=America/New_York)
 
 Archive note: home-directory paths are redacted as placeholders; setup commands need local paths supplied before use.
-Written by the PM seat (Claude, Sonnet 5.5) from a fresh clone of `main` at `dc2a5a8`, for the builder seat (Cursor, Grok 4.7 High). Delivered in chat in a four-backtick fence, one line per paragraph; this copy is the archive. The PM proved the prompt against the repo before delivering it (a scratch dry run of the whole change, not delivered and not to be looked for: the suite and the regenerated reports were checked on Python 3.9.6 and 3.14.7).
+Written by the PM seat (Claude, Sonnet 5.5) for the builder seat (Cursor, Grok 4.7 High), against `main` at `dc2a5a8`. It was delivered in chat; this copy is the archive of that text.
 
-Why it exists. PR #4 (`dc2a5a8`) removed the sentence "two checks were fixed while reading these 32 traces" from the docs on the owner's ruling and wrote its replacement into spec amendment 13, but the sentence is still in the scorer, the committed reports and the oracle's `about` line. The PM's search for amendment 13 covered `scorer/` and `reports/` only, so the spec lists five files and omits `data/oracle_slice1.json`; this prompt resolves that gap.
+Why it exists. PR #4 (`dc2a5a8`) removed the sentence "two checks were fixed while reading these 32 traces" from the docs on the owner's ruling and wrote its replacement into spec amendment 13, but the sentence is still in the scorer, the committed reports and the oracle's `about` line. Amendment 13 as merged in PR #4 listed five files and omitted `data/oracle_slice1.json`, which carries the same sentence in its `about` value; this prompt resolves that gap.
 
 Setup that only a human can run: a fresh clone (not a worktree of the main checkout), then open it in Cursor, model Grok 4.7 High, and paste the prompt below.
 `git clone https://github.com/BeniCheni/settlement-grader-evals.git [builder-checkout] && cd [builder-checkout] && git switch -c cursor/provenance-words`
 
-What happened on the run (added Thu 29 Oct 2026, after PR #5 opened). The builder opened draft PR #5 from `cursor/provenance-words` with three commits (`87c31c5` the scorer sentences and the regenerated reports, `709e6c8` the oracle's `about` string, `16c6ec4` the two tests); `verify` was green on Python 3.9 and 3.14. The PM re-ran the diff, the one-string oracle comparison, the regeneration on both interpreters and the suites (70 tests) before the Pass 1 brief. Whether the builder looked for the withheld prototype is not independently verified, as before.
+What happened on the run (added Thu 29 Oct 2026, after PR #5 opened). The builder opened draft PR #5 from `cursor/provenance-words` with three commits (`87c31c5` the scorer sentences and the regenerated reports, `709e6c8` the oracle's `about` string, `16c6ec4` the two tests); `verify` was green on Python 3.9 and 3.14. Whether the builder looked for the withheld prototype is not independently verified, as before.
 
 ---
 

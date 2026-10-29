@@ -244,16 +244,18 @@ flags, the readings and the labels are unchanged.
     the committed `reports/calibration-v1.{html,json,md}`, and the `about` value of `data/oracle_slice1.json`. They said that two
     checks were fixed while reading the 32 traces, and the line for a run outside `traces/v1` said the checks "were tuned on
     traces/v1". That is history of the withheld prototype and cannot be re-run from this repo, so the owner ruled it removed
-    and not backed by a receipt. The first version of this amendment listed five files and omitted the oracle, because its
-    search covered `scorer/` and `reports/` only; the builder's prompt resolved the gap, and the only change to the oracle is
-    that one string. The three sentences are now, for exactly
+    and not backed by a receipt. The first version of this amendment listed five files and omitted the oracle; the builder's
+    prompt resolved the gap, and the only change to the oracle is that one string. The three sentences are now, for exactly
     `traces/v1`: "In sample. The labels were made on these 32 traces and the checks were built against them. This shows the
     checks reproduce the labels they were built from, not that they generalise."; for a proper subset: "In sample. This is a
     subset of traces/v1, the run the checks were built against. It is not independent evidence that they generalise."; for any
     other run: "Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on
     this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out
     agreement or generalisation." `tests/test_provenance_words.py` pins the three sentences and fails if any of four retired
-    phrases returns to `scorer/*.py`, to the files directly in `reports/`, or to the oracle. No figure moves.
+    phrases returns to `scorer/*.py`, to the files directly in `reports/`, or to the oracle. That guard matches the four exact
+    phrases in a file's lowercased text, so a retired sentence that is wrapped across a line break, reworded, or placed in a
+    subfolder of `reports/` can escape it; it guards against the old sentences coming back, not against every claim of
+    that kind. No figure moves.
 
 ### Receipt for amendments 6, 7 and 11, and the counts in the scope doc
 
