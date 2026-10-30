@@ -343,6 +343,24 @@ class CompareCommandTests(unittest.TestCase):
                     self.assertIn(needle, done.stderr)
                     self.assertFalse(os.path.exists(out))
 
+    def test_unwritable_json_path_exits_2_before_printing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            blocker = os.path.join(directory, "blocker")
+            with open(blocker, "w", encoding="utf-8") as handle:
+                handle.write("kept\n")
+            for out in (directory, os.path.join(blocker, "out.json")):
+                with self.subTest(out=os.path.relpath(out, directory)):
+                    done = _cli([os.path.join(RUNS, "order-a"), os.path.join(RUNS, "order-b"),
+                                 "--cases", CASES], out)
+                    self.assertEqual(done.returncode, 2, done.stderr)
+                    self.assertEqual(done.stdout, "")
+                    self.assertNotIn("Traceback", done.stderr)
+                    self.assertEqual(done.stderr.count("error:"), 1, done.stderr)
+                    self.assertIn("cannot write", done.stderr)
+            self.assertEqual(sorted(os.listdir(directory)), ["blocker"])
+            with open(blocker, encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "kept\n")
+
     def test_json_array_meta_is_unreadable_and_stdout_matches_the_report(self):
         with tempfile.TemporaryDirectory() as directory:
             run = os.path.join(directory, "array-meta")

@@ -247,9 +247,13 @@ def main(argv=None):
         report = compare_runs(args.run_a, args.run_b, cases_path=args.cases_path)
     except (CompareError, MissingCaseError, FileNotFoundError) as error:
         parser.error(str(error))
-    sys.stdout.write(format_report(report))
+    text = format_report(report)
     if args.json_out:
-        write_text(args.json_out, canonical_json(report))
+        try:
+            write_text(args.json_out, canonical_json(report))
+        except OSError:
+            parser.error("cannot write %s" % args.json_out)
+    sys.stdout.write(text)
     return 0
 
 
