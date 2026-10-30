@@ -1,0 +1,80 @@
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "F1"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "t1r",
+              "startTimeUnixNano": "1",
+              "traceId": "t1"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "settle_ticket"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "tool.settle_ticket",
+              "parentSpanId": "t1r",
+              "spanId": "t1s",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 0
+              },
+              "traceId": "t1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

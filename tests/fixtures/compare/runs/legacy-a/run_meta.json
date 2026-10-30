@@ -1,0 +1,13 @@
+{
+  "budgets": {
+    "max_tool_calls": 32,
+    "max_turns": 12
+  },
+  "cases_file": "tests/fixtures/compare/cases.json",
+  "model": "qwen3:8b",
+  "n_cases": 1,
+  "outcome_matches": 1,
+  "run_id": "legacy-a",
+  "system_prompt": "grade",
+  "think": false
+}
