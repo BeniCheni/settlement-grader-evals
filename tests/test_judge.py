@@ -693,6 +693,26 @@ class CommandTests(unittest.TestCase):
             self.assertEqual(ok_meta["options"], {"num_ctx": 16384, "num_predict": 256, "seed": 0, "temperature": 0})
             self.assertFalse(os.path.exists(os.path.join(http_out, "verdicts.jsonl")))
 
+    def test_a_failed_write_leaves_each_path_as_it_was(self):
+        with self.temporary() as directory:
+            labels, _meta = self.base_labels(directory)
+            replies = "fake:" + ROOT + "/replies.json"
+            # A directory where judge_meta.json goes makes the second write fail.
+            again = os.path.join(directory, "again")
+            os.makedirs(os.path.join(again, "judge_meta.json"))
+            write_text(os.path.join(again, "verdicts.jsonl"), "OLD\n")
+            refused = cli(["run", "--labels", labels, "--rubrics", RUBRICS, "--adapter", replies, "--out", again])
+            self.assertEqual(refused.returncode, 2, refused.stderr)
+            self.assertNotIn("Traceback", refused.stderr)
+            self.assertIn("could not write output", refused.stderr)
+            with open(os.path.join(again, "verdicts.jsonl"), encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "OLD\n")
+            fresh = os.path.join(directory, "fresh")
+            os.makedirs(os.path.join(fresh, "judge_meta.json"))
+            refused = cli(["run", "--labels", labels, "--rubrics", RUBRICS, "--adapter", replies, "--out", fresh])
+            self.assertEqual(refused.returncode, 2, refused.stderr)
+            self.assertFalse(os.path.exists(os.path.join(fresh, "verdicts.jsonl")))
+
     def test_human_label_is_not_sent_to_the_adapter(self):
         records = {row["case_id"]: row for row in load_run(BASE)}
         record = records["C1"]

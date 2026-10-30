@@ -215,19 +215,30 @@ FIXED_COLUMNS = ("n", "run", "case_id", "trace_id", "unsure", "note")
 
 
 def write_outputs(pairs):
-    """Write every file, or leave none of them behind."""
-    written = []
+    """Write every file, or leave each path as it was: a file that existed keeps its bytes."""
+    before = []
     try:
         for path, text in pairs:
+            before.append((path, _bytes_if_file(path)))
             write_text(path, text)
-            written.append(path)
     except OSError:
-        for path in written:
+        for path, raw in before:
             try:
-                os.remove(path)
+                if raw is None:
+                    os.remove(path)
+                else:
+                    with open(path, "wb") as handle:
+                        handle.write(raw)
             except OSError:
                 pass
         raise JudgeError("could not write output") from None
+
+
+def _bytes_if_file(path):
+    if not os.path.isfile(path):
+        return None
+    with open(path, "rb") as handle:
+        return handle.read()
 
 
 def load_rubrics(directory):
