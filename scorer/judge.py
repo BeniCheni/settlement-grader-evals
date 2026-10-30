@@ -37,26 +37,31 @@ class JudgeError(Exception):
     """One validation failure. main exits with status 2 and writes nothing."""
 
 
-def run_name(text):
+def relative_path(text, what):
     """Relative forward-slash path, with ./ and a trailing slash collapsed.
 
     An absolute path is a usage error: it would put a machine path in a file.
     A tilde path, and one that climbs out of this directory, are the same kind of error.
     """
     if not isinstance(text, str):
-        raise JudgeError("a run must be a relative path")
+        raise JudgeError("%s must be a relative path" % what)
     raw = text.strip()
     if raw == "" or raw.startswith("~") or raw.startswith("/") or raw.startswith("\\"):
-        raise JudgeError("a run must be a relative path, not an absolute path")
+        raise JudgeError("%s must be a relative path, not an absolute path" % what)
     if len(raw) >= 2 and raw[1] == ":":
-        raise JudgeError("a run must be a relative path, not an absolute path")
+        raise JudgeError("%s must be a relative path, not an absolute path" % what)
     slash = raw.replace("\\", "/")
     normalised = os.path.normpath(slash).replace("\\", "/")
     if normalised in ("", ".") or os.path.isabs(normalised) or normalised.startswith("/") or normalised.startswith("~"):
-        raise JudgeError("a run must be a relative path, not an absolute path")
+        raise JudgeError("%s must be a relative path, not an absolute path" % what)
     if normalised == ".." or normalised.startswith("../"):
-        raise JudgeError("a run must be a relative path inside this directory")
+        raise JudgeError("%s must be a relative path inside this directory" % what)
     return normalised
+
+
+def run_name(text):
+    """A run as plans, labels and verdicts name it: see relative_path."""
+    return relative_path(text, "a run")
 
 
 def _sha256(raw):
@@ -1237,16 +1242,21 @@ def render_markdown(doc):
 
 
 def report_command(labels, final, readings, provenance, verdicts):
-    parts = ["python3 -m scorer.judge report", "--labels", labels]
+    """The command that reproduces a report from this directory. It is copied into results.md."""
+    parts = ["python3 -m scorer.judge report", "--labels", relative_path(labels, "--labels")]
     if final:
-        parts.extend(["--final", final])
+        parts.extend(["--final", relative_path(final, "--final")])
     if readings:
-        parts.extend(["--readings", readings])
-    parts.extend(["--provenance", provenance, "--verdicts", verdicts])
+        parts.extend(["--readings", relative_path(readings, "--readings")])
+    parts.extend([
+        "--provenance", relative_path(provenance, "--provenance"),
+        "--verdicts", relative_path(verdicts, "--verdicts"),
+    ])
     return " ".join(parts)
 
 
 def build_report(labels, final, readings, provenance, verdicts):
+    command = report_command(labels, final, readings, provenance, verdicts)
     names, rows = load_labels(labels)
     final_rows = None
     if final:
@@ -1316,7 +1326,7 @@ def build_report(labels, final, readings, provenance, verdicts):
         })
     label_key = "final" if final_rows is not None else "first_pass"
     document = {
-        "command": report_command(labels, final, readings, provenance, verdicts),
+        "command": command,
         "digest": judge_meta.get("digest"),
         "labels_sha256": labels_sha,
         "model": judge_meta.get("model"),

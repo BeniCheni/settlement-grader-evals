@@ -1197,6 +1197,28 @@ class ReportTests(unittest.TestCase):
             self.assertIn("not valid JSON", refused.stderr)
             self.assertNotIn("Traceback", refused.stderr)
             self.assertFalse(os.path.exists(out))
+            # The command line is copied into results.md, which is committed: it shows each path
+            # relative and normalised, and refuses one it cannot show that way.
+            markdown, document = build_report("./" + labels, None, None, provenance_path, verdict_dir + "/")
+            self.assertIn("--labels %s --provenance %s --verdicts %s`" % (labels, provenance_path, verdict_dir), markdown)
+            self.assertEqual(document["command"].split("--labels ")[1].split(" ")[0], labels)
+            for flag, value in (
+                ("--labels", os.path.abspath(labels)),
+                ("--provenance", "~" + "/" + "provenance.txt"),
+                ("--verdicts", "../" + verdict_dir),
+            ):
+                with self.subTest(flag=flag):
+                    args = {"--labels": labels, "--provenance": provenance_path, "--verdicts": verdict_dir}
+                    args[flag] = value
+                    refused = cli([
+                        "report", "--labels", args["--labels"], "--provenance", args["--provenance"],
+                        "--verdicts", args["--verdicts"], "--md", out,
+                    ])
+                    self.assertEqual(refused.returncode, 2, refused.stderr)
+                    self.assertNotIn("Traceback", refused.stderr)
+                    self.assertEqual(refused.stdout, "")
+                    self.assertIn("%s must be a relative path" % flag, refused.stderr)
+                    self.assertFalse(os.path.exists(out))
 
     def test_export_course_shape_fence_and_results(self):
         records = {row["case_id"]: row for row in load_run(BASE)}
@@ -1389,9 +1411,20 @@ class ReportTests(unittest.TestCase):
         self.assertIn(ROOT + "/_tmp*/", lines)
 
 
+@contextlib.contextmanager
 def tempfile_dir():
+    """A scratch directory named relative to the repository, as a report's command line requires."""
     import tempfile
-    return tempfile.TemporaryDirectory()
+    scratch = ROOT + "/_tmp"
+    os.makedirs(scratch, exist_ok=True)
+    try:
+        with tempfile.TemporaryDirectory(dir=scratch) as directory:
+            yield os.path.relpath(directory).replace(os.sep, "/")
+    finally:
+        try:
+            os.rmdir(scratch)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":
