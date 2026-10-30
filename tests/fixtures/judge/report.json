@@ -1,0 +1,179 @@
+{
+  "command": "python3 -m scorer.judge report --labels tests/fixtures/judge/labels.jsonl --final tests/fixtures/judge/labels-final.jsonl --readings tests/fixtures/judge/readings.json --provenance tests/fixtures/judge/provenance.txt --verdicts tests/fixtures/judge/verdicts",
+  "digest": null,
+  "labels_sha256": "005dcc4f65f0aa84cceed3a16ef37abcf4c33a39c1fdabfe1e1d4edc0cb9498a",
+  "model": null,
+  "provenance": "Hand written for this fixture. The numbers below are made up. They are in sample. They are not held out. They show nothing about a judge.\n",
+  "provenance_heading": "Written by hand, not computed",
+  "rubrics": [
+    {
+      "final": {
+        "JF_HF": 1,
+        "JF_HP": 0,
+        "JP_HF": 0,
+        "JP_HP": 2,
+        "agreement": 1.0,
+        "bar": "85% and 0.6",
+        "false_fails": [],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 0,
+        "kappa": 1.0,
+        "kappa_at_least_0_6": true,
+        "meets_bar": true,
+        "tn": 2,
+        "tp": 1
+      },
+      "first_pass": {
+        "JF_HF": 1,
+        "JF_HP": 0,
+        "JP_HF": 1,
+        "JP_HP": 1,
+        "agreement": 0.6667,
+        "bar": "85% and 0.6",
+        "false_fails": [],
+        "false_passes": [
+          {
+            "case_id": "C1",
+            "reading": true,
+            "reason": "missed",
+            "run": "tests/fixtures/judge/runs/base"
+          }
+        ],
+        "false_passes_read": "1 of 1",
+        "fn": 1,
+        "fp": 0,
+        "kappa": 0.4,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 1,
+        "tp": 1
+      },
+      "rubric": "needs_human_correctness",
+      "rubric_sha256": "752bd8591fc27bb5125208effdb2b9bc89aab4a2ee4624b60dd481477b2b65b9",
+      "text": "same text as when the labels were made",
+      "unparsed": 0
+    },
+    {
+      "final": {
+        "JF_HF": 1,
+        "JF_HP": 1,
+        "JP_HF": 0,
+        "JP_HP": 1,
+        "agreement": 0.6667,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "C3",
+            "reading": false,
+            "reason": "flagged",
+            "run": "tests/fixtures/judge/runs/base"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 1,
+        "kappa": 0.4,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 1,
+        "tp": 1
+      },
+      "first_pass": {
+        "JF_HF": 1,
+        "JF_HP": 1,
+        "JP_HF": 0,
+        "JP_HP": 1,
+        "agreement": 0.6667,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "C3",
+            "reading": false,
+            "reason": "flagged",
+            "run": "tests/fixtures/judge/runs/base"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 1,
+        "kappa": 0.4,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 1,
+        "tp": 1
+      },
+      "rubric": "rule_adherence",
+      "rubric_sha256": "a409a395dc16771cad2512ab32ccb2e71f1d37c4622c2f9402eb4d38aa0854e9",
+      "text": "same text as when the labels were made",
+      "unparsed": 0
+    },
+    {
+      "final": {
+        "JF_HF": 1,
+        "JF_HP": 1,
+        "JP_HF": 0,
+        "JP_HP": 1,
+        "agreement": 0.6667,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "C2",
+            "reading": false,
+            "reason": "no",
+            "run": "tests/fixtures/judge/runs/base"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 1,
+        "kappa": 0.4,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 1,
+        "tp": 1
+      },
+      "first_pass": {
+        "JF_HF": 1,
+        "JF_HP": 1,
+        "JP_HF": 0,
+        "JP_HP": 1,
+        "agreement": 0.6667,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "C2",
+            "reading": false,
+            "reason": "no",
+            "run": "tests/fixtures/judge/runs/base"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 1,
+        "kappa": 0.4,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 1,
+        "tp": 1
+      },
+      "rubric": "tool_call_accuracy",
+      "rubric_sha256": "935c99aa24b6d8eabc3270044fddc7b7084a7597bf2605ccb293a8167f4b6aa9",
+      "text": "same text as when the labels were made",
+      "unparsed": 1
+    }
+  ],
+  "worst": {
+    "labels": "final",
+    "rubrics": [
+      "rule_adherence",
+      "tool_call_accuracy"
+    ],
+    "tied": true
+  }
+}

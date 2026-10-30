@@ -1,5 +1,6 @@
 """Hand-worked confusion tables. Mutate a count and the matching assertion goes red."""
 import unittest
+from fractions import Fraction
 from unittest import mock
 
 from scorer import stats
@@ -17,6 +18,40 @@ from scorer.stats import (
 
 
 class ConfusionTests(unittest.TestCase):
+    def test_exact_kappa_bar_and_nearby_tables(self):
+        boundary = {"tp": 9, "fp": 6, "fn": 1, "tn": 24}
+        self.assertEqual(cohen_kappa(boundary), 0.6)
+        self.assertTrue(meets_bar(boundary, min_agreement=0.8))
+        self.assertFalse(meets_bar(boundary))  # Agreement is 33/40, below 85%.
+        below = {"tp": 66, "fp": 77, "fn": 0, "tn": 1000}
+        self.assertLess(cohen_kappa(below), 0.6)
+        self.assertEqual(round(cohen_kappa(below), 4), 0.6)
+        self.assertFalse(meets_bar(below))
+        self.assertTrue(meets_bar(dict(below, fp=76)))
+
+    def test_every_exact_three_fifths_table_through_sixty(self):
+        exact = legacy_under = 0
+        for n in range(1, 61):
+            for tp in range(n + 1):
+                for fp in range(n - tp + 1):
+                    for fn in range(n - tp - fp + 1):
+                        tn = n - tp - fp - fn
+                        # Independent count form: 2(ad-bc) / ((a+b)(b+d)+(a+c)(c+d)).
+                        denominator = (tp + fp) * (fp + tn) + (tp + fn) * (fn + tn)
+                        if not denominator or Fraction(2 * (tp * tn - fp * fn), denominator) != Fraction(3, 5):
+                            continue
+                        exact += 1
+                        counts = {"tp": tp, "fp": fp, "fn": fn, "tn": tn}
+                        with self.subTest(counts=counts):
+                            self.assertEqual(cohen_kappa(counts), 0.6)
+                            self.assertTrue(meets_bar(counts, min_agreement=0))
+                            self.assertEqual(meets_bar(counts), Fraction(tp + tn, n) >= Fraction(17, 20))
+                        chance = ((tp + fp) * (tp + fn) + (fn + tn) * (fp + tn)) / (n * n)
+                        old_kappa = ((tp + tn) / n - chance) / (1 - chance)
+                        legacy_under += old_kappa < 0.6
+        self.assertEqual(exact, 220)
+        self.assertEqual(legacy_under, 32)
+
     def test_counts_tp_fp_fn_tn_in_that_meaning(self):
         # fp and fn differ on purpose: a swap of the two inside confusion must fail here.
         predicted = [True, True, True, False, False, True]

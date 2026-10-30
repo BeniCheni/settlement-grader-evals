@@ -1,0 +1,51 @@
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "C1"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{\"leg\": \"result\"}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "0"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"mark\": \"loss\"}"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "20",
+              "name": "grade_ticket",
+              "spanId": "root0",
+              "startTimeUnixNano": "1",
+              "traceId": "t2-c1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

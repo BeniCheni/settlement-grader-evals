@@ -7,3 +7,6 @@ __pycache__/
 # Local only: raw ESPN responses, the private review sheet
 data/espn_cache/
 private/
+sheets/
+# Scratch the judge tests write and remove; an interrupted run leaves it ignored
+tests/fixtures/judge/_tmp*/

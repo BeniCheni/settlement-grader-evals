@@ -54,11 +54,13 @@ def cohen_kappa(counts):
     if total == 0:
         return None
     tp, fp, fn, tn = _parts(counts)
-    observed = (tp + tn) / total
-    chance = ((tp + fp) * (tp + fn) + (fn + tn) * (fp + tn)) / (total * total)
-    if abs(1.0 - chance) <= 1e-12:
+    # Keep the numerator and denominator exact until the final division, so an
+    # exact boundary such as 3/5 has the same float as the 0.6 bar.
+    chance_numerator = (tp + fp) * (tp + fn) + (fn + tn) * (fp + tn)
+    denominator = total * total - chance_numerator
+    if denominator == 0:
         return None
-    return (observed - chance) / (1.0 - chance)
+    return (total * (tp + tn) - chance_numerator) / denominator
 
 
 def wilson(k, n, z=1.96):

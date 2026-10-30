@@ -1,0 +1,11 @@
+{
+  "tests/fixtures/judge/runs/base|C1|needs_human_correctness": "PASS\nReason: missed",
+  "tests/fixtures/judge/runs/base|C1|rule_adherence": "PASS\nReason: ok",
+  "tests/fixtures/judge/runs/base|C1|tool_call_accuracy": "PASS\nReason: ok",
+  "tests/fixtures/judge/runs/base|C2|needs_human_correctness": "FAIL\nReason: flagged",
+  "tests/fixtures/judge/runs/base|C2|rule_adherence": "FAIL\nReason: flagged",
+  "tests/fixtures/judge/runs/base|C2|tool_call_accuracy": "maybe\nReason: no",
+  "tests/fixtures/judge/runs/base|C3|needs_human_correctness": "PASS\nReason: ok",
+  "tests/fixtures/judge/runs/base|C3|rule_adherence": "FAIL\nReason: flagged",
+  "tests/fixtures/judge/runs/base|C3|tool_call_accuracy": "FAIL\nReason: flagged"
+}

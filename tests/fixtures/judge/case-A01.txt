@@ -1,0 +1,60 @@
+TICKET
+{
+  "bet_type": "ML",
+  "book": "Fanatics",
+  "boost_or_token": "15% Profit Boost",
+  "graded_at_et": "2026-10-14",
+  "legs": [
+    {
+      "away": "Portugal",
+      "fixture": "Denmark v Portugal",
+      "home": "Denmark",
+      "kickoff_et": "2026-10-01 14:45",
+      "league": "UEFA Nations League (League A Group 4)",
+      "leg": 1,
+      "leg_price_american": "+100",
+      "market": "Money Line 3-Way (regulation only)",
+      "market_wording_on_slip": "Tomorrow 2:45pm (kickoff label at placement on 30 Sep)",
+      "selection": "Portugal"
+    }
+  ],
+  "printed_payout": 21.5,
+  "stake": 10.0,
+  "stake_kind": "cash",
+  "ticket_price_american": "+115"
+}
+
+TOOL CALLS
+1. find_match
+   args: {"date_et": "2026-10-01", "opponent": "Portugal", "team": "Denmark"}
+   result: {"candidates": [{"away": "Portugal", "event_id": "401861096", "home": "Denmark", "kickoff_utc": "2026-10-01T18:45Z", "league": "league-phase", "score_home_away": "2-4", "status": "STATUS_FULL_TIME"}]}
+   error: none
+2. get_match_facts
+   args: {"event_id": "401861096"}
+   result: {"away": "Portugal", "cards": [{"kind": "Yellow Card", "min": "79'", "player": "Mohamed Daramy", "team": "Denmark"}, {"kind": "Yellow Card", "min": "82'", "player": "Rúben Neves", "team": "Portugal"}], "competition": "UEFA Nations League", "completed": true, "event_id": "401861096", "goals": [{"kind": "Goal", "min": "13'", "player": "João Cancelo", "team": "Portugal"}, {"kind": "Goal", "min": "23'", "player": "Mikkel Damsgaard", "team": "Denmark"}, {"kind": "Goal", "min": "25'", "player": "Gonçalo Ramos", "team": "Portugal"}, {"kind": "Goal", "min": "53'", "player": "Rasmus Højlund", "team": "Denmark"}, {"kind": "Goal - Header", "min": "67'", "player": "Vitinha", "team": "Portugal"}, {"kind": "Goal", "min": "87'", "player": "João Félix", "team": "Portugal"}], "home": "Denmark", "kickoff_utc": "2026-10-01T18:45Z", "score_final": "2-4", "score_halftime": "1-2", "score_regulation_90": "2-4", "status": "STATUS_FULL_TIME", "status_detail": "FT", "team_stats": {"corners": {"away": 7, "home": 4}, "red_cards": {"away": 0, "home": 0}, "shots_on_target": {"away": 10, "home": 3}, "total_shots": {"away": 19, "home": 12}, "yellow_cards": {"away": 1, "home": 1}}}
+   error: none
+3. lookup_rule
+   args: {"topic": "moneyline_3way"}
+   result: {"rule": "Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time. Extra time and penalties are ignored. Use score_regulation_90. The Draw selection wins on a regulation draw; both team selections lose on a draw.", "topic": "moneyline_3way"}
+   error: none
+4. settle_ticket
+   args: {"leg_results": ["W"], "printed_payout": 21.5, "stake": 10, "stake_kind": "cash"}
+   result: {"basis": "printed payout", "flags": [], "net": 11.5, "ticket_result": "WIN"}
+   error: none
+
+FINAL ANSWER
+{
+  "legs": [
+    {
+      "evidence": "Portugal won 2-4 in regulation",
+      "leg": 1,
+      "result": "W"
+    }
+  ],
+  "net": 11.5,
+  "notes": "Win based on regulation result",
+  "ticket_result": "WIN"
+}
+
+RUN STATUS
+complete, reason none
