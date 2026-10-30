@@ -120,6 +120,10 @@ class RunSetupTests(unittest.TestCase):
         with self.assertRaises(SetupReadError) as null_version:
             read_ollama_setup("qwen3:8b", _stand_in(version=b'{"version":null}'))
         self.assertEqual(str(null_version.exception), "could not read the Ollama version")
+        for version in (b'{"version":""}', b'{"version":"  "}', b'{"version":6}', b"{}"):
+            with self.assertRaises(SetupReadError) as unusable:
+                read_ollama_setup("qwen3:8b", _stand_in(version=version))
+            self.assertEqual(str(unusable.exception), "could not read the Ollama version")
         for tags in (
             b'{"models":[{"name":"Qwen3:8b","digest":"sha256:case"}]}',
             b'{"models":[{"name":"qwen3:8b ","digest":"sha256:space"}]}',
