@@ -266,6 +266,21 @@ class RunNameTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_empty_rubric_map_is_a_validation_error(self):
+        with tempfile_dir() as directory:
+            labels = os.path.join(directory, "empty.jsonl")
+            row = {"run": BASE, "case_id": "C1", "trace_id": "tb-c1", "human": {}, "unsure": [], "note": ""}
+            write_text(labels, json.dumps(row) + "\n")
+            write_text(os.path.join(directory, "empty-meta.json"), canonical_json({"rubrics": {}}))
+            write_text(os.path.join(directory, "judge_meta.json"), canonical_json({"labels_sha256": sha256(labels), "rubrics": {}}))
+            write_text(os.path.join(directory, "verdicts.jsonl"), "")
+            out = os.path.join(directory, "report.md")
+            refused = cli([
+                "report", "--labels", labels, "--verdicts", directory,
+                "--provenance", ROOT + "/provenance.txt", "--md", out,
+            ])
+            self.assert_status_2(refused, "no rubric", [out])
+
     def test_wrong_shape_trace_ids_and_numeric_cells_exit_two(self):
         from tests.judge_otlp import settlement_document
         with tempfile_dir() as directory:

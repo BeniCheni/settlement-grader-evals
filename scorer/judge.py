@@ -627,6 +627,8 @@ def load_labels(path, allow_changes=False):
         if "human" not in raw or not isinstance(raw["human"], dict):
             raise JudgeError("human labels are missing")
         row_names = sorted(raw["human"].keys())
+        if not row_names:
+            raise JudgeError("human labels have no rubric")
         if names is None:
             names = row_names
         elif row_names != names:
