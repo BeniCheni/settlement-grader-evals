@@ -296,7 +296,7 @@ def _records(cache, run):
             raise JudgeError("run %s is not valid UTF-8" % name) from None
         except ValueError as error:
             raise JudgeError(str(error)) from None
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError, OverflowError):
             raise JudgeError("run %s is not a trace export" % name) from None
     return name, cache[name]
 
@@ -304,7 +304,7 @@ def _records(cache, run):
 def _unique_cases(run, records):
     seen = set()
     for record in records:
-        case_id = record.get("case_id")
+        case_id = _need_str(record.get("case_id"), "case_id")
         if case_id in seen:
             raise JudgeError("run %s holds two records with case_id %s" % (run, case_id))
         seen.add(case_id)
@@ -516,11 +516,12 @@ def import_rows(plan_rows, header, sheet_rows, rubric_names):
     if len(sheet_rows) != len(plan_rows):
         raise JudgeError("sheet row count does not match the plan")
     by_n = {}
+    numbers = {str(index): index for index in range(1, len(plan_rows) + 1)}
     for raw in sheet_rows:
         n_text = raw.get("n", "")
-        if not isinstance(n_text, str) or not n_text.isdigit() or str(int(n_text)) != n_text:
+        if not isinstance(n_text, str) or n_text not in numbers:
             raise JudgeError("sheet n is not the plan row number")
-        number = int(n_text)
+        number = numbers[n_text]
         if number in by_n:
             raise JudgeError("duplicate sheet row %s" % number)
         by_n[number] = raw

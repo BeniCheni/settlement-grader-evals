@@ -266,6 +266,38 @@ class RunNameTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_wrong_shape_trace_ids_and_numeric_cells_exit_two(self):
+        from tests.judge_otlp import settlement_document
+        with tempfile_dir() as directory:
+            run = os.path.join(directory, "run")
+            for key, value in (("case.id", []), ("run.tool_calls", float("inf"))):
+                with self.subTest(key=key):
+                    document = settlement_document(BASE_RECORDS[:1])
+                    root = document["resourceSpans"][0]["scopeSpans"][0]["spans"][0]
+                    for attr in root["attributes"]:
+                        if attr["key"] == key:
+                            attr["value"] = {"stringValue": value}
+                    write_text(os.path.join(run, "settlement-traces.json"), canonical_json(document))
+                    out = os.path.join(directory, "plan.json")
+                    refused = cli(["select", "--base", run, "--n-fresh", "0", "--out", out])
+                    self.assert_status_2(refused, "case_id" if key == "case.id" else "trace export", [out])
+            with open(ROOT + "/filled.csv", encoding="utf-8", newline="") as handle:
+                reader = csv.DictReader(handle)
+                rows = list(reader)
+                header = reader.fieldnames
+            for n in ("²", "9" * 5000):
+                with self.subTest(n_length=len(n)):
+                    rows[0]["n"] = n
+                    sheet = os.path.join(directory, "sheet.csv")
+                    self.write_csv(header, rows, sheet, None)
+                    labels = os.path.join(directory, "labels.jsonl")
+                    meta = os.path.join(directory, "labels-meta.json")
+                    refused = cli([
+                        "import-labels", "--plan", ROOT + "/plan.json", "--sheet", sheet,
+                        "--rubrics", RUBRICS, "--labels", labels, "--meta", meta,
+                    ])
+                    self.assert_status_2(refused, "plan row number", [labels, meta])
+
     def test_output_aliases_are_refused_before_any_write(self):
         from scorer.judge import write_outputs
         with self.temporary() as directory:
