@@ -280,6 +280,23 @@ class CompareFixtureTests(unittest.TestCase):
         sentence = provenance_for(load_run(os.path.join(RUNS, "recorded-a")))[1]
         self.assertIn(sentence, format_report(absent_file))
 
+    def test_setup_keys_are_sorted_whatever_the_hash_seed(self):
+        expected = ["budgets", "model_digest", "ollama_version", "system_prompt"]
+        with tempfile.TemporaryDirectory() as directory:
+            out = os.path.join(directory, "out.json")
+            for seed in ("0", "1", "2", "3", "4", "5", "6", "7"):
+                with self.subTest(seed=seed):
+                    done = subprocess.run(
+                        [sys.executable, "-m", "scorer.compare", os.path.join(RUNS, "recorded-a"),
+                         os.path.join(RUNS, "recorded-b"), "--cases", CASES, "--json", out],
+                        capture_output=True, text=True, env=dict(os.environ, PYTHONHASHSEED=seed))
+                    self.assertEqual(done.returncode, 0, done.stderr)
+                    with open(out, encoding="utf-8") as handle:
+                        keys = [item["key"] for item in json.load(handle)["setup"]["differ"]]
+                    self.assertEqual(keys, expected)
+                    lines = done.stdout.splitlines()
+                    self.assertEqual([line for line in lines if line in expected], expected)
+
     def test_one_setup_key_is_not_recorded(self):
         with tempfile.TemporaryDirectory() as directory:
             run = os.path.join(directory, "one-key")
