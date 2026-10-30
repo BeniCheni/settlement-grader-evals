@@ -1,9 +1,8 @@
 # Floor: the Cursor build prompt (archived Fri 30 Oct 2026, TZ=America/New_York)
 
 The text of the build prompt for the builder seat (Cursor, Grok 4.7 High), for the builder half of step 2 of
-`docs/week-2-package.md`, as archived by the PM seat (Claude, Opus 5.5). It is committed with `docs/floor-spec.md`, before
-the build starts, and delivered in chat in a four-backtick fence, one line per paragraph; this copy is the archive.
-`docs/floor-spec.md` outranks it on what to build.
+`docs/week-2-package.md`, committed by the PM seat with `docs/floor-spec.md` before the build starts. One line per
+paragraph; `docs/floor-spec.md` outranks it on what to build.
 
 Setup that only a human can run: a fresh clone (not a worktree of another checkout), after the docs change that carries
 this file has merged, then open it in Cursor, model Grok 4.7 High, and paste the prompt below.
