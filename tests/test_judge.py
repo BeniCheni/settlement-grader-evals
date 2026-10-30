@@ -424,6 +424,17 @@ class CommandTests(unittest.TestCase):
             rubric_file(crlf, "rule_adherence", "PASS\r\nFAIL\r\nReason: x\r\n")
             refused = cli(["sheet", "--plan", plan, "--rubrics", crlf, "--out", os.path.join(directory, "out4")])
             self.assert_status_2(refused, "LF", [])
+            for word, body in (
+                ("PASS", "Reply FAIL.\nReason: x\n"),
+                ("FAIL", "Reply PASS.\nReason: x\n"),
+                ("Reason:", "Reply PASS or FAIL.\n"),
+            ):
+                with self.subTest(missing=word):
+                    lacking = os.path.join(directory, "lacking-" + word.rstrip(":"))
+                    rubric_file(lacking, "rule_adherence", body)
+                    out6 = os.path.join(directory, "out6-" + word.rstrip(":"))
+                    refused = cli(["sheet", "--plan", plan, "--rubrics", lacking, "--out", out6])
+                    self.assert_status_2(refused, "must contain PASS, FAIL and Reason:", [out6])
             long_dir = os.path.join(directory, "long-rubrics")
             rubric_file(long_dir, "rule_adherence", "PASS FAIL Reason: " + ("x" * 6000) + "\n")
             refused = cli(["sheet", "--plan", plan, "--rubrics", long_dir, "--out", os.path.join(directory, "out5")])
@@ -484,6 +495,7 @@ class CommandTests(unittest.TestCase):
             ("trace", "differs in trace_id"),
             ("extra-key", "wrong keys"),
             ("unsure-mixed", "unsure entry is not a rubric"),
+            ("unsure-order", "not in sorted order"),
             ("order", "differs in"),
             ("drop", "row count"),
         )
@@ -582,6 +594,8 @@ class CommandTests(unittest.TestCase):
             rows[0]["extra"] = "no"
         elif mutation == "unsure-mixed":
             rows[0]["unsure"] = [1, "rule_adherence"]
+        elif mutation == "unsure-order":
+            rows[2]["unsure"] = ["tool_call_accuracy", "rule_adherence"]
         elif mutation == "order":
             rows = list(reversed(rows))
         elif mutation == "drop":
@@ -1222,6 +1236,26 @@ class ReportTests(unittest.TestCase):
             markdown, document = build_report(labels, None, None, provenance_path, verdict_dir)
             self.assertEqual(document["rubrics"][0]["text"], "same text as when the labels were made")
             self.assertIn("same text as when the labels were made", markdown)
+            # Verdicts that were not made from these labels, or with these rubrics, are refused.
+            mismatches = (
+                ("trace", "verdict trace_id does not match the label row"),
+                ("hash", "verdict rubric hash does not match judge_meta"),
+                ("labels", "verdicts were not made from this labels file"),
+            )
+            for kind, fragment in mismatches:
+                with self.subTest(mismatch=kind):
+                    other = os.path.join(directory, "mismatch-" + kind)
+                    bad_verdicts = [dict(verdicts[0])]
+                    if kind == "trace":
+                        bad_verdicts[0]["trace_id"] = "other-trace"
+                    if kind == "hash":
+                        bad_verdicts[0]["rubric_sha256"] = "d" * 64
+                    paths = self.world(other, rows, bad_verdicts, sha_judge, sha_judge, provenance)
+                    if kind == "labels":
+                        write_text(paths[0], open(paths[0], encoding="utf-8").read().replace('"note": ""', '"note": "edited"'))
+                    with self.assertRaises(JudgeError) as caught:
+                        build_report(paths[0], None, None, paths[3], paths[4])
+                    self.assertIn(fragment, str(caught.exception))
             missing = os.path.join(directory, "missing-provenance.txt")
             out = os.path.join(directory, "out.md")
             refused = cli([
