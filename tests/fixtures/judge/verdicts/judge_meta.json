@@ -1,0 +1,13 @@
+{
+  "adapter": "fake",
+  "digest": null,
+  "labels_sha256": "005dcc4f65f0aa84cceed3a16ef37abcf4c33a39c1fdabfe1e1d4edc0cb9498a",
+  "model": null,
+  "options": null,
+  "rubrics": {
+    "needs_human_correctness": "752bd8591fc27bb5125208effdb2b9bc89aab4a2ee4624b60dd481477b2b65b9",
+    "rule_adherence": "a409a395dc16771cad2512ab32ccb2e71f1d37c4622c2f9402eb4d38aa0854e9",
+    "tool_call_accuracy": "935c99aa24b6d8eabc3270044fddc7b7084a7597bf2605ccb293a8167f4b6aa9"
+  },
+  "server_version": null
+}

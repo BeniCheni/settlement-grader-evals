@@ -7,3 +7,4 @@ __pycache__/
 # Local only: raw ESPN responses, the private review sheet
 data/espn_cache/
 private/
+sheets/

@@ -1,0 +1,17 @@
+[
+  {
+    "case_id": "C1",
+    "run": "tests/fixtures/judge/runs/base",
+    "trace_id": "tb-c1"
+  },
+  {
+    "case_id": "C2",
+    "run": "tests/fixtures/judge/runs/base",
+    "trace_id": "tb-c2"
+  },
+  {
+    "case_id": "C3",
+    "run": "tests/fixtures/judge/runs/base",
+    "trace_id": "tb-c3"
+  }
+]

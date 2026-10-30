@@ -1,0 +1,198 @@
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "C1"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{\"leg\": \"result\"}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"mark\": \"win\"}"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "20",
+              "name": "grade_ticket",
+              "spanId": "root0",
+              "startTimeUnixNano": "1",
+              "traceId": "tb-c1"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "find_match"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{\"q\": \"c1\"}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"ok\": true}"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "19",
+              "name": "tool.find_match",
+              "parentSpanId": "root0",
+              "spanId": "tool00",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 0
+              },
+              "traceId": "tb-c1"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "C2"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{\"leg\": \"total\"}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "0"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"mark\": \"loss\"}"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "20",
+              "name": "grade_ticket",
+              "spanId": "root1",
+              "startTimeUnixNano": "1",
+              "traceId": "tb-c2"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "C3"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{\"leg\": \"score\"}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "incomplete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "run.reason_code",
+                  "value": {
+                    "stringValue": "EMPTY_FINAL"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"mark\": \"win\"}"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "20",
+              "name": "grade_ticket",
+              "spanId": "root2",
+              "startTimeUnixNano": "1",
+              "traceId": "tb-c3"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "lookup_rule"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{\"topic\": \"btts\"}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"text\": \"rule\"}"
+                  }
+                }
+              ],
+              "endTimeUnixNano": "19",
+              "name": "tool.lookup_rule",
+              "parentSpanId": "root2",
+              "spanId": "tool20",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 2,
+                "message": "missing"
+              },
+              "traceId": "tb-c3"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

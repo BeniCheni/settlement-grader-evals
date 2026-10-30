@@ -1,0 +1,4 @@
+n,run,case_id,trace_id,needs_human_correctness,rule_adherence,tool_call_accuracy,unsure,note
+1,tests/fixtures/judge/runs/base,C1,tb-c1,FAIL,PASS,PASS,,
+2,tests/fixtures/judge/runs/base,C2,tb-c2,FAIL,FAIL,PASS,needs_human_correctness,"look, again"
+3,tests/fixtures/judge/runs/base,C3,tb-c3,PASS,PASS,FAIL,tool_call_accuracy; rule_adherence,

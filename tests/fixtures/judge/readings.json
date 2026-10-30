@@ -1,0 +1,8 @@
+{
+  "needs_human_correctness": {
+    "tests/fixtures/judge/runs/base|C1": "a reading of the false pass"
+  },
+  "tool_call_accuracy": {
+    "tests/fixtures/judge/runs/base|C2": "   "
+  }
+}
