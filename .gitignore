@@ -10,3 +10,5 @@ private/
 sheets/
 # Scratch the judge tests write and remove; an interrupted run leaves it ignored
 tests/fixtures/judge/_tmp*/
+# Scratch run pairs used by compare tests
+tests/fixtures/compare/_tmp*/

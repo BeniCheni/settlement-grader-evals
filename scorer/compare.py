@@ -23,11 +23,12 @@ class CompareError(ValueError):
 
 
 def normalise_run(path):
-    """Relative form, so ./traces/x/ and traces/x name the same run."""
-    normalised = os.path.normpath(path)
-    if os.path.isabs(normalised):
-        normalised = os.path.relpath(normalised, os.getcwd())
-    return normalised
+    """Name a resolved run inside the working directory, without a machine path."""
+    root = os.path.realpath(os.getcwd())
+    resolved = os.path.realpath(path)
+    if os.path.commonpath((root, resolved)) != root:
+        raise CompareError("run outside working directory")
+    return os.path.relpath(resolved, root)
 
 
 def _canon(value):

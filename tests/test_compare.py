@@ -32,6 +32,10 @@ V1_AA1_CODES = [
 ]
 
 
+def _scratch():
+    return tempfile.TemporaryDirectory(prefix="_tmp", dir="tests/fixtures/compare")
+
+
 def _cli(args, json_out=None):
     command = [sys.executable, "-m", "scorer.compare", *args]
     if json_out is not None:
@@ -117,7 +121,7 @@ class CompareFloorTests(unittest.TestCase):
         self.assertTrue(report["setup"]["cannot_trace"])
 
     def test_path_spellings_and_json_are_the_same_bytes(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             left_json = os.path.join(directory, "left.json")
             right_json = os.path.join(directory, "right.json")
             abs_json = os.path.join(directory, "abs.json")
@@ -150,7 +154,7 @@ class CompareFloorTests(unittest.TestCase):
         )
         for run_a, run_b, name in pairs:
             with self.subTest(name=name):
-                with tempfile.TemporaryDirectory() as directory:
+                with _scratch() as directory:
                     out = os.path.join(directory, "out.json")
                     done = _cli([run_a, run_b], out)
                     self.assertEqual(done.returncode, 0, done.stderr)
@@ -183,7 +187,7 @@ class CompareFixtureTests(unittest.TestCase):
         with open(os.path.join(RUNS, "order-a", "settlement-traces.json"), encoding="utf-8") as handle:
             template = json.load(handle)
         ids = ["F%s" % number for number in range(2, 10)]
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             run = os.path.join(directory, "many")
             os.makedirs(run)
             document = json.loads(json.dumps(template))
@@ -282,7 +286,7 @@ class CompareFixtureTests(unittest.TestCase):
 
     def test_setup_keys_are_sorted_whatever_the_hash_seed(self):
         expected = ["budgets", "model_digest", "ollama_version", "system_prompt"]
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             out = os.path.join(directory, "out.json")
             for seed in ("0", "1", "2", "3", "4", "5", "6", "7"):
                 with self.subTest(seed=seed):
@@ -298,7 +302,7 @@ class CompareFixtureTests(unittest.TestCase):
                     self.assertEqual([line for line in lines if line in expected], expected)
 
     def test_one_setup_key_is_not_recorded(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             run = os.path.join(directory, "one-key")
             shutil.copytree(os.path.join(RUNS, "recorded-a"), run)
             meta_path = os.path.join(run, "run_meta.json")
@@ -318,8 +322,64 @@ class CompareFixtureTests(unittest.TestCase):
 
 
 class CompareCommandTests(unittest.TestCase):
+    def _assert_error_keeps_output(self, args, needle, directory):
+        for existing in (False, True):
+            out = os.path.join(directory, "kept.json" if existing else "new.json")
+            if existing:
+                with open(out, "wb") as handle:
+                    handle.write(b"kept\n")
+            done = _cli(args, out)
+            self.assertEqual(done.returncode, 2, done.stderr)
+            self.assertEqual(done.stdout, "")
+            self.assertNotIn("Traceback", done.stderr)
+            self.assertEqual(done.stderr.count("error:"), 1, done.stderr)
+            self.assertIn(needle, done.stderr)
+            if existing:
+                with open(out, "rb") as handle:
+                    self.assertEqual(handle.read(), b"kept\n")
+            else:
+                self.assertFalse(os.path.exists(out))
+            yield done
+
+    def test_outside_runs_and_symlinks_are_refused_before_reading(self):
+        with _scratch() as directory:
+            with tempfile.TemporaryDirectory() as outside:
+                run = os.path.join(outside, "run")
+                shutil.copytree(os.path.join(RUNS, "order-a"), run)
+                link = os.path.join(directory, "escape")
+                os.symlink(outside, link)
+                paths = (run, os.path.relpath(run), os.path.join(link, "run"))
+                for path in paths:
+                    for left, right in ((path, os.path.join(RUNS, "order-b")),
+                                        (os.path.join(RUNS, "order-b"), path)):
+                        with self.subTest(path=paths.index(path), side=left == path):
+                            args = [left, right, "--cases", CASES]
+                            for done in self._assert_error_keeps_output(args, "outside working directory", directory):
+                                self.assertNotIn(outside, done.stderr)
+                                self.assertNotIn(os.path.relpath(outside), done.stderr)
+                # Even invalid content is never parsed through an escaping link.
+                with open(os.path.join(run, "settlement-traces.json"), "w", encoding="utf-8") as handle:
+                    handle.write("not json")
+                list(self._assert_error_keeps_output(
+                    [os.path.join(link, "run"), os.path.join(RUNS, "order-b"), "--cases", CASES],
+                    "outside working directory", directory))
+
+    def test_inside_run_spellings_resolve_to_the_same_report(self):
+        run = os.path.join(RUNS, "order-a")
+        expected = _cli([run, os.path.join(RUNS, "order-b"), "--cases", CASES])
+        with _scratch() as directory:
+            link = os.path.join(directory, "inside")
+            os.symlink(os.path.abspath(run), link)
+            paths = ("./" + run + "/", os.path.join(RUNS, "..", "runs", "order-a"),
+                     os.path.abspath(run), link)
+            for path in paths:
+                with self.subTest(spelling=paths.index(path)):
+                    done = _cli([path, os.path.join(RUNS, "order-b"), "--cases", CASES])
+                    self.assertEqual(done.returncode, 0, done.stderr)
+                    self.assertEqual(done.stdout, expected.stdout)
+
     def test_duplicate_unreadable_missing_and_unknown_case_exit_2_and_write_nothing(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             cases = (
                 ([os.path.join(RUNS, "dup"), os.path.join(RUNS, "order-a"), "--cases", CASES], "duplicate case_id F1"),
                 ([os.path.join(RUNS, "unreadable"), os.path.join(RUNS, "order-a"), "--cases", CASES], "unreadable run_meta.json"),
@@ -348,7 +408,7 @@ class CompareCommandTests(unittest.TestCase):
         traces = os.path.join(RUNS, "order-a", "settlement-traces.json")
         two_roots = (b'{"resourceSpans":[{"scopeSpans":[{"spans":['
                      b'{"traceId":"t","spanId":"a"},{"traceId":"t","spanId":"b"}]}]}]}')
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             def run_with(name, body=None, meta=None):
                 run = os.path.join(directory, name)
                 os.makedirs(run)
@@ -408,7 +468,7 @@ class CompareCommandTests(unittest.TestCase):
                     self.assertFalse(os.path.exists(out))
 
     def test_unwritable_json_path_exits_2_before_printing(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             blocker = os.path.join(directory, "blocker")
             with open(blocker, "w", encoding="utf-8") as handle:
                 handle.write("kept\n")
@@ -426,7 +486,7 @@ class CompareCommandTests(unittest.TestCase):
                 self.assertEqual(handle.read(), "kept\n")
 
     def test_json_array_meta_is_unreadable_and_stdout_matches_the_report(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with _scratch() as directory:
             run = os.path.join(directory, "array-meta")
             shutil.copytree(os.path.join(RUNS, "order-a"), run)
             with open(os.path.join(run, "run_meta.json"), "w", encoding="utf-8") as handle:
