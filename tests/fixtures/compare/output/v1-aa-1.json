@@ -1,0 +1,126 @@
+{
+  "a": "traces/v1",
+  "b": "traces/aa-1",
+  "codes": [
+    {
+      "a": 14,
+      "b": 15,
+      "b_minus_a": 1,
+      "code": "GRADE_CONTRADICTS_FACTS"
+    },
+    {
+      "a": 14,
+      "b": 15,
+      "b_minus_a": 1,
+      "code": "WIN_LOSS_FLIP"
+    },
+    {
+      "a": 9,
+      "b": 8,
+      "b_minus_a": -1,
+      "code": "SKIPPED_SETTLE_TICKET"
+    },
+    {
+      "a": 5,
+      "b": 5,
+      "b_minus_a": 0,
+      "code": "PLACEHOLDER_ECHO"
+    },
+    {
+      "a": 5,
+      "b": 5,
+      "b_minus_a": 0,
+      "code": "GRADED_WITHOUT_LOOKUP"
+    },
+    {
+      "a": 6,
+      "b": 7,
+      "b_minus_a": 1,
+      "code": "INCOMPLETE_LEG_LIST"
+    },
+    {
+      "a": 3,
+      "b": 2,
+      "b_minus_a": -1,
+      "code": "WRONG_NON_GRADE"
+    },
+    {
+      "a": 3,
+      "b": 1,
+      "b_minus_a": -2,
+      "code": "NO_FINAL_ANSWER"
+    },
+    {
+      "a": 3,
+      "b": 5,
+      "b_minus_a": 2,
+      "code": "RULE_TOPIC_MISS"
+    },
+    {
+      "a": 2,
+      "b": 0,
+      "b_minus_a": -2,
+      "code": "OUTPUT_LIMIT_SPRAY"
+    },
+    {
+      "a": 2,
+      "b": 2,
+      "b_minus_a": 0,
+      "code": "FOLLOWED_TICKET_CLAIM"
+    }
+  ],
+  "codes_differ": [
+    "A11",
+    "A13",
+    "B01",
+    "B05",
+    "B10",
+    "C02",
+    "C09",
+    "C10",
+    "C14"
+  ],
+  "final_answers": {
+    "case_ids": [
+      "A01",
+      "A05",
+      "A08",
+      "A11",
+      "A13",
+      "B01",
+      "B02",
+      "B04",
+      "B05",
+      "B06",
+      "B10",
+      "B12",
+      "B13",
+      "C02",
+      "C03",
+      "C06",
+      "C08",
+      "C09",
+      "C10",
+      "C14",
+      "X01"
+    ],
+    "differ": 21
+  },
+  "provenance": {
+    "a": "In sample. The labels were made on these 32 traces and the checks were built against them. This shows the checks reproduce the labels they were built from, not that they generalise.",
+    "b": "Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out agreement or generalisation."
+  },
+  "setup": {
+    "a_recorded": false,
+    "b_recorded": false,
+    "cannot_trace": true,
+    "differ": []
+  },
+  "tickets": {
+    "a": 32,
+    "b": 32,
+    "only_a": [],
+    "only_b": [],
+    "shared": 32
+  }
+}

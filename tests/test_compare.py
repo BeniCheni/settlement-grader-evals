@@ -139,8 +139,30 @@ class CompareFloorTests(unittest.TestCase):
             self.assertNotIn(absolute, via_abs.stdout)
             self.assertNotIn(absolute, via_abs.stderr)
             self.assertNotIn(absolute, left_body)
-            self.assertIn("A traces/aa-1\n", left.stdout)
-            self.assertIn("B traces/aa-2\n", left.stdout)
+        self.assertIn("A traces/aa-1\n", left.stdout)
+        self.assertIn("B traces/aa-2\n", left.stdout)
+
+    def test_committed_output_matches_the_command(self):
+        pairs = (
+            ("traces/v1", "traces/aa-1", "v1-aa-1"),
+            ("traces/aa-1", "traces/aa-2", "aa-1-aa-2"),
+            ("traces/aa-2", "traces/aa-3", "aa-2-aa-3"),
+        )
+        for run_a, run_b, name in pairs:
+            with self.subTest(name=name):
+                with tempfile.TemporaryDirectory() as directory:
+                    out = os.path.join(directory, "out.json")
+                    done = _cli([run_a, run_b], out)
+                    self.assertEqual(done.returncode, 0, done.stderr)
+                    text_path = os.path.join("tests/fixtures/compare/output", name + ".txt")
+                    json_path = os.path.join("tests/fixtures/compare/output", name + ".json")
+                    with open(text_path, encoding="utf-8") as handle:
+                        self.assertEqual(done.stdout, handle.read(), name)
+                    with open(json_path, encoding="utf-8") as handle:
+                        committed = handle.read()
+                    with open(out, encoding="utf-8") as handle:
+                        self.assertEqual(handle.read(), committed, name)
+                    self.assertEqual(committed, canonical_json(json.loads(committed)))
 
 
 class CompareFixtureTests(unittest.TestCase):

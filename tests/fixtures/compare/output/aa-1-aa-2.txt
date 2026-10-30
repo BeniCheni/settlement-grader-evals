@@ -1,0 +1,38 @@
+A traces/aa-1
+B traces/aa-2
+
+tickets
+A 32
+B 32
+shared 32
+only A
+only B
+
+final answers
+differ 0
+
+codes
+GRADE_CONTRADICTS_FACTS 15 15 0
+WIN_LOSS_FLIP 15 15 0
+SKIPPED_SETTLE_TICKET 8 8 0
+PLACEHOLDER_ECHO 5 5 0
+GRADED_WITHOUT_LOOKUP 5 5 0
+INCOMPLETE_LEG_LIST 7 7 0
+WRONG_NON_GRADE 2 2 0
+NO_FINAL_ANSWER 1 1 0
+RULE_TOPIC_MISS 5 5 0
+OUTPUT_LIMIT_SPRAY 0 0 0
+FOLLOWED_TICKET_CLAIM 2 2 0
+codes differ 0
+
+setup
+differ
+A records setup no
+B records setup no
+a difference between the runs cannot be traced to its setup
+
+provenance
+A
+Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out agreement or generalisation.
+B
+Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out agreement or generalisation.
