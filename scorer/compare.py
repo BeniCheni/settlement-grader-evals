@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 
 from scorer.calibrate import MissingCaseError, load_cases, provenance_for, write_text
 from scorer.checks import CHECKS
@@ -238,6 +239,32 @@ def format_report(report):
     return "\n".join(lines) + "\n"
 
 
+def _write_json(path, text):
+    """Publish a complete report, or leave the previous output untouched."""
+    parent = os.path.dirname(os.path.abspath(path))
+    missing = []
+    directory = parent
+    while not os.path.exists(directory):
+        missing.append(directory)
+        directory = os.path.dirname(directory)
+    staged = None
+    try:
+        os.makedirs(parent, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=parent, delete=False) as handle:
+            staged = handle.name
+        write_text(staged, text)
+        os.replace(staged, path)
+        staged = None
+    finally:
+        if staged is not None:
+            os.unlink(staged)
+        for directory in missing:
+            try:
+                os.rmdir(directory)
+            except OSError:
+                pass
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Report what differs between two grader runs.")
     parser.add_argument("run_a")
@@ -253,7 +280,7 @@ def main(argv=None):
     text = format_report(report)
     if args.json_out:
         try:
-            write_text(args.json_out, canonical_json(report))
+            _write_json(args.json_out, canonical_json(report))
         except OSError:
             parser.error("cannot write %s" % args.json_out)
     sys.stdout.write(text)

@@ -6,6 +6,11 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+from unittest import mock
+
+import scorer.compare as compare
 
 from scorer.calibrate import provenance_for
 from scorer.checks import CHECKS
@@ -340,6 +345,40 @@ class CompareCommandTests(unittest.TestCase):
             else:
                 self.assertFalse(os.path.exists(out))
             yield done
+
+    def test_failed_json_write_preserves_output_and_removes_new_directories(self):
+        with _scratch() as directory:
+            for existing in (False, True):
+                with self.subTest(existing=existing):
+                    out = os.path.join(directory, "kept.json" if existing else "new", "out.json")
+                    if existing:
+                        os.makedirs(os.path.dirname(out))
+                        with open(out, "wb") as handle:
+                            handle.write(b"kept\n")
+                    before = sorted(os.listdir(directory))
+
+                    def failed_write(path, text):
+                        os.makedirs(os.path.dirname(path), exist_ok=True)
+                        with open(path, "w", encoding="utf-8") as handle:
+                            handle.write(text[:10])
+                        raise OSError("write failed")
+
+                    stdout, stderr = StringIO(), StringIO()
+                    with redirect_stdout(stdout), redirect_stderr(stderr):
+                        with mock.patch.object(compare, "write_text", failed_write):
+                            with self.assertRaises(SystemExit) as stopped:
+                                compare.main([os.path.join(RUNS, "order-a"), os.path.join(RUNS, "order-b"),
+                                              "--cases", CASES, "--json", out])
+                    self.assertEqual(stopped.exception.code, 2)
+                    self.assertEqual(stdout.getvalue(), "")
+                    self.assertEqual(stderr.getvalue().count("error:"), 1)
+                    self.assertNotIn("Traceback", stderr.getvalue())
+                    self.assertEqual(sorted(os.listdir(directory)), before)
+                    if existing:
+                        with open(out, "rb") as handle:
+                            self.assertEqual(handle.read(), b"kept\n")
+                    else:
+                        self.assertFalse(os.path.exists(out))
 
     def test_empty_runs_exit_2_without_creating_or_clobbering_output(self):
         with _scratch() as directory:
