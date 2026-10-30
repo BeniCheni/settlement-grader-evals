@@ -14,6 +14,7 @@ import shlex
 import sys
 import urllib.error
 import urllib.request
+from fractions import Fraction
 
 from scorer.calibrate import bar_words, has_reading, write_text
 from scorer.stats import agreement, canonical_json, cohen_kappa, confusion, meets_bar
@@ -1190,7 +1191,9 @@ def _side(pairs, readings):
 def _worst(rubric_rows, label_key):
     def rank(row):
         side = row[label_key]
-        kappa = side["kappa"]
+        # Reuse the shared statistic with rational counts for an exact private
+        # sort key. Public fields keep their existing four-place float values.
+        kappa = cohen_kappa({name: Fraction(side[name]) for name in ("tp", "fp", "fn", "tn")})
         if kappa is None:
             kappa_part = (0, 0.0)
         else:

@@ -1153,6 +1153,65 @@ class _Body(object):
 
 
 class ReportTests(unittest.TestCase):
+    def test_worst_distinguishes_kappas_with_the_same_display(self):
+        tables = {"lower": (0, 28, 1, 11), "higher": (0, 1, 27, 12)}
+        patterns = {}
+        for name, counts in tables.items():
+            pairs = []
+            for count, judge, human in zip(counts, ("FAIL", "FAIL", "PASS", "PASS"), ("FAIL", "PASS", "FAIL", "PASS")):
+                pairs.extend([(judge, human)] * count)
+            patterns[name] = pairs
+        hashes = {"lower": "a" * 64, "higher": "b" * 64}
+        rows = []
+        verdicts = []
+        for index in range(40):
+            case_id = "R%s" % index
+            rows.append(self.row(case_id, {name: pairs[index][1] for name, pairs in patterns.items()}))
+            for name, pairs in patterns.items():
+                verdicts.append(self.verdict(case_id, name, pairs[index][0], "because", hashes[name]))
+        with tempfile_dir() as directory:
+            labels, _final, _readings, provenance, verdict_dir = self.world(
+                directory, rows, verdicts, hashes, hashes, "Synthetic ranking fixture.\n",
+            )
+            markdown, document = build_report(labels, None, None, provenance, verdict_dir)
+            self.assertEqual([item["first_pass"]["kappa"] for item in document["rubrics"]], [-0.0507, -0.0507])
+            self.assertEqual(markdown.count("Kappa: -0.0507."), 2)
+            self.assertEqual(document["worst"], {"labels": "first-pass", "rubrics": ["lower"], "tied": False})
+            self.assertIn("Worst judge on the first-pass labels: lower.", markdown)
+            canonical_json(document)  # Exact private sort keys must not enter the JSON.
+
+    def test_worst_exact_ties_and_undefined_kappa(self):
+        from scorer.judge import _worst
+
+        def row(name, tp, fp, fn, tn):
+            counts = {"tp": tp, "fp": fp, "fn": fn, "tn": tn}
+            side = dict(counts, kappa=None if cohen_kappa(counts) is None else round(cohen_kappa(counts), 4),
+                        false_passes=[{}] * fn)
+            return {"rubric": name, "first_pass": side, "final": side}
+
+        for label_key in ("first_pass", "final"):
+            with self.subTest(label_key=label_key):
+                # Both kappas are exactly 1/2. More false passes precedes the name.
+                result = _worst([row("aaa", 1, 0, 1, 2), row("zzz", 2, 0, 2, 4)], label_key)
+                self.assertEqual(result["rubrics"], ["zzz"])
+                self.assertFalse(result["tied"])
+                result = _worst([row("zzz", 1, 0, 1, 2), row("aaa", 1, 0, 1, 2)], label_key)
+                self.assertEqual(result["rubrics"], ["aaa", "zzz"])
+                self.assertTrue(result["tied"])
+                result = _worst([row("defined", 0, 28, 1, 11), row("undefined", 0, 0, 0, 40)], label_key)
+                self.assertEqual(result["rubrics"], ["undefined"])
+                self.assertFalse(result["tied"])
+
+    def test_worst_uses_exact_counts_even_when_float_kappas_tie(self):
+        from scorer.judge import _worst
+        rows = []
+        # A private-key unit test with large synthetic counts; no such label set is generated.
+        for name, fp in (("aaa", 1), ("zzz", 2)):
+            counts = {"tp": 10 ** 18, "fp": fp, "fn": 0, "tn": 10 ** 18}
+            self.assertEqual(cohen_kappa(counts), 1.0)
+            rows.append({"rubric": name, "first_pass": dict(counts, kappa=1.0, false_passes=[])})
+        self.assertEqual(_worst(rows, "first_pass"), {"labels": "first-pass", "rubrics": ["zzz"], "tied": False})
+
     def test_report_command_quotes_and_reads_normalised_paths(self):
         import shlex
         from scorer.judge import report_command
