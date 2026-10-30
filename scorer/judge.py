@@ -287,6 +287,8 @@ def _records(cache, run):
             raise JudgeError("run %s is not valid UTF-8" % name) from None
         except ValueError as error:
             raise JudgeError(str(error)) from None
+        except (AttributeError, TypeError):
+            raise JudgeError("run %s is not a trace export" % name) from None
     return name, cache[name]
 
 
@@ -621,6 +623,8 @@ def load_labels(path, allow_changes=False):
             raise JudgeError("label rows do not share rubrics")
         row = _label_row(raw, names, allow_changes)
         _human(row["human"], names)
+        if any(not isinstance(name, str) for name in row["unsure"]):
+            raise JudgeError("unsure entry is not a rubric")
         if row["unsure"] != sorted(row["unsure"]):
             raise JudgeError("unsure names are not in sorted order")
         seen_names = set()

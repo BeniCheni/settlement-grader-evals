@@ -305,6 +305,12 @@ class CommandTests(unittest.TestCase):
                 bad = os.path.join(directory, "bad.json")
                 refused = cli(["select", "--base", broken, "--n-fresh", "0", "--out", bad])
                 self.assert_status_2(refused, "not valid JSON", [bad])
+                # Valid JSON of the wrong shape is a message too, never a traceback.
+                for shape in ("[]", '{"resourceSpans": 5}', '{"resourceSpans": [{"scopeSpans": [{"spans": [5]}]}]}'):
+                    with self.subTest(shape=shape):
+                        write_text(os.path.join(broken, "settlement-traces.json"), shape)
+                        refused = cli(["select", "--base", broken, "--n-fresh", "0", "--out", bad])
+                        self.assert_status_2(refused, "is not a trace export", [bad])
             finally:
                 import shutil
                 shutil.rmtree(broken, ignore_errors=True)
@@ -477,6 +483,7 @@ class CommandTests(unittest.TestCase):
             ("unsure", "differs in unsure"),
             ("trace", "differs in trace_id"),
             ("extra-key", "wrong keys"),
+            ("unsure-mixed", "unsure entry is not a rubric"),
             ("order", "differs in"),
             ("drop", "row count"),
         )
@@ -573,6 +580,8 @@ class CommandTests(unittest.TestCase):
             rows[0]["trace_id"] = "other-trace"
         elif mutation == "extra-key":
             rows[0]["extra"] = "no"
+        elif mutation == "unsure-mixed":
+            rows[0]["unsure"] = [1, "rule_adherence"]
         elif mutation == "order":
             rows = list(reversed(rows))
         elif mutation == "drop":
