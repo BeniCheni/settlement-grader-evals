@@ -104,6 +104,10 @@ def rubric_file(directory, name, body=None):
 
 
 class ParseReplyTests(unittest.TestCase):
+    def test_reason_must_start_at_the_first_column(self):
+        self.assertEqual(parse_reply("PASS\n  Reason: indented"), ("PASS", ""))
+        self.assertEqual(parse_reply("FAIL\n\tReason: indented\nReason: later"), ("FAIL", "later"))
+
     def test_parse_reply_table(self):
         table = (
             ("PASS", "PASS", ""),
