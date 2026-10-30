@@ -43,12 +43,19 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified, and how many outputs fail each rubric is unknown until they are labelled | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks, in sample | `data/calibration_readings_v1.json` |
-| Noise floor between identical runs, A/B | None yet | |
+| Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
+| A/B | None yet | |
 
 Reproduce the repository counts in the table, from the repository root:
 
 ```bash
 python3 -c 'import csv,json; from scorer.checks import CHECKS; r=list(csv.DictReader(open("traces/v1/results.csv"))); g=json.load(open("data/gold.json")); c=json.load(open("data/codes_v1.json")); a=list(csv.DictReader(open("data/annotation_provenance.csv"))); print("outputs",len(r),"mismatches",sum(x["outcome_match"]=="False" for x in r),"verified",sum(bool(x["expected"].get("verified_by_beni")) for x in g),"codes",len(c),"checks",len(CHECKS),"annotations",len(a),"recorded provenance",sum(x["note_drafted_by"]=="Claude" and x["verdict_and_edits_by"]=="Beni" for x in a))'
+```
+
+Reproduce the floor's two counts, from the repository root:
+
+```bash
+python3 -c 'import json; from scorer import traces; f=lambda d: {x["case_id"]: json.dumps(x["final"], sort_keys=True) for x in traces.load_run(d)}; v,a,b,c=(f(d) for d in ("traces/v1","traces/aa-1","traces/aa-2","traces/aa-3")); print("cases",len(a),"same in all three A/A runs",sum(a[k]==b[k]==c[k] for k in a),"aa-1 differs from v1",sum(a[k]!=v[k] for k in a))'
 ```
 
 ## The three rubrics for this grader
@@ -80,6 +87,13 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    draft verdict or note, unlike the 32 Week 1 annotations, whose notes Claude drafted (`data/annotation_provenance.csv`).
 4. **The 40 outputs** are the 32 of `traces/v1` and 8 from fresh runs of the same configuration, chosen by a fixed rule
    (`docs/judge-spec.md`, "The label set") rather than by reading them.
+5. **The floor and the A/B** (the owner's, Thu 29 Oct 2026, after the three A/A runs). (a) The grader's
+   `run_meta.json` records the Ollama server version and the model's digest, so a later difference between runs can be
+   traced to its setup. (b) An A/B delta is read with a paired interval over the same tickets, with A and B run in the same
+   session on the same recorded version and digest; the range across A/A runs is not the yardstick, because in one setup it
+   was zero. (c) The difference between `traces/v1` and the A/A runs is reported as a change of environment, never as an
+   effect of a prompt or rubric change. (d) The three A/A runs are committed as the receipt that the grader is
+   deterministic within one setup.
 
 ## The order of work
 
@@ -95,7 +109,7 @@ Each step is its own pull request, unless it says otherwise. Who reviews it foll
 | Step | Work | Seat | Done when |
 |---|---|---|---|
 | 1. This plan and the judge spec | `docs/week-2-package.md`, `docs/judge-spec.md` | PM | Reviewed and merged |
-| 2. The floor | Three more runs of the v1 configuration, committed as `traces/aa-1`, `traces/aa-2`, `traces/aa-3`, and a `compare` command that reports the range of every code count across runs | PM (runs), builder (`compare`) | Each code has a range; the runs also supply the 8 fresh outputs |
+| 2. The floor | Three more runs of the v1 configuration, committed as `traces/aa-1`, `traces/aa-2`, `traces/aa-3`; the grader's `run_meta.json` recording the Ollama version and the model's digest (decision 5a); and a `compare` command that reports, between runs, the tickets whose final answer differs and each code count's difference | PM (runs), builder (`run_meta.json`, `compare`) | `compare` reproduces the floor's two counts; the runs also supply the 8 fresh outputs |
 | 3. The judge harness | Everything in `docs/judge-spec.md` | Builder | Its acceptance list holds |
 | 4. The rubrics, frozen | `rubrics/rule_adherence.md`, `rubrics/needs_human_correctness.md`, `rubrics/tool_call_accuracy.md` | Owner, from PM drafts | Merged before any label is written; written after the selection is fixed, with no boundary example from the 40 selected |
 | 5. The labels, frozen | `labels/set1.jsonl`: 40 rows, three labels each | Owner | Merged before any judge call on them |
@@ -121,7 +135,11 @@ runs so no label is read from a verdict. Git shows the order: each lands in its 
 - The trust bar is the repo's: agreement of at least 85% and kappa of at least 0.6, with every false pass read. The course
   asks only for the kappa; both are reported.
 - A verdict the judge did not give in the required format is counted on its own, not hidden.
-- An A/B delta is read against the range the floor gives. A delta inside that range has not been shown to do anything.
+- An A/B delta is read with a paired interval over the same tickets, A and B run in the same session on the same recorded
+  Ollama version and model digest (decision 5). A delta whose interval includes zero has not been shown to do anything.
+  The interval's method is named in `ab_report.md` before variant B runs.
+- A difference between runs made in different setups, such as `traces/v1` against the A/A runs, is reported as a change
+  of environment and is never credited to a change of prompt or rubric.
 - Thresholds are written in `ab_report.md` and merged before variant B runs.
 
 ## The package
