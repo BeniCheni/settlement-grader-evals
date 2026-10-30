@@ -41,7 +41,7 @@ def run_name(text):
     """Relative forward-slash path, with ./ and a trailing slash collapsed.
 
     An absolute path is a usage error: it would put a machine path in a file.
-    A tilde path is the same kind of error.
+    A tilde path, and one that climbs out of this directory, are the same kind of error.
     """
     if not isinstance(text, str):
         raise JudgeError("a run must be a relative path")
@@ -54,6 +54,8 @@ def run_name(text):
     normalised = os.path.normpath(slash).replace("\\", "/")
     if normalised in ("", ".") or os.path.isabs(normalised) or normalised.startswith("/") or normalised.startswith("~"):
         raise JudgeError("a run must be a relative path, not an absolute path")
+    if normalised == ".." or normalised.startswith("../"):
+        raise JudgeError("a run must be a relative path inside this directory")
     return normalised
 
 

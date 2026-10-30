@@ -224,10 +224,15 @@ class RunNameTests(unittest.TestCase):
         self.assertEqual(run_name("traces/v1"), "traces/v1")
         self.assertEqual(run_name("traces/v1/"), "traces/v1")
         self.assertEqual(run_name("traces//v1"), "traces/v1")
+        self.assertEqual(run_name("traces/../traces/v1"), "traces/v1")
         samples = (
             os.path.abspath(os.sep + "no-such-run"),
             "~" + "/traces",
             "C:" + "/traces",
+            # Outside the repository: the climb would carry the clone's location into a plan or label file.
+            "..",
+            "../traces/v1",
+            "traces/../../x",
         )
         for raw in samples:
             with self.subTest(raw=raw):
