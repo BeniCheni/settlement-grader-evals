@@ -221,6 +221,10 @@ FIXED_COLUMNS = ("n", "run", "case_id", "trace_id", "unsure", "note")
 
 def write_outputs(pairs):
     """Write every file, or leave each path as it was: a file that existed keeps its bytes."""
+    pairs = list(pairs)
+    paths = [os.path.normcase(os.path.realpath(path)) for path, _text in pairs]
+    if len(paths) != len(set(paths)):
+        raise JudgeError("output paths must be distinct")
     before = []
     try:
         for path, text in pairs:

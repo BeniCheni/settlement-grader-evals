@@ -266,6 +266,47 @@ class RunNameTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_output_aliases_are_refused_before_any_write(self):
+        from scorer.judge import write_outputs
+        with self.temporary() as directory:
+            target = os.path.join(directory, "report")
+            alias = os.path.join(directory, "alias")
+            write_text(target, "OLD")
+            os.symlink(target, alias)
+            for other in (target, os.path.join(directory, ".", "report"), alias):
+                with self.subTest(other=other):
+                    with self.assertRaisesRegex(JudgeError, "distinct"):
+                        write_outputs([(target, "FIRST"), (other, "SECOND")])
+                    with open(target, encoding="utf-8") as handle:
+                        self.assertEqual(handle.read(), "OLD")
+            made = cli([
+                "report", "--labels", ROOT + "/labels.jsonl", "--provenance", ROOT + "/provenance.txt",
+                "--verdicts", ROOT + "/verdicts", "--md", target, "--json", target,
+            ])
+            self.assertEqual(made.returncode, 2, made.stderr)
+            self.assertNotIn("Traceback", made.stderr)
+            self.assertEqual(made.stdout, "")
+            with open(target, encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "OLD")
+
+    def test_failed_write_keeps_a_readonly_file_and_a_directory(self):
+        from scorer.judge import write_outputs
+        with self.temporary() as directory:
+            target = os.path.join(directory, "readonly")
+            blocked = os.path.join(directory, "blocked")
+            write_text(target, "OLD")
+            os.chmod(target, 0o444)
+            os.mkdir(blocked)
+            try:
+                with self.assertRaises(JudgeError):
+                    write_outputs([(target, "NEW"), (blocked, "FAIL")])
+                with open(target, encoding="utf-8") as handle:
+                    self.assertEqual(handle.read(), "OLD")
+                self.assertEqual(os.stat(target).st_mode & 0o777, 0o444)
+                self.assertTrue(os.path.isdir(blocked))
+            finally:
+                os.chmod(target, 0o644)
+
     def assert_status_2(self, done, fragment, absent):
         self.assertEqual(done.returncode, 2, done.stderr)
         self.assertNotIn("Traceback", done.stderr)
