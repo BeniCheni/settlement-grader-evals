@@ -1024,6 +1024,26 @@ class _Body(object):
 
 
 class ReportTests(unittest.TestCase):
+    def test_kappa_bar_uses_the_unrounded_boundary(self):
+        from scorer.judge import _side
+        for counts, at_bar in (
+            ({"tp": 9, "fp": 6, "fn": 1, "tn": 24}, True),
+            ({"tp": 66, "fp": 77, "fn": 0, "tn": 1000}, False),
+            ({"tp": 66, "fp": 76, "fn": 0, "tn": 1000}, True),
+        ):
+            with self.subTest(counts=counts):
+                pairs = []
+                for cell, verdict, human in (
+                    ("tp", "FAIL", "FAIL"), ("fp", "FAIL", "PASS"),
+                    ("fn", "PASS", "FAIL"), ("tn", "PASS", "PASS"),
+                ):
+                    for index in range(counts[cell]):
+                        pairs.append(("fixture/run", "%s-%s" % (cell, index), verdict, "", human))
+                side = _side(pairs, {})
+                self.assertEqual(side["kappa_at_least_0_6"], at_bar)
+                observed = (counts["tp"] + counts["tn"]) / sum(counts.values())
+                self.assertEqual(side["meets_bar"], at_bar and observed >= 0.85)
+
     def world(self, directory, rows, verdicts, meta_rubrics, labels_meta_rubrics, provenance, readings=None, final=None):
         labels = os.path.join(directory, "labels.jsonl")
         write_text(labels, "".join(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n" for row in rows))
