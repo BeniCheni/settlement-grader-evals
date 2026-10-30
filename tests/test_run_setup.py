@@ -99,6 +99,13 @@ class RunSetupTests(unittest.TestCase):
         with self.assertRaises(SetupReadError) as null_version:
             read_ollama_setup("qwen3:8b", _stand_in(version=b'{"version":null}'))
         self.assertEqual(str(null_version.exception), "could not read the Ollama version")
+        for tags in (
+            b'{"models":[{"name":"Qwen3:8b","digest":"sha256:case"}]}',
+            b'{"models":[{"name":"qwen3:8b ","digest":"sha256:space"}]}',
+        ):
+            with self.assertRaises(SetupReadError) as inexact:
+                read_ollama_setup("qwen3:8b", _stand_in(tags=tags))
+            self.assertIn("not in the Ollama tags", str(inexact.exception))
 
     def _stop(self, run_id, opener, message):
         out = os.path.join("traces", run_id)

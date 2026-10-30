@@ -240,6 +240,25 @@ class CompareFixtureTests(unittest.TestCase):
         sentence = provenance_for(load_run(os.path.join(RUNS, "recorded-a")))[1]
         self.assertIn(sentence, format_report(absent_file))
 
+    def test_one_setup_key_is_not_recorded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run = os.path.join(directory, "one-key")
+            shutil.copytree(os.path.join(RUNS, "recorded-a"), run)
+            meta_path = os.path.join(run, "run_meta.json")
+            with open(meta_path, encoding="utf-8") as handle:
+                meta = json.load(handle)
+            for broken in (
+                {key: value for key, value in meta.items() if key != "model_digest"},
+                dict(meta, model_digest=None),
+                dict(meta, ollama_version="  "),
+            ):
+                with open(meta_path, "w", encoding="utf-8") as handle:
+                    json.dump(broken, handle)
+                report = compare_runs(os.path.join(RUNS, "recorded-a"), run, cases_path=CASES)
+                self.assertFalse(report["setup"]["b_recorded"])
+                self.assertNotIn("matches", report["setup"])
+                self.assertNotIn("recorded setup matches", format_report(report))
+
 
 class CompareCommandTests(unittest.TestCase):
     def test_duplicate_unreadable_missing_and_unknown_case_exit_2_and_write_nothing(self):
