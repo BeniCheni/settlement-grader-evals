@@ -380,6 +380,38 @@ class CompareCommandTests(unittest.TestCase):
                     else:
                         self.assertFalse(os.path.exists(out))
 
+    def test_invalid_case_ids_exit_2_instead_of_crashing_after_load(self):
+        with open(os.path.join(RUNS, "order-a", "settlement-traces.json"), encoding="utf-8") as handle:
+            template = json.load(handle)
+        with _scratch() as directory:
+            run = os.path.join(directory, "bad-id")
+            os.makedirs(run)
+            for value in (["F1"], {"id": "F1"}, 1, None, ""):
+                with self.subTest(kind=type(value).__name__):
+                    document = json.loads(json.dumps(template))
+                    attrs = document["resourceSpans"][0]["scopeSpans"][0]["spans"][0]["attributes"]
+                    next(item for item in attrs if item["key"] == "case.id")["value"] = {"stringValue": value}
+                    with open(os.path.join(run, "settlement-traces.json"), "w", encoding="utf-8") as handle:
+                        json.dump(document, handle)
+                    list(self._assert_error_keeps_output(
+                        [run, os.path.join(RUNS, "order-b"), "--cases", CASES], "invalid case_id", directory))
+
+    def test_run_files_cannot_escape_through_symlinks(self):
+        with _scratch() as directory:
+            with tempfile.TemporaryDirectory() as outside:
+                source = os.path.join(RUNS, "recorded-a")
+                for filename in ("settlement-traces.json", "run_meta.json"):
+                    with self.subTest(filename=filename):
+                        run = os.path.join(directory, filename + "-run")
+                        shutil.copytree(source, run)
+                        target = os.path.join(outside, filename)
+                        shutil.copyfile(os.path.join(source, filename), target)
+                        os.unlink(os.path.join(run, filename))
+                        os.symlink(target, os.path.join(run, filename))
+                        list(self._assert_error_keeps_output(
+                            [run, os.path.join(RUNS, "order-b"), "--cases", CASES],
+                            "outside working directory", directory))
+
     def test_empty_runs_exit_2_without_creating_or_clobbering_output(self):
         with _scratch() as directory:
             run = os.path.join(directory, "empty")

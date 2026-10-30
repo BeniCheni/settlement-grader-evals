@@ -43,6 +43,7 @@ def _final_token(final):
 
 
 def _load_records(run_dir, name):
+    normalise_run(os.path.join(run_dir, "settlement-traces.json"))
     try:
         records = load_run(run_dir)
     except (FileNotFoundError, NotADirectoryError):
@@ -54,6 +55,8 @@ def _load_records(run_dir, name):
     seen = set()
     for record in records:
         case_id = record.get("case_id")
+        if not isinstance(case_id, str) or not case_id.strip():
+            raise CompareError("invalid case_id in %s" % name)
         if case_id in seen:
             raise CompareError("duplicate case_id %s in %s" % (case_id, name))
         seen.add(case_id)
@@ -62,6 +65,7 @@ def _load_records(run_dir, name):
 
 def _load_meta(run_dir, name):
     path = os.path.join(run_dir, "run_meta.json")
+    normalise_run(path)
     if not os.path.exists(path):
         return None
     try:
@@ -75,7 +79,7 @@ def _load_meta(run_dir, name):
 
 
 def _check_cases(cases_path):
-    """A cases file load_cases reads, so score_run fails only on a missing case."""
+    """Check that load_cases can read the cases file before scoring."""
     try:
         load_cases(cases_path)
     except FileNotFoundError:
