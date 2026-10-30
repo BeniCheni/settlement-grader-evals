@@ -547,6 +547,9 @@ def import_rows(plan_rows, header, sheet_rows, rubric_names):
 
 
 def cmd_import(args):
+    beside = _labels_meta_path(args.labels)
+    if os.path.normpath(args.meta) != os.path.normpath(beside):
+        raise JudgeError("--meta must be %s, beside the labels, where report reads it" % beside)
     plan_rows = _plan_rows(args.plan)
     rubrics = load_rubrics(args.rubrics)
     names = [rubric["name"] for rubric in rubrics]

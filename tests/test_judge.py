@@ -376,6 +376,15 @@ class CommandTests(unittest.TestCase):
             ])
             self.assertEqual(made.returncode, 0, made.stderr)
             self.assertEqual(open(labels, "rb").read(), open(labels_rev, "rb").read())
+            # report reads <labels>-meta.json beside the labels; a meta written anywhere else would leave
+            # report reading a stale one, or none.
+            loose = os.path.join(directory, "loose.jsonl")
+            elsewhere = os.path.join(directory, "elsewhere-meta.json")
+            refused = cli([
+                "import-labels", "--plan", plan, "--sheet", filled, "--rubrics", RUBRICS,
+                "--labels", loose, "--meta", elsewhere,
+            ])
+            self.assert_status_2(refused, "--meta must be", [loose, elsewhere])
             self.import_refusals(directory, plan, header, sheet_rows, labels)
             final = os.path.join(directory, "final.jsonl")
             self.write_final(imported, final, valid=True)
