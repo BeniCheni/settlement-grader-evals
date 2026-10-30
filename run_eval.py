@@ -12,6 +12,7 @@ Usage:
 """
 import argparse
 import csv
+import http.client
 import json
 import os
 import sys
@@ -68,7 +69,7 @@ def _fetch_json(opener, url, failure):
     try:
         with opener(request, timeout=_SETUP_TIMEOUT_S) as response:
             raw = response.read()
-    except OSError:
+    except (OSError, http.client.HTTPException):
         raise SetupReadError(failure) from None
     if isinstance(raw, bytes):
         try:

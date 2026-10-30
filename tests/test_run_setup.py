@@ -1,7 +1,9 @@
 """run_eval records the Ollama version and the model digest before it writes a run."""
+import http.client
 import json
 import os
 import shutil
+import socket
 import urllib.error
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
@@ -20,6 +22,8 @@ class _Body:
         self.payload = payload
 
     def read(self):
+        if isinstance(self.payload, BaseException):
+            raise self.payload
         if isinstance(self.payload, bytes):
             return self.payload
         return self.payload.encode()
@@ -150,6 +154,30 @@ class RunSetupTests(unittest.TestCase):
             _stand_in(tags=tags),
             "model qwen3:8b is not in the Ollama tags\n",
         )
+
+    def test_http_and_read_failures_are_a_failed_read(self):
+        failures = (
+            ("open", http.client.BadStatusLine("HELLO")),
+            ("read", http.client.IncompleteRead(b'{"version":')),
+            ("read", socket.timeout("timed out")),
+            ("read", ConnectionResetError("reset")),
+        )
+        for where, error in failures:
+            with self.subTest(where=where, error=type(error).__name__):
+                def opener(request, timeout=None, where=where, error=error):
+                    if where == "open":
+                        raise error
+                    return _Body(error)
+
+                with self.assertRaises(SetupReadError) as stopped:
+                    read_ollama_setup("qwen3:8b", opener)
+                self.assertEqual(str(stopped.exception), "could not read the Ollama version")
+
+    def test_bad_status_line_stops_before_a_file_or_a_ticket(self):
+        def opener(request, timeout=None):
+            raise http.client.BadStatusLine("HELLO")
+
+        self._stop("floor-setup-fail-status", opener, "could not read the Ollama version\n")
 
     def test_stand_in_records_both_keys_and_leaves_no_run_behind(self):
         run_id = "floor-setup-recorded"
