@@ -46,6 +46,8 @@ def relative_path(text, what):
     if not isinstance(text, str):
         raise JudgeError("%s must be a relative path" % what)
     raw = text.strip()
+    if "\x00" in raw:
+        raise JudgeError("%s contains a null character" % what)
     if raw == "" or raw.startswith("~") or raw.startswith("/") or raw.startswith("\\"):
         raise JudgeError("%s must be a relative path, not an absolute path" % what)
     if len(raw) >= 2 and raw[1] == ":":
@@ -55,6 +57,9 @@ def relative_path(text, what):
     if normalised in ("", ".") or os.path.isabs(normalised) or normalised.startswith("/") or normalised.startswith("~"):
         raise JudgeError("%s must be a relative path, not an absolute path" % what)
     if normalised == ".." or normalised.startswith("../"):
+        raise JudgeError("%s must be a relative path inside this directory" % what)
+    root = os.path.realpath(os.getcwd())
+    if os.path.commonpath((root, os.path.realpath(normalised))) != root:
         raise JudgeError("%s must be a relative path inside this directory" % what)
     return normalised
 

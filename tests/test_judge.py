@@ -227,6 +227,23 @@ class RenderCaseTests(unittest.TestCase):
 
 
 class RunNameTests(unittest.TestCase):
+    def test_path_edges_and_symlink_containment(self):
+        from scorer.judge import relative_path
+        self.assertEqual(relative_path(r"traces\v1", "input"), "traces/v1")
+        self.assertEqual(relative_path("traces/../traces/v1", "input"), "traces/v1")
+        for value in ("", ".", "./", "x\x00y"):
+            with self.subTest(value=value), self.assertRaises(JudgeError):
+                relative_path(value, "input")
+        import tempfile
+        with tempfile_dir() as directory, tempfile.TemporaryDirectory() as outside:
+            internal = os.path.join(directory, "internal")
+            external = os.path.join(directory, "external")
+            os.symlink(os.path.abspath(BASE), internal)
+            os.symlink(outside, external)
+            self.assertEqual(run_name(internal), internal)
+            with self.assertRaisesRegex(JudgeError, "inside this directory"):
+                run_name(external)
+
     def test_normalise(self):
         self.assertEqual(run_name("./traces/v1/"), "traces/v1")
         self.assertEqual(run_name("traces/v1"), "traces/v1")
