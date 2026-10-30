@@ -1380,6 +1380,8 @@ class ReportTests(unittest.TestCase):
             lines = handle.read().splitlines()
         self.assertIn("sheets/", lines)
         self.assertEqual(lines.count("sheets/"), 1)
+        # The tests' scratch runs under ROOT/_tmp*; a run cut short must not leave files git would add.
+        self.assertIn(ROOT + "/_tmp*/", lines)
 
 
 def tempfile_dir():
