@@ -1,4 +1,5 @@
 """run_eval records the Ollama version and the model digest before it writes a run."""
+import _socket
 import http.client
 import json
 import os
@@ -81,8 +82,9 @@ def _quiet_main(argv, opener, grade=_graded):
 
 class RunSetupTests(unittest.TestCase):
     def setUp(self):
-        # A connection fails the test whether it goes through urlopen or under it.
-        for target in ("socket.socket.connect", "socket.socket.connect_ex"):
+        # Guard the public connect methods and both standard-library constructors.
+        for target in ("socket.socket.connect", "socket.socket.connect_ex",
+                       "socket.socket", "_socket.socket"):
             patcher = mock.patch(target, _network)
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -95,6 +97,14 @@ class RunSetupTests(unittest.TestCase):
         self.addCleanup(patcher.stop)
         self.traces = os.path.join(scratch.name, "traces")
         self.committed = sorted(os.listdir("traces"))
+
+    def test_socket_constructors_cannot_bypass_the_network_guard(self):
+        for constructor in (socket.socket, _socket.socket):
+            with self.subTest(constructor=constructor.__module__):
+                with self.assertRaisesRegex(AssertionError, "network"):
+                    # Construction alone proves the guard; this probe never connects.
+                    connection = constructor()
+                    connection.close()
 
     def test_stand_in_reads_version_and_exact_model_digest(self):
         seen = []
