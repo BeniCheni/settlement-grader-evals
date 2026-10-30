@@ -10,6 +10,7 @@ import io
 import json
 import os
 import re
+import shlex
 import sys
 import urllib.error
 import urllib.request
@@ -1288,10 +1289,15 @@ def report_command(labels, final, readings, provenance, verdicts):
         "--provenance", relative_path(provenance, "--provenance"),
         "--verdicts", relative_path(verdicts, "--verdicts"),
     ])
-    return " ".join(parts)
+    return " ".join([parts[0]] + [shlex.quote(part) for part in parts[1:]])
 
 
 def build_report(labels, final, readings, provenance, verdicts):
+    labels = relative_path(labels, "--labels")
+    final = relative_path(final, "--final") if final else None
+    readings = relative_path(readings, "--readings") if readings else None
+    provenance = relative_path(provenance, "--provenance")
+    verdicts = relative_path(verdicts, "--verdicts")
     command = report_command(labels, final, readings, provenance, verdicts)
     names, rows = load_labels(labels)
     final_rows = None

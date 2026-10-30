@@ -1153,6 +1153,31 @@ class _Body(object):
 
 
 class ReportTests(unittest.TestCase):
+    def test_report_command_quotes_and_reads_normalised_paths(self):
+        import shlex
+        from scorer.judge import report_command
+        labels = "labels/a b.jsonl"
+        provenance = "labels/author's provenance.txt"
+        command = report_command(labels, None, None, provenance, "judgments/run")
+        self.assertEqual(shlex.split(command), [
+            "python3", "-m", "scorer.judge", "report", "--labels", labels,
+            "--provenance", provenance, "--verdicts", "judgments/run",
+        ])
+        with tempfile_dir() as directory:
+            copied = os.path.join(directory, "with spaces")
+            import shutil
+            os.mkdir(copied)
+            for name in ("labels.jsonl", "labels-meta.json", "provenance.txt"):
+                shutil.copyfile(ROOT + "/" + name, os.path.join(copied, name))
+            args = (os.path.join(copied, "labels.jsonl"), None, None,
+                    os.path.join(copied, "provenance.txt"), ROOT + "/verdicts")
+            markdown, doc = build_report(*args)
+            self.assertEqual(shlex.split(doc["command"])[5], args[0])
+            windows_args = tuple(value.replace("/", "\\") if value else value for value in args)
+            other_markdown, other_doc = build_report(*windows_args)
+            self.assertEqual(other_markdown, markdown)
+            self.assertEqual(other_doc, doc)
+
     def test_kappa_bar_uses_the_unrounded_boundary(self):
         from scorer.judge import _side
         for counts, at_bar in (
