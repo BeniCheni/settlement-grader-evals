@@ -1310,6 +1310,18 @@ class ReportTests(unittest.TestCase):
             self.assertNotIn("Traceback", refused.stderr)
             self.assertIn("run changed after labelling", refused.stderr)
             self.assertFalse(os.path.exists(os.path.join(bad_out, "labels.jsonl")))
+            # A rubric edited after the judge ran is not the text behind results.md.
+            edited = os.path.join(directory, "edited")
+            rubric_file(edited, "rule_adherence", body + "Edited after the run.\n")
+            edited_out = os.path.join(directory, "edited-out")
+            refused = cli([
+                "export-course", "--labels", labels, "--rubrics", edited, "--provenance", provenance,
+                "--verdicts", verdict_dir, "--out", edited_out,
+            ])
+            self.assertEqual(refused.returncode, 2, refused.stderr)
+            self.assertNotIn("Traceback", refused.stderr)
+            self.assertIn("rubric rule_adherence is not the text the judge ran", refused.stderr)
+            self.assertFalse(os.path.exists(edited_out))
 
     def test_sheet_size_limit_names_the_case(self):
         run = ROOT + "/_tmp_size"

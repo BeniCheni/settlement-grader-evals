@@ -1351,7 +1351,7 @@ def _fence(text):
 
 
 def export_files(labels, final, readings, provenance, verdicts, rubrics_dir, cache):
-    markdown, _document = build_report(labels, final, readings, provenance, verdicts)
+    markdown, document = build_report(labels, final, readings, provenance, verdicts)
     rubrics = load_rubrics(rubrics_dir)
     names, rows = load_labels(labels)
     final_rows = None
@@ -1359,6 +1359,12 @@ def export_files(labels, final, readings, provenance, verdicts, rubrics_dir, cac
         _final_names, final_rows = load_labels(final, allow_changes=True)
     if [rubric["name"] for rubric in rubrics] != names:
         raise JudgeError("labels and rubrics do not match")
+    judged = {item["rubric"]: item["rubric_sha256"] for item in document["rubrics"]}
+    for rubric in rubrics:
+        if rubric["sha256"] != judged[rubric["name"]]:
+            raise JudgeError(
+                "rubric %s is not the text the judge ran: its SHA-256 differs from judge_meta.json" % rubric["name"]
+            )
     blocks = []
     for rubric in rubrics:
         fence = _fence(rubric["text"])
