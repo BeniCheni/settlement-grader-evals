@@ -11,9 +11,10 @@ How to judge:
 - This rubric does not ask whether a leg was graded correctly, only whether settling or escalating was the right kind of answer.
 
 When a non-grade is required:
-- NEEDS_HUMAN: the match cannot be found; a needed fact is missing; a player shots-on-target market; a cards market whose counting scheme the slip does not define and whose card counts disagree; a first goalscorer market whose first goal is an own goal; a goalscorer who did not play; a parlay with no lost leg in which at least one leg won and at least one leg is a push or void, because the book reprices it; a postponed, abandoned or cancelled leg in a boosted parlay or in a parlay whose leg prices are unknown.
+- NEEDS_HUMAN: the match cannot be found; a needed fact is missing; a player shots-on-target market; a cards market whose counting scheme the slip does not define and whose card counts disagree; a first goalscorer market whose first goal is an own goal; a goalscorer who did not play; a parlay with no lost leg and no leg still open, in which at least one leg won and at least one leg is a push or void, because the book reprices it; a postponed, abandoned or cancelled leg in a boosted parlay or in a parlay whose leg prices are unknown.
 - VOID: a single whose fixture was postponed, abandoned or cancelled.
 - UNSETTLED: a leg that matters is not final (scheduled, in progress or delayed). A live score or a headline is never a final result.
+- When more than one applies, take them in this order: a lost leg makes the ticket a LOSS; then NEEDS_HUMAN; then UNSETTLED; then the push-or-void repricing case.
 
 Boundary example, from a run outside the label set: a one-leg ticket on the Draw. The grader found the match, fetched facts showing it final with a regulation score of 0-3, and settled the ticket. The answer is PASS: the facts decided the ticket, so settling was the right kind of answer, even though the grader then graded the leg wrongly. That error belongs to another rubric.
 

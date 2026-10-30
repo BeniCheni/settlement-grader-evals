@@ -23,7 +23,7 @@ Rule summary, regulation time (90 minutes plus stoppage) unless the market says 
 - Cards: cards shown. If the slip does not define the counting scheme and team_stats.yellow_cards or red_cards disagree with the cards event list, the leg is NEEDS_HUMAN.
 - Shots on target: a team market uses team_stats.shots_on_target; a player shots-on-target market is NEEDS_HUMAN.
 - Anytime goalscorer: wins if the player scores in regulation time; an own goal does not count for the player. First goalscorer: the first regulation goal; if it is an own goal, NEEDS_HUMAN. A player who did not play: NEEDS_HUMAN.
-- To advance or to qualify includes extra time and penalties.
+- To advance, to qualify or to lift the trophy includes extra time and penalties, and the aggregate in a two-legged tie; the moneyline ignores them.
 - A postponed, abandoned or cancelled fixture: that leg is VOID. A match that is not final: that leg is OPEN.
 - A parlay wins only if every leg wins; a leg made irrelevant by a lost leg may be MOOT.
 
