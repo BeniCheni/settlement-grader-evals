@@ -1,0 +1,15 @@
+{
+  "budgets": {
+    "max_tool_calls": 32,
+    "max_turns": 4
+  },
+  "cases_file": "tests/fixtures/compare/cases.json",
+  "model": "qwen3:8b",
+  "model_digest": "sha256:bbb",
+  "n_cases": 1,
+  "ollama_version": "0.5.2",
+  "outcome_matches": 1,
+  "run_id": "recorded-b",
+  "system_prompt": "other",
+  "think": false
+}

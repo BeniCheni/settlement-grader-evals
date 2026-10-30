@@ -12,11 +12,15 @@ Usage:
 """
 import argparse
 import csv
+import http.client
 import json
 import os
+import sys
+import urllib.request
 from datetime import datetime
+from urllib.parse import urlsplit
 
-from grader.agent import DEFAULT_BUDGETS, SYSTEM_PROMPT, grade_ticket
+from grader.agent import DEFAULT_BUDGETS, OLLAMA_URL, SYSTEM_PROMPT, grade_ticket
 from grader.tracer import Tracer
 
 TICKET_FIELDS = ["book", "bet_type", "stake", "stake_kind", "boost_or_token",
@@ -43,6 +47,73 @@ def summary(c):
     return f"{c['case_id']} · {c.get('book')} {c.get('bet_type')} · {legs} leg{'s' if legs > 1 else ''} · ${c.get('stake')} @ {price}"
 
 
+class SetupReadError(Exception):
+    """The Ollama version or the model digest could not be read."""
+
+
+_SETUP_TIMEOUT_S = 30
+
+
+def _ollama_url(path):
+    """Same local server as grader.agent.OLLAMA_URL, with a different path."""
+    parts = urlsplit(OLLAMA_URL)
+    return "%s://%s%s" % (parts.scheme, parts.netloc, path)
+
+
+def _nonempty_string(value):
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _fetch_json(opener, url, failure):
+    request = urllib.request.Request(url)
+    try:
+        with opener(request, timeout=_SETUP_TIMEOUT_S) as response:
+            raw = response.read()
+    except (OSError, http.client.HTTPException):
+        raise SetupReadError(failure) from None
+    if isinstance(raw, bytes):
+        try:
+            raw = raw.decode()
+        except UnicodeError:
+            raise SetupReadError(failure) from None
+    if not isinstance(raw, str):
+        raise SetupReadError(failure)
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        raise SetupReadError(failure) from None
+    if not isinstance(payload, dict):
+        raise SetupReadError(failure)
+    return payload
+
+
+def read_ollama_setup(model, opener):
+    """Return (ollama_version, model_digest).
+
+    opener matches urllib.request.urlopen: opener(request, timeout=seconds).
+    A missing model, a failed request, or a reply without the value raises
+    SetupReadError. The digest is never null.
+    """
+    version_payload = _fetch_json(
+        opener, _ollama_url("/api/version"), "could not read the Ollama version")
+    version = version_payload.get("version")
+    if not _nonempty_string(version):
+        raise SetupReadError("could not read the Ollama version")
+    tags_payload = _fetch_json(
+        opener, _ollama_url("/api/tags"), "could not read the model digest")
+    models = tags_payload.get("models")
+    if not isinstance(models, list):
+        raise SetupReadError("could not read the model digest")
+    for entry in models:
+        if not isinstance(entry, dict) or entry.get("name") != model:
+            continue
+        digest = entry.get("digest")
+        if not _nonempty_string(digest):
+            raise SetupReadError("could not read the model digest")
+        return version, digest
+    raise SetupReadError("model %s is not in the Ollama tags" % model)
+
+
 def outcome_match(final, exp_result, exp_net, accept_needs_human=False):
     """Code check of rubric lines O1 + O2. NEEDS_HUMAN only counts where a rule
     mandates escalation (Beni's decision #2, 14 Oct)."""
@@ -61,7 +132,7 @@ def outcome_match(final, exp_result, exp_net, accept_needs_human=False):
         return False
 
 
-def main():
+def main(argv=None, opener=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("cases")
     ap.add_argument("--only", default="")
@@ -70,7 +141,14 @@ def main():
     ap.add_argument("--show-expected", action="store_true",
                     help="put the expected result on each root span (annotators see it)")
     ap.add_argument("--run-id", default=datetime.now().strftime("%Y%m%d-%H%M%S"))
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+    if opener is None:
+        opener = urllib.request.urlopen
+    try:
+        ollama_version, model_digest = read_ollama_setup(args.model, opener)
+    except SetupReadError as error:
+        sys.stderr.write("%s\n" % error)
+        return 1
 
     with open(args.cases) as f:
         cases = json.load(f)
@@ -119,11 +197,21 @@ def main():
         for r in rows:
             w.writerow([r["trace_id"], r["case_id"], "", ""])
     with open(os.path.join(out_dir, "run_meta.json"), "w") as f:
-        json.dump({"run_id": args.run_id, "cases_file": os.path.relpath(os.path.abspath(args.cases), os.path.dirname(os.path.abspath(__file__))), "model": args.model,
-                   "think": args.think, "budgets": DEFAULT_BUDGETS, "system_prompt": SYSTEM_PROMPT,
-                   "n_cases": len(rows), "outcome_matches": sum(r["outcome_match"] for r in rows)}, f, indent=1)
+        json.dump({
+            "run_id": args.run_id,
+            "cases_file": os.path.relpath(os.path.abspath(args.cases), os.path.dirname(os.path.abspath(__file__))),
+            "model": args.model,
+            "ollama_version": ollama_version,
+            "model_digest": model_digest,
+            "think": args.think,
+            "budgets": DEFAULT_BUDGETS,
+            "system_prompt": SYSTEM_PROMPT,
+            "n_cases": len(rows),
+            "outcome_matches": sum(r["outcome_match"] for r in rows),
+        }, f, indent=1)
     print(f"\n{sum(r['outcome_match'] for r in rows)}/{len(rows)} outcome matches · traces → {out_dir}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

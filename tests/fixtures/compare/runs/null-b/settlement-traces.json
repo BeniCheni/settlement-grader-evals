@@ -1,0 +1,44 @@
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "F1"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "0"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "t1r",
+              "startTimeUnixNano": "1",
+              "traceId": "t1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

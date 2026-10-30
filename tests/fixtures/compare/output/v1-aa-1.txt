@@ -1,0 +1,68 @@
+A traces/v1
+B traces/aa-1
+
+tickets
+A 32
+B 32
+shared 32
+only A
+only B
+
+final answers
+differ 21
+A01
+A05
+A08
+A11
+A13
+B01
+B02
+B04
+B05
+B06
+B10
+B12
+B13
+C02
+C03
+C06
+C08
+C09
+C10
+C14
+X01
+
+codes
+GRADE_CONTRADICTS_FACTS 14 15 1
+WIN_LOSS_FLIP 14 15 1
+SKIPPED_SETTLE_TICKET 9 8 -1
+PLACEHOLDER_ECHO 5 5 0
+GRADED_WITHOUT_LOOKUP 5 5 0
+INCOMPLETE_LEG_LIST 6 7 1
+WRONG_NON_GRADE 3 2 -1
+NO_FINAL_ANSWER 3 1 -2
+RULE_TOPIC_MISS 3 5 2
+OUTPUT_LIMIT_SPRAY 2 0 -2
+FOLLOWED_TICKET_CLAIM 2 2 0
+codes differ 9
+A11
+A13
+B01
+B05
+B10
+C02
+C09
+C10
+C14
+
+setup
+differ
+A records setup no
+B records setup no
+a difference between the runs cannot be traced to its setup
+
+provenance
+A
+In sample. The labels were made on these 32 traces and the checks were built against them. This shows the checks reproduce the labels they were built from, not that they generalise.
+B
+Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out agreement or generalisation.

@@ -1,0 +1,256 @@
+"""run_eval records the Ollama version and the model digest before it writes a run."""
+import _socket
+import http.client
+import json
+import os
+import socket
+import tempfile
+import urllib.error
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+import unittest
+from unittest import mock
+
+import run_eval
+from run_eval import SetupReadError, read_ollama_setup, main
+
+
+VERSION_URL = "http://127.0.0.1:11434/api/version"
+TAGS_URL = "http://127.0.0.1:11434/api/tags"
+
+
+class _Body:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def read(self):
+        if isinstance(self.payload, BaseException):
+            raise self.payload
+        if isinstance(self.payload, bytes):
+            return self.payload
+        return self.payload.encode()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+def _stand_in(version=b'{"version":"0.6.2"}', tags=None, fail=None, seen=None):
+    if tags is None:
+        tags = (
+            b'{"models":['
+            b'{"name":"other:1","digest":"sha256:other"},'
+            b'{"name":"qwen3:8b","digest":"sha256:abc"}]}'
+        )
+
+    def opener(request, timeout=None):
+        if seen is not None:
+            seen.append((request.get_method(), request.full_url, timeout))
+        if fail == "version" and request.full_url.endswith("/api/version"):
+            raise urllib.error.URLError("down")
+        if fail == "tags" and request.full_url.endswith("/api/tags"):
+            raise urllib.error.URLError("down")
+        if request.full_url.endswith("/api/version"):
+            return _Body(version)
+        if request.full_url.endswith("/api/tags"):
+            return _Body(tags)
+        raise AssertionError("unexpected url")
+
+    return opener
+
+
+def _network(*args, **kwargs):
+    raise AssertionError("network")
+
+
+def _graded(*args, **kwargs):
+    raise AssertionError("graded")
+
+
+def _quiet_main(argv, opener, grade=_graded):
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout):
+        with redirect_stderr(stderr):
+            with mock.patch("urllib.request.urlopen", _network):
+                with mock.patch("run_eval.grade_ticket", grade):
+                    status = main(argv, opener=opener)
+    return status, stdout.getvalue(), stderr.getvalue()
+
+
+class RunSetupTests(unittest.TestCase):
+    def setUp(self):
+        # Guard the public connect methods and both standard-library constructors.
+        for target in ("socket.socket.connect", "socket.socket.connect_ex",
+                       "socket.socket", "_socket.socket"):
+            patcher = mock.patch(target, _network)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        # run_eval writes traces/<run_id> beside its own file. Point that at scratch, so no test
+        # writes under the repository's traces/ and an interrupted run leaves nothing there.
+        scratch = tempfile.TemporaryDirectory()
+        self.addCleanup(scratch.cleanup)
+        patcher = mock.patch.object(run_eval, "__file__", os.path.join(scratch.name, "run_eval.py"))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.traces = os.path.join(scratch.name, "traces")
+        self.committed = sorted(os.listdir("traces"))
+
+    def test_socket_constructors_cannot_bypass_the_network_guard(self):
+        for constructor in (socket.socket, _socket.socket):
+            with self.subTest(constructor=constructor.__module__):
+                with self.assertRaisesRegex(AssertionError, "network"):
+                    # Construction alone proves the guard; this probe never connects.
+                    connection = constructor()
+                    connection.close()
+
+    def test_stand_in_reads_version_and_exact_model_digest(self):
+        seen = []
+        version, digest = read_ollama_setup("qwen3:8b", _stand_in(seen=seen))
+        self.assertEqual(version, "0.6.2")
+        self.assertEqual(digest, "sha256:abc")
+        self.assertEqual(
+            [(method, url) for method, url, _timeout in seen],
+            [("GET", VERSION_URL), ("GET", TAGS_URL)],
+        )
+        self.assertTrue(all(timeout == 30 for _method, _url, timeout in seen))
+
+    def test_near_name_is_missing_and_a_blank_digest_is_not_recorded(self):
+        near = b'{"models":[{"name":"qwen3:8b-extra","digest":"sha256:nope"}]}'
+        with self.assertRaises(SetupReadError) as missing:
+            read_ollama_setup("qwen3:8b", _stand_in(tags=near))
+        self.assertIn("qwen3:8b", str(missing.exception))
+        self.assertNotIn("null", str(missing.exception))
+        blank = b'{"models":[{"name":"qwen3:8b","digest":"  "}]}'
+        with self.assertRaises(SetupReadError) as no_digest:
+            read_ollama_setup("qwen3:8b", _stand_in(tags=blank))
+        self.assertEqual(str(no_digest.exception), "could not read the model digest")
+        with self.assertRaises(SetupReadError) as null_version:
+            read_ollama_setup("qwen3:8b", _stand_in(version=b'{"version":null}'))
+        self.assertEqual(str(null_version.exception), "could not read the Ollama version")
+        for version in (b'{"version":""}', b'{"version":"  "}', b'{"version":6}', b"{}"):
+            with self.assertRaises(SetupReadError) as unusable:
+                read_ollama_setup("qwen3:8b", _stand_in(version=version))
+            self.assertEqual(str(unusable.exception), "could not read the Ollama version")
+        for tags in (
+            b'{"models":[{"name":"Qwen3:8b","digest":"sha256:case"}]}',
+            b'{"models":[{"name":"qwen3:8b ","digest":"sha256:space"}]}',
+        ):
+            with self.assertRaises(SetupReadError) as inexact:
+                read_ollama_setup("qwen3:8b", _stand_in(tags=tags))
+            self.assertIn("not in the Ollama tags", str(inexact.exception))
+
+    def _stop(self, run_id, opener, message):
+        out = os.path.join(self.traces, run_id)
+        calls = []
+
+        def grade(*args, **kwargs):
+            calls.append(1)
+            raise AssertionError("graded")
+
+        self.assertFalse(os.path.exists(out))
+        status, _stdout, stderr = _quiet_main(
+            ["data/gold.json", "--only", "A01", "--run-id", run_id], opener, grade=grade)
+        self.assertEqual(status, 1)
+        self.assertEqual(stderr, message)
+        self.assertEqual(calls, [])
+        self.assertFalse(os.path.exists(out))
+        self.assertFalse(os.path.exists(self.traces))
+        self.assertEqual(sorted(os.listdir("traces")), self.committed)
+
+    def test_failed_version_stops_before_a_file_or_a_ticket(self):
+        seen = []
+        self._stop(
+            "floor-setup-fail-version",
+            _stand_in(fail="version", seen=seen),
+            "could not read the Ollama version\n",
+        )
+        self.assertEqual([url for _method, url, _timeout in seen], [VERSION_URL])
+
+    def test_failed_tags_stops_before_a_file_or_a_ticket(self):
+        self._stop(
+            "floor-setup-fail-tags",
+            _stand_in(fail="tags"),
+            "could not read the model digest\n",
+        )
+
+    def test_missing_model_stops_before_a_file_or_a_ticket(self):
+        tags = b'{"models":[{"name":"qwen3:8b-extra","digest":"sha256:nope"}]}'
+        self._stop(
+            "floor-setup-fail-model",
+            _stand_in(tags=tags),
+            "model qwen3:8b is not in the Ollama tags\n",
+        )
+
+    def test_http_and_read_failures_are_a_failed_read(self):
+        failures = (
+            ("open", http.client.BadStatusLine("HELLO")),
+            ("read", http.client.IncompleteRead(b'{"version":')),
+            ("read", socket.timeout("timed out")),
+            ("read", ConnectionResetError("reset")),
+        )
+        for where, error in failures:
+            with self.subTest(where=where, error=type(error).__name__):
+                def opener(request, timeout=None, where=where, error=error):
+                    if where == "open":
+                        raise error
+                    return _Body(error)
+
+                with self.assertRaises(SetupReadError) as stopped:
+                    read_ollama_setup("qwen3:8b", opener)
+                self.assertEqual(str(stopped.exception), "could not read the Ollama version")
+
+    def test_bad_status_line_stops_before_a_file_or_a_ticket(self):
+        def opener(request, timeout=None):
+            raise http.client.BadStatusLine("HELLO")
+
+        self._stop("floor-setup-fail-status", opener, "could not read the Ollama version\n")
+
+    def test_stand_in_records_both_keys_and_leaves_no_run_behind(self):
+        run_id = "floor-setup-recorded"
+        out = os.path.join(self.traces, run_id)
+        calls = []
+
+        def grade(*args, **kwargs):
+            calls.append(kwargs.get("model"))
+            return {
+                "final": {"ticket_result": "WIN", "net": 0},
+                "trace_id": "floor-setup",
+                "status": "complete",
+                "reason_code": None,
+                "turns": 1,
+                "tool_calls": 1,
+                "wall_clock_s": 0,
+                "input_tokens": 1,
+                "output_tokens": 1,
+            }
+
+        status, _stdout, stderr = _quiet_main(
+            ["data/gold.json", "--only", "A01", "--run-id", run_id, "--model", "qwen3:8b"],
+            _stand_in(),
+            grade=grade,
+        )
+        self.assertEqual(status, 0, stderr)
+        self.assertEqual(calls, ["qwen3:8b"])
+        with open(os.path.join(out, "run_meta.json"), encoding="utf-8") as handle:
+            meta = json.load(handle)
+        self.assertEqual(meta["ollama_version"], "0.6.2")
+        self.assertEqual(meta["model_digest"], "sha256:abc")
+        self.assertEqual(meta["model"], "qwen3:8b")
+        self.assertEqual(meta["run_id"], run_id)
+        self.assertEqual(
+            set(meta),
+            {
+                "run_id", "cases_file", "model", "ollama_version", "model_digest",
+                "think", "budgets", "system_prompt", "n_cases", "outcome_matches",
+            },
+        )
+        self.assertIsInstance(meta["ollama_version"], str)
+        self.assertIsInstance(meta["model_digest"], str)
+        self.assertEqual(sorted(os.listdir("traces")), self.committed)
+
+
+if __name__ == "__main__":
+    unittest.main()

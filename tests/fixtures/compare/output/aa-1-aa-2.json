@@ -1,0 +1,94 @@
+{
+  "a": "traces/aa-1",
+  "b": "traces/aa-2",
+  "codes": [
+    {
+      "a": 15,
+      "b": 15,
+      "b_minus_a": 0,
+      "code": "GRADE_CONTRADICTS_FACTS"
+    },
+    {
+      "a": 15,
+      "b": 15,
+      "b_minus_a": 0,
+      "code": "WIN_LOSS_FLIP"
+    },
+    {
+      "a": 8,
+      "b": 8,
+      "b_minus_a": 0,
+      "code": "SKIPPED_SETTLE_TICKET"
+    },
+    {
+      "a": 5,
+      "b": 5,
+      "b_minus_a": 0,
+      "code": "PLACEHOLDER_ECHO"
+    },
+    {
+      "a": 5,
+      "b": 5,
+      "b_minus_a": 0,
+      "code": "GRADED_WITHOUT_LOOKUP"
+    },
+    {
+      "a": 7,
+      "b": 7,
+      "b_minus_a": 0,
+      "code": "INCOMPLETE_LEG_LIST"
+    },
+    {
+      "a": 2,
+      "b": 2,
+      "b_minus_a": 0,
+      "code": "WRONG_NON_GRADE"
+    },
+    {
+      "a": 1,
+      "b": 1,
+      "b_minus_a": 0,
+      "code": "NO_FINAL_ANSWER"
+    },
+    {
+      "a": 5,
+      "b": 5,
+      "b_minus_a": 0,
+      "code": "RULE_TOPIC_MISS"
+    },
+    {
+      "a": 0,
+      "b": 0,
+      "b_minus_a": 0,
+      "code": "OUTPUT_LIMIT_SPRAY"
+    },
+    {
+      "a": 2,
+      "b": 2,
+      "b_minus_a": 0,
+      "code": "FOLLOWED_TICKET_CLAIM"
+    }
+  ],
+  "codes_differ": [],
+  "final_answers": {
+    "case_ids": [],
+    "differ": 0
+  },
+  "provenance": {
+    "a": "Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out agreement or generalisation.",
+    "b": "Run-specific calibration is not established. The labels in data/codes_v1.json were made on traces/v1, not on this run. The supplied labels have not been established as labels for this run; these numbers do not establish held-out agreement or generalisation."
+  },
+  "setup": {
+    "a_recorded": false,
+    "b_recorded": false,
+    "cannot_trace": true,
+    "differ": []
+  },
+  "tickets": {
+    "a": 32,
+    "b": 32,
+    "only_a": [],
+    "only_b": [],
+    "shared": 32
+  }
+}

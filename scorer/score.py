@@ -1,6 +1,6 @@
 """Score one run: which failure codes each ticket shows.
 
-Comparing two runs is a later slice. The output identifies the tuning sample and its limits.
+python3 -m scorer.compare reports how two scored runs differ. The output identifies the tuning sample and its limits.
 """
 import argparse
 import sys
