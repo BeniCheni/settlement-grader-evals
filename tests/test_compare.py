@@ -179,6 +179,46 @@ class CompareFixtureTests(unittest.TestCase):
         self.assertEqual((row["a"], row["b"], row["b_minus_a"]), (1, 0, -1))
         self.assertEqual(report["codes_differ"], [])
 
+    def test_only_in_one_lists_are_in_case_id_order_whatever_the_hash_seed(self):
+        with open(os.path.join(RUNS, "order-a", "settlement-traces.json"), encoding="utf-8") as handle:
+            template = json.load(handle)
+        ids = ["F%s" % number for number in range(2, 10)]
+        with tempfile.TemporaryDirectory() as directory:
+            run = os.path.join(directory, "many")
+            os.makedirs(run)
+            document = json.loads(json.dumps(template))
+            spans = document["resourceSpans"][0]["scopeSpans"][0]["spans"]
+            for case_id in ids:
+                for span in json.loads(json.dumps(template))["resourceSpans"][0]["scopeSpans"][0]["spans"]:
+                    span["traceId"] = "t-" + case_id
+                    for item in span.get("attributes") or []:
+                        if item["key"] == "case.id":
+                            item["value"] = {"stringValue": case_id}
+                    spans.append(span)
+            with open(os.path.join(run, "settlement-traces.json"), "w", encoding="utf-8") as handle:
+                json.dump(document, handle)
+            cases = os.path.join(directory, "cases.json")
+            with open(CASES, encoding="utf-8") as handle:
+                rows = json.load(handle)
+            known = {row["case_id"] for row in rows}
+            rows.extend(dict(rows[0], case_id=case_id) for case_id in ids if case_id not in known)
+            with open(cases, "w", encoding="utf-8") as handle:
+                json.dump(rows, handle)
+            for seed in ("0", "1", "2", "3"):
+                for left, right, side in ((run, os.path.join(RUNS, "order-b"), "only_a"),
+                                          (os.path.join(RUNS, "order-b"), run, "only_b")):
+                    with self.subTest(seed=seed, side=side):
+                        out = os.path.join(directory, "out.json")
+                        done = subprocess.run(
+                            [sys.executable, "-m", "scorer.compare", left, right, "--cases", cases, "--json", out],
+                            capture_output=True, text=True, env=dict(os.environ, PYTHONHASHSEED=seed))
+                        self.assertEqual(done.returncode, 0, done.stderr)
+                        with open(out, encoding="utf-8") as handle:
+                            self.assertEqual(json.load(handle)["tickets"][side], ids)
+                        lines = done.stdout.splitlines()
+                        start = lines.index("only A" if side == "only_a" else "only B") + 1
+                        self.assertEqual(lines[start:start + len(ids)], ids)
+
     def test_reordered_final_keys_do_not_differ_and_null_does(self):
         same = self._pair("order-a", "order-b")
         self.assertEqual(same["final_answers"], {"case_ids": [], "differ": 0})
@@ -279,6 +319,13 @@ class CompareCommandTests(unittest.TestCase):
                     self.assertNotIn("Traceback", done.stderr)
                     self.assertIn(needle, done.stderr)
                     self.assertFalse(os.path.exists(out))
+                    kept = os.path.join(directory, "kept.json")
+                    with open(kept, "w", encoding="utf-8") as handle:
+                        handle.write("kept\n")
+                    again = _cli(args, kept)
+                    self.assertEqual(again.returncode, 2, again.stderr)
+                    with open(kept, encoding="utf-8") as handle:
+                        self.assertEqual(handle.read(), "kept\n")
 
     def test_unreadable_traces_meta_and_cases_exit_2_and_write_nothing(self):
         traces = os.path.join(RUNS, "order-a", "settlement-traces.json")
