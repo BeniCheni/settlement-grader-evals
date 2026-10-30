@@ -2,14 +2,15 @@
 import http.client
 import json
 import os
-import shutil
 import socket
+import tempfile
 import urllib.error
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 import unittest
 from unittest import mock
 
+import run_eval
 from run_eval import SetupReadError, read_ollama_setup, main
 
 
@@ -79,6 +80,22 @@ def _quiet_main(argv, opener, grade=_graded):
 
 
 class RunSetupTests(unittest.TestCase):
+    def setUp(self):
+        # A connection fails the test whether it goes through urlopen or under it.
+        for target in ("socket.socket.connect", "socket.socket.connect_ex"):
+            patcher = mock.patch(target, _network)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        # run_eval writes traces/<run_id> beside its own file. Point that at scratch, so no test
+        # writes under the repository's traces/ and an interrupted run leaves nothing there.
+        scratch = tempfile.TemporaryDirectory()
+        self.addCleanup(scratch.cleanup)
+        patcher = mock.patch.object(run_eval, "__file__", os.path.join(scratch.name, "run_eval.py"))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.traces = os.path.join(scratch.name, "traces")
+        self.committed = sorted(os.listdir("traces"))
+
     def test_stand_in_reads_version_and_exact_model_digest(self):
         seen = []
         version, digest = read_ollama_setup("qwen3:8b", _stand_in(seen=seen))
@@ -112,24 +129,22 @@ class RunSetupTests(unittest.TestCase):
             self.assertIn("not in the Ollama tags", str(inexact.exception))
 
     def _stop(self, run_id, opener, message):
-        out = os.path.join("traces", run_id)
-        shutil.rmtree(out, ignore_errors=True)
+        out = os.path.join(self.traces, run_id)
         calls = []
 
         def grade(*args, **kwargs):
             calls.append(1)
             raise AssertionError("graded")
 
-        try:
-            self.assertFalse(os.path.exists(out))
-            status, _stdout, stderr = _quiet_main(
-                ["data/gold.json", "--only", "A01", "--run-id", run_id], opener, grade=grade)
-            self.assertEqual(status, 1)
-            self.assertEqual(stderr, message)
-            self.assertEqual(calls, [])
-            self.assertFalse(os.path.exists(out))
-        finally:
-            shutil.rmtree(out, ignore_errors=True)
+        self.assertFalse(os.path.exists(out))
+        status, _stdout, stderr = _quiet_main(
+            ["data/gold.json", "--only", "A01", "--run-id", run_id], opener, grade=grade)
+        self.assertEqual(status, 1)
+        self.assertEqual(stderr, message)
+        self.assertEqual(calls, [])
+        self.assertFalse(os.path.exists(out))
+        self.assertFalse(os.path.exists(self.traces))
+        self.assertEqual(sorted(os.listdir("traces")), self.committed)
 
     def test_failed_version_stops_before_a_file_or_a_ticket(self):
         seen = []
@@ -181,8 +196,7 @@ class RunSetupTests(unittest.TestCase):
 
     def test_stand_in_records_both_keys_and_leaves_no_run_behind(self):
         run_id = "floor-setup-recorded"
-        out = os.path.join("traces", run_id)
-        shutil.rmtree(out, ignore_errors=True)
+        out = os.path.join(self.traces, run_id)
         calls = []
 
         def grade(*args, **kwargs):
@@ -199,32 +213,29 @@ class RunSetupTests(unittest.TestCase):
                 "output_tokens": 1,
             }
 
-        try:
-            status, _stdout, stderr = _quiet_main(
-                ["data/gold.json", "--only", "A01", "--run-id", run_id, "--model", "qwen3:8b"],
-                _stand_in(),
-                grade=grade,
-            )
-            self.assertEqual(status, 0, stderr)
-            self.assertEqual(calls, ["qwen3:8b"])
-            with open(os.path.join(out, "run_meta.json"), encoding="utf-8") as handle:
-                meta = json.load(handle)
-            self.assertEqual(meta["ollama_version"], "0.6.2")
-            self.assertEqual(meta["model_digest"], "sha256:abc")
-            self.assertEqual(meta["model"], "qwen3:8b")
-            self.assertEqual(meta["run_id"], run_id)
-            self.assertEqual(
-                set(meta),
-                {
-                    "run_id", "cases_file", "model", "ollama_version", "model_digest",
-                    "think", "budgets", "system_prompt", "n_cases", "outcome_matches",
-                },
-            )
-            self.assertIsInstance(meta["ollama_version"], str)
-            self.assertIsInstance(meta["model_digest"], str)
-        finally:
-            shutil.rmtree(out, ignore_errors=True)
-        self.assertFalse(os.path.exists(out))
+        status, _stdout, stderr = _quiet_main(
+            ["data/gold.json", "--only", "A01", "--run-id", run_id, "--model", "qwen3:8b"],
+            _stand_in(),
+            grade=grade,
+        )
+        self.assertEqual(status, 0, stderr)
+        self.assertEqual(calls, ["qwen3:8b"])
+        with open(os.path.join(out, "run_meta.json"), encoding="utf-8") as handle:
+            meta = json.load(handle)
+        self.assertEqual(meta["ollama_version"], "0.6.2")
+        self.assertEqual(meta["model_digest"], "sha256:abc")
+        self.assertEqual(meta["model"], "qwen3:8b")
+        self.assertEqual(meta["run_id"], run_id)
+        self.assertEqual(
+            set(meta),
+            {
+                "run_id", "cases_file", "model", "ollama_version", "model_digest",
+                "think", "budgets", "system_prompt", "n_cases", "outcome_matches",
+            },
+        )
+        self.assertIsInstance(meta["ollama_version"], str)
+        self.assertIsInstance(meta["model_digest"], str)
+        self.assertEqual(sorted(os.listdir("traces")), self.committed)
 
 
 if __name__ == "__main__":
