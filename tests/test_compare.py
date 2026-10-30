@@ -280,6 +280,69 @@ class CompareCommandTests(unittest.TestCase):
                     self.assertIn(needle, done.stderr)
                     self.assertFalse(os.path.exists(out))
 
+    def test_unreadable_traces_meta_and_cases_exit_2_and_write_nothing(self):
+        traces = os.path.join(RUNS, "order-a", "settlement-traces.json")
+        two_roots = (b'{"resourceSpans":[{"scopeSpans":[{"spans":['
+                     b'{"traceId":"t","spanId":"a"},{"traceId":"t","spanId":"b"}]}]}]}')
+        with tempfile.TemporaryDirectory() as directory:
+            def run_with(name, body=None, meta=None):
+                run = os.path.join(directory, name)
+                os.makedirs(run)
+                if body is None:
+                    shutil.copy(traces, run)
+                else:
+                    with open(os.path.join(run, "settlement-traces.json"), "wb") as handle:
+                        handle.write(body)
+                if meta is not None:
+                    with open(os.path.join(run, "run_meta.json"), "wb") as handle:
+                        handle.write(meta)
+                return run
+
+            def cases_file(name, body):
+                path = os.path.join(directory, name)
+                with open(path, "wb") as handle:
+                    handle.write(body)
+                return path
+
+            folder_run = run_with("traces-folder", body=b"")
+            os.remove(os.path.join(folder_run, "settlement-traces.json"))
+            os.makedirs(os.path.join(folder_run, "settlement-traces.json"))
+            cases_folder = os.path.join(directory, "cases-folder")
+            os.makedirs(cases_folder)
+            good = os.path.join(RUNS, "order-b")
+            unreadable_traces = "unreadable settlement-traces.json"
+            unreadable_cases = "unreadable cases file"
+            cases = (
+                ([run_with("not-json", b"{not json"), good, "--cases", CASES], unreadable_traces),
+                ([run_with("array", b"[]"), good, "--cases", CASES], unreadable_traces),
+                ([run_with("bare-spans", b'{"resourceSpans":[{"scopeSpans":[{"spans":[1]}]}]}'), good,
+                  "--cases", CASES], unreadable_traces),
+                ([run_with("two-roots", two_roots), good, "--cases", CASES], unreadable_traces),
+                ([run_with("not-utf8", b"\xff\xfe"), good, "--cases", CASES], unreadable_traces),
+                ([folder_run, good, "--cases", CASES], unreadable_traces),
+                ([CASES, good, "--cases", CASES], "missing run"),
+                ([run_with("meta-not-utf8", meta=b"\xff\xfe"), good, "--cases", CASES], "unreadable run_meta.json"),
+                ([os.path.join(RUNS, "order-a"), good, "--cases", cases_file("not-json.json", b"nope")],
+                 unreadable_cases),
+                ([os.path.join(RUNS, "order-a"), good, "--cases", cases_file("object.json", b'{"x":1}')],
+                 unreadable_cases),
+                ([os.path.join(RUNS, "order-a"), good, "--cases", cases_file("numbers.json", b"[1,2]")],
+                 unreadable_cases),
+                ([os.path.join(RUNS, "order-a"), good, "--cases", cases_file("no-id.json", b'[{"id":"F1"}]')],
+                 unreadable_cases),
+                ([os.path.join(RUNS, "order-a"), good, "--cases", cases_folder], unreadable_cases),
+            )
+            for args, needle in cases:
+                with self.subTest(run=os.path.basename(args[0]), cases=os.path.basename(args[3])):
+                    out = os.path.join(directory, "out.json")
+                    done = _cli(args, out)
+                    self.assertEqual(done.returncode, 2, done.stderr)
+                    self.assertEqual(done.stdout, "")
+                    self.assertNotIn("Traceback", done.stderr)
+                    self.assertEqual(done.stderr.count("error:"), 1, done.stderr)
+                    self.assertIn(needle, done.stderr)
+                    self.assertFalse(os.path.exists(out))
+
     def test_json_array_meta_is_unreadable_and_stdout_matches_the_report(self):
         with tempfile.TemporaryDirectory() as directory:
             run = os.path.join(directory, "array-meta")

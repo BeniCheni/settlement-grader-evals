@@ -7,7 +7,7 @@ import json
 import os
 import sys
 
-from scorer.calibrate import MissingCaseError, provenance_for, write_text
+from scorer.calibrate import MissingCaseError, load_cases, provenance_for, write_text
 from scorer.checks import CHECKS
 from scorer.score import score_run
 from scorer.stats import canonical_json
@@ -43,8 +43,10 @@ def _final_token(final):
 def _load_records(run_dir, name):
     try:
         records = load_run(run_dir)
-    except FileNotFoundError:
+    except (FileNotFoundError, NotADirectoryError):
         raise CompareError("missing run %s" % name) from None
+    except (OSError, ValueError, TypeError, AttributeError, KeyError):
+        raise CompareError("unreadable settlement-traces.json for %s" % name) from None
     seen = set()
     for record in records:
         case_id = record.get("case_id")
@@ -61,11 +63,21 @@ def _load_meta(run_dir, name):
     try:
         with open(path, encoding="utf-8") as handle:
             payload = json.load(handle)
-    except (OSError, json.JSONDecodeError):
+    except (OSError, ValueError):
         raise CompareError("unreadable run_meta.json for %s" % name) from None
     if not isinstance(payload, dict):
         raise CompareError("unreadable run_meta.json for %s" % name)
     return payload
+
+
+def _check_cases(cases_path):
+    """A cases file load_cases reads, so score_run fails only on a missing case."""
+    try:
+        load_cases(cases_path)
+    except FileNotFoundError:
+        raise
+    except (OSError, ValueError, TypeError, AttributeError, KeyError):
+        raise CompareError("unreadable cases file %s" % cases_path) from None
 
 
 def _recorded(meta):
@@ -130,6 +142,7 @@ def compare_runs(run_a, run_b, cases_path="data/gold.json"):
     records_b = _load_records(run_b, name_b)
     meta_a = _load_meta(run_a, name_a)
     meta_b = _load_meta(run_b, name_b)
+    _check_cases(cases_path)
     scored_a = score_run(run_a, cases_path=cases_path)
     scored_b = score_run(run_b, cases_path=cases_path)
     by_a = {record["case_id"]: record for record in records_a}
