@@ -341,6 +341,20 @@ class CompareCommandTests(unittest.TestCase):
                 self.assertFalse(os.path.exists(out))
             yield done
 
+    def test_empty_runs_exit_2_without_creating_or_clobbering_output(self):
+        with _scratch() as directory:
+            run = os.path.join(directory, "empty")
+            os.makedirs(run)
+            for document in ({}, {"resourceSpans": []},
+                             {"resourceSpans": [{"scopeSpans": [{"spans": []}]}]}):
+                with open(os.path.join(run, "settlement-traces.json"), "w", encoding="utf-8") as handle:
+                    json.dump(document, handle)
+                for left, right in ((run, os.path.join(RUNS, "order-b")),
+                                    (os.path.join(RUNS, "order-b"), run)):
+                    with self.subTest(document=document, side=left == run):
+                        list(self._assert_error_keeps_output(
+                            [left, right, "--cases", CASES], "empty run", directory))
+
     def test_outside_runs_and_symlinks_are_refused_before_reading(self):
         with _scratch() as directory:
             with tempfile.TemporaryDirectory() as outside:

@@ -48,6 +48,8 @@ def _load_records(run_dir, name):
         raise CompareError("missing run %s" % name) from None
     except (OSError, ValueError, TypeError, AttributeError, KeyError):
         raise CompareError("unreadable settlement-traces.json for %s" % name) from None
+    if not records:
+        raise CompareError("empty run %s" % name)
     seen = set()
     for record in records:
         case_id = record.get("case_id")
