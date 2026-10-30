@@ -36,6 +36,7 @@ from tests.judge_otlp import (
     DUPLICATE_RECORDS,
     FRESH1_RECORDS,
     FRESH2_RECORDS,
+    FRESH3_RECORDS,
     canonical_document,
 )
 
@@ -45,6 +46,7 @@ RUBRICS = ROOT + "/rubrics"
 BASE = ROOT + "/runs/base"
 FRESH1 = ROOT + "/runs/fresh1"
 FRESH2 = ROOT + "/runs/fresh2"
+FRESH3 = ROOT + "/runs/fresh3"
 DUPLICATE = ROOT + "/runs/duplicate"
 NAMES = ["needs_human_correctness", "rule_adherence", "tool_call_accuracy"]
 META_KEYS = {"adapter", "digest", "labels_sha256", "model", "options", "rubrics", "server_version"}
@@ -256,6 +258,7 @@ class CommandTests(unittest.TestCase):
             (BASE, BASE_RECORDS),
             (FRESH1, FRESH1_RECORDS),
             (FRESH2, FRESH2_RECORDS),
+            (FRESH3, FRESH3_RECORDS),
             (DUPLICATE, DUPLICATE_RECORDS),
         )
         for directory, records in pairs:
@@ -285,6 +288,22 @@ class CommandTests(unittest.TestCase):
             second = cli(["select", "--base", dotted, "--fresh", FRESH1, "--fresh", FRESH2, "--n-fresh", "2", "--out", again])
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertEqual(open(out, "rb").read(), open(again, "rb").read())
+            # A case already taken from a fresh run is not taken again: fresh3's C1 differs from the
+            # base but fresh2 took C1, so fresh3 gives only C2.
+            taken = os.path.join(directory, "taken.json")
+            made = cli([
+                "select", "--base", BASE, "--fresh", FRESH2, "--fresh", FRESH3, "--n-fresh", "2", "--out", taken,
+            ])
+            self.assertEqual(made.returncode, 0, made.stderr)
+            self.assertEqual(
+                [(row["run"], row["case_id"]) for row in json.loads(open(taken, encoding="utf-8").read())][3:],
+                [(FRESH2, "C1"), (FRESH3, "C2")],
+            )
+            short = os.path.join(directory, "short.json")
+            refused = cli([
+                "select", "--base", BASE, "--fresh", FRESH2, "--fresh", FRESH3, "--n-fresh", "3", "--out", short,
+            ])
+            self.assert_status_2(refused, "only 2 fresh records qualify", [short])
             few = os.path.join(directory, "few.json")
             refused = cli(["select", "--base", BASE, "--fresh", FRESH1, "--fresh", FRESH2, "--n-fresh", "3", "--out", few])
             self.assert_status_2(refused, "only 2 fresh records qualify", [few])

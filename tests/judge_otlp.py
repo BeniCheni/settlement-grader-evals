@@ -141,6 +141,28 @@ FRESH2_RECORDS = [
     },
 ]
 
+# Named after fresh2. Its C1 differs from the base too, but fresh2 took C1 first, so only C2 is new.
+FRESH3_RECORDS = [
+    {
+        "case_id": "C1",
+        "final": {"mark": "void"},
+        "reason": None,
+        "status": "complete",
+        "ticket": {"leg": "result"},
+        "tools": [],
+        "trace_id": "t3-c1",
+    },
+    {
+        "case_id": "C2",
+        "final": {"mark": "win"},
+        "reason": None,
+        "status": "complete",
+        "ticket": {"leg": "total"},
+        "tools": [],
+        "trace_id": "t3-c2",
+    },
+]
+
 DUPLICATE_RECORDS = [
     {
         "case_id": "C1",
