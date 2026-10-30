@@ -63,22 +63,24 @@ def cli(args):
 
 
 def offline(args):
-    """Run a command in this process with urlopen and socket connect patched; a subprocess would not see the patch.
+    """Run a command in this process with urllib and socket entry points patched.
 
-    Returns the exit status, stdout, stderr, and whether either network call was made.
+    Returns the exit status, stdout, stderr, and whether a guarded call was made.
     """
     from scorer import judge
     out = io.StringIO()
     err = io.StringIO()
     status = 0
-    with mock.patch("urllib.request.urlopen", side_effect=AssertionError("network")) as opened:
-        with mock.patch("socket.socket.connect", side_effect=AssertionError("network")) as connected:
-            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-                try:
-                    judge.main(args)
-                except SystemExit as stop:
-                    status = stop.code
-    return status, out.getvalue(), err.getvalue(), opened.called or connected.called
+    with contextlib.ExitStack() as guards:
+        calls = [guards.enter_context(mock.patch(name, side_effect=AssertionError("network"))) for name in (
+            "urllib.request.urlopen", "socket.socket.connect", "socket.socket.connect_ex", "socket.socket.sendto",
+        )]
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            try:
+                judge.main(args)
+            except SystemExit as stop:
+                status = stop.code
+    return status, out.getvalue(), err.getvalue(), any(call.called for call in calls)
 
 
 def sha256(path):
@@ -266,6 +268,24 @@ class RunNameTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_offline_helper_catches_alternate_socket_entry_points(self):
+        import socket
+        for method, args in (("connect_ex", (("127.0.0.1", 1),)), ("sendto", (b"probe", ("127.0.0.1", 1)))):
+            def attempted(_argv):
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                    try:
+                        getattr(sock, method)(*args)
+                    except Exception:
+                        pass
+            with self.subTest(method=method):
+                # The outer stand-in prevents an actual network call even before the helper is fixed.
+                with mock.patch("socket.socket." + method, return_value=0) as escaped:
+                    with mock.patch("scorer.judge.main", side_effect=attempted):
+                        status, _out, _err, networked = offline([])
+                    self.assertTrue(networked)
+                    escaped.assert_not_called()
+                    self.assertEqual(status, 0)
+
     def test_empty_rubric_map_is_a_validation_error(self):
         with tempfile_dir() as directory:
             labels = os.path.join(directory, "empty.jsonl")
