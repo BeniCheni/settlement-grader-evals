@@ -906,9 +906,14 @@ def judge_rows(label_rows, rubrics, adapter, cache):
     return verdicts
 
 
+def _source(client):
+    """What answered: a real Ollama, or canned replies from --http-fixture, which must never read as one."""
+    return "http-fixture" if isinstance(client, FixtureClient) else "ollama"
+
+
 def _meta_for_adapter(adapter, labels_path, rubrics):
     return {
-        "adapter": "fake" if isinstance(adapter, FakeAdapter) else "ollama",
+        "adapter": "fake" if isinstance(adapter, FakeAdapter) else _source(adapter.client),
         "digest": adapter.digest,
         "labels_sha256": file_sha256(labels_path),
         "model": adapter.model,
@@ -1007,6 +1012,7 @@ def pick_model(candidates, grader_run, plan_path, rubrics_dir, smoke_run, client
     if chosen is None:
         raise JudgeError("no candidate parsed every reply")
     return {
+        "adapter": _source(client),
         "candidates": recorded,
         "choice": chosen,
         "grader_family": grader_family,

@@ -48,7 +48,7 @@ FRESH2 = ROOT + "/runs/fresh2"
 DUPLICATE = ROOT + "/runs/duplicate"
 NAMES = ["needs_human_correctness", "rule_adherence", "tool_call_accuracy"]
 META_KEYS = {"adapter", "digest", "labels_sha256", "model", "options", "rubrics", "server_version"}
-CHOICE_KEYS = {"candidates", "choice", "grader_family", "grader_model", "not_run", "smoke_run"}
+CHOICE_KEYS = {"adapter", "candidates", "choice", "grader_family", "grader_model", "not_run", "smoke_run"}
 
 
 def cli(args):
@@ -608,6 +608,7 @@ class CommandTests(unittest.TestCase):
             judge_meta = json.loads(open(os.path.join(out, "judge_meta.json"), encoding="utf-8").read())
             # The spec: no timestamp and no machine path. Any key beyond these fails.
             self.assertEqual(set(judge_meta.keys()), META_KEYS)
+            self.assertEqual(judge_meta["adapter"], "fake")
             self.assertEqual(judge_meta["labels_sha256"], sha256(labels))
             self.assertEqual(judge_meta["rubrics"]["rule_adherence"], sha256(os.path.join(RUBRICS, "rule_adherence.md")))
             self.assertIsNone(judge_meta["model"])
@@ -684,6 +685,8 @@ class CommandTests(unittest.TestCase):
             self.assertEqual(made.returncode, 0, made.stderr)
             ok_meta = json.loads(open(os.path.join(ok_out, "judge_meta.json"), encoding="utf-8").read())
             self.assertEqual(set(ok_meta.keys()), META_KEYS)
+            # Canned replies are not an Ollama run: a judgments directory made this way must say so.
+            self.assertEqual(ok_meta["adapter"], "http-fixture")
             self.assertEqual(ok_meta["model"], "judge:1")
             self.assertEqual(ok_meta["digest"], "digest-1")
             self.assertEqual(ok_meta["server_version"], "0.1.0")
@@ -825,6 +828,7 @@ class CommandTests(unittest.TestCase):
             choice = json.loads(open(out, encoding="utf-8").read())
             # No timestamp and no machine path in model-choice.json either.
             self.assertEqual(set(choice.keys()), CHOICE_KEYS)
+            self.assertEqual(choice["adapter"], "http-fixture")
             for candidate in choice["candidates"]:
                 self.assertEqual(set(candidate.keys()), {"digest", "family", "model", "parsed", "ran", "replies"})
             self.assertEqual(choice["choice"], "model-b")
