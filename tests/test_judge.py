@@ -1,6 +1,8 @@
 """The judge harness: rubrics, sheets, a local judge, and agreement with labels."""
+import contextlib
 import csv
 import hashlib
+import io
 import json
 import os
 import subprocess
@@ -54,6 +56,25 @@ def cli(args):
         text=True,
         encoding="utf-8",
     )
+
+
+def offline(args):
+    """Run a command in this process with urlopen and socket connect patched; a subprocess would not see the patch.
+
+    Returns the exit status, stdout, stderr, and whether either network call was made.
+    """
+    from scorer import judge
+    out = io.StringIO()
+    err = io.StringIO()
+    status = 0
+    with mock.patch("urllib.request.urlopen", side_effect=AssertionError("network")) as opened:
+        with mock.patch("socket.socket.connect", side_effect=AssertionError("network")) as connected:
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                try:
+                    judge.main(args)
+                except SystemExit as stop:
+                    status = stop.code
+    return status, out.getvalue(), err.getvalue(), opened.called or connected.called
 
 
 def sha256(path):
@@ -557,12 +578,12 @@ class CommandTests(unittest.TestCase):
             reply_path = os.path.join(directory, "replies.json")
             write_text(reply_path, json.dumps(replies, sort_keys=True))
             out = os.path.join(directory, "judgments")
-            with mock.patch("scorer.judge.urllib.request.urlopen", side_effect=AssertionError("network")):
-                made = cli([
-                    "run", "--labels", labels, "--rubrics", RUBRICS,
-                    "--adapter", "fake:" + reply_path, "--out", out,
-                ])
-            self.assertEqual(made.returncode, 0, made.stderr)
+            status, _stdout, stderr, networked = offline([
+                "run", "--labels", labels, "--rubrics", RUBRICS,
+                "--adapter", "fake:" + reply_path, "--out", out,
+            ])
+            self.assertEqual(status, 0, stderr)
+            self.assertFalse(networked, "the fake adapter opened a network connection")
             verdicts = [json.loads(line) for line in open(os.path.join(out, "verdicts.jsonl"), encoding="utf-8")]
             self.assertEqual(len(verdicts), 9)
             self.assertEqual(
@@ -784,13 +805,13 @@ class CommandTests(unittest.TestCase):
             path = os.path.join(directory, "http.json")
             write_text(path, json.dumps(http))
             out = os.path.join(directory, "choice.json")
-            with mock.patch("scorer.judge.urllib.request.urlopen", side_effect=AssertionError("network")):
-                made = cli([
-                    "pick-model", "--candidates", "model-a,model-b,model-c",
-                    "--grader-run", grader, "--plan", plan, "--rubrics", rubrics,
-                    "--http-fixture", path, "--out", out,
-                ])
-            self.assertEqual(made.returncode, 0, made.stderr)
+            status, _stdout, stderr, networked = offline([
+                "pick-model", "--candidates", "model-a,model-b,model-c",
+                "--grader-run", grader, "--plan", plan, "--rubrics", rubrics,
+                "--http-fixture", path, "--out", out,
+            ])
+            self.assertEqual(status, 0, stderr)
+            self.assertFalse(networked, "pick-model with --http-fixture opened a network connection")
             choice = json.loads(open(out, encoding="utf-8").read())
             self.assertEqual(choice["choice"], "model-b")
             self.assertEqual(choice["not_run"], ["model-c"])
