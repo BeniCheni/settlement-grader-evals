@@ -39,10 +39,10 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Course item | In this repo | Source |
 |---|---|---|
 | Judge prompts | The three rubrics, frozen in step 4: `needs_human_correctness`, `rule_adherence`, `tool_call_accuracy` | `rubrics/` |
-| Per-rubric labels | The owner's 120 labels on the 40-row plan, frozen in step 5: FAILs 23 (`rule_adherence`), 8 (`needs_human_correctness`), 23 (`tool_call_accuracy`) | `labels/set1.jsonl`, `labels/set1-plan.json`, `labels/set1-meta.json` |
+| Per-rubric labels | The owner's 120 labels on the 40-row plan, frozen in step 5: FAILs 23 (`rule_adherence`), 8 (`needs_human_correctness`), 23 (`tool_call_accuracy`) | `labels/set1.jsonl`, `labels/set1-plan.json`, `labels/set1-meta.json`. Count rows, labels and FAILs: `python3 -c 'from scorer.judge import load_labels; n,r=load_labels("labels/set1.jsonl"); print(len(r),sum(len(x["human"]) for x in r),{k:sum(x["human"][k]=="FAIL" for x in r) for k in n})'` |
 | Judge calls | None yet | |
 | Agreement matrix, agreement, kappa, the bar | Built for the code checks: `confusion`, `agreement`, `cohen_kappa`, `wilson`, `false_pass_rate`, `meets_bar` (85% and 0.6) | `scorer/stats.py` |
-| Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified, and how many outputs fail each rubric is unknown until they are labelled | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
+| Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified. The per-rubric label counts are above | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks, in sample | `data/calibration_readings_v1.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
