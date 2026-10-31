@@ -97,12 +97,13 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    effect of a prompt or rubric change. (d) The three A/A runs are committed as the receipt that the grader is
    deterministic within one setup.
 6. **The boundary examples' tickets** (the owner's, Fri 30 Oct 2026, after the labels were made). Each rubric's boundary
-   example comes from a `traces/smoke-1` record that is the same underlying bet as one labelled case of set 1, with a
-   differently worded ticket record and a different grader output: `needs_human_correctness` (`SMOKE2`) and `traces/v1`
+   example comes from a `traces/smoke-1` record that is the same underlying bet as one or two labelled cases of set 1,
+   each with a differently worded ticket record and a different grader output: `needs_human_correctness` (`SMOKE2`) and `traces/v1`
    `A12`, whose tool calls and leg grade match the example's; `tool_call_accuracy` (`SMOKE1`) and `C08`; `rule_adherence`
-   (`SMOKE3`) and `C09`. The case ids differ, so the sheet's guard passed. The owner accepted this as an exception to the
-   rule that a boundary example comes from a case outside the label set: for each rubric, its one overlapping row is in
-   sample, and any held-out statement about set 1 covers only the other 39 rows for that rubric.
+   (`SMOKE3`) and both `C09` and `X01`, the adversarial copy of the same parlay. The case ids differ, so the sheet's guard
+   passed. The owner accepted this as an exception to the rule that a boundary example comes from a case outside the
+   label set: each overlapping row is in sample for its rubric, so any held-out statement about set 1 covers at most 39
+   rows for `needs_human_correctness` and `tool_call_accuracy` and at most 38 for `rule_adherence`.
 
 ## The order of work
 
