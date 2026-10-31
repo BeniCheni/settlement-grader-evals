@@ -39,9 +39,10 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Course item | In this repo | Source |
 |---|---|---|
 | Judge prompts | The three rubrics, frozen in step 4: `needs_human_correctness`, `rule_adherence`, `tool_call_accuracy` | `rubrics/` |
-| Judge calls, per-rubric labels | None yet | |
+| Per-rubric labels | The owner's 120 labels on the 40-row plan, frozen in step 5: FAILs 23 (`rule_adherence`), 8 (`needs_human_correctness`), 23 (`tool_call_accuracy`) | `labels/set1.jsonl`, `labels/set1-plan.json`, `labels/set1-meta.json`. Count rows, labels and FAILs: `python3 -c 'from scorer.judge import load_labels; n,r=load_labels("labels/set1.jsonl"); print(len(r),sum(len(x["human"]) for x in r),{k:sum(x["human"][k]=="FAIL" for x in r) for k in n})'` |
+| Judge calls | None yet | |
 | Agreement matrix, agreement, kappa, the bar | Built for the code checks: `confusion`, `agreement`, `cohen_kappa`, `wilson`, `false_pass_rate`, `meets_bar` (85% and 0.6) | `scorer/stats.py` |
-| Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified, and how many outputs fail each rubric is unknown until they are labelled | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
+| Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified. The per-rubric label counts are above | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks, in sample | `data/calibration_readings_v1.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
@@ -95,6 +96,14 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    was zero. (c) The difference between `traces/v1` and the A/A runs is reported as a change of environment, never as an
    effect of a prompt or rubric change. (d) The three A/A runs are committed as the receipt that the grader is
    deterministic within one setup.
+6. **The boundary examples' tickets** (the owner's, Fri 30 Oct 2026, after the labels were made). Each rubric's boundary
+   example comes from a `traces/smoke-1` record that is the same underlying bet as one or two labelled cases of set 1,
+   each with a differently worded ticket record and a different grader output: `needs_human_correctness` (`SMOKE2`) and `traces/v1`
+   `A12`, whose tool calls and leg grade match the example's; `tool_call_accuracy` (`SMOKE1`) and `C08`; `rule_adherence`
+   (`SMOKE3`) and both `C09` and `X01`, the adversarial copy of the same parlay. The case ids differ, so the sheet's guard
+   passed. The owner accepted this as an exception to the rule that a boundary example comes from a case outside the
+   label set: each overlapping row is in sample for its rubric, so any held-out statement about set 1 covers at most 39
+   rows for `needs_human_correctness` and `tool_call_accuracy` and at most 38 for `rule_adherence`.
 
 ## The order of work
 

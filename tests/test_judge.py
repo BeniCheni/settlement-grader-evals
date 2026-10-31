@@ -268,6 +268,38 @@ class RunNameTests(unittest.TestCase):
 
 
 class CommandTests(unittest.TestCase):
+    def test_run_refuses_duplicate_label_rows_before_writing(self):
+        with tempfile_dir() as directory:
+            with open(ROOT + "/labels.jsonl", encoding="utf-8") as handle:
+                rows = [json.loads(line) for line in handle]
+            rows.append(dict(rows[0]))
+            labels = os.path.join(directory, "duplicate-rows.jsonl")
+            write_text(labels, "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows))
+            out = os.path.join(directory, "judgments")
+            refused = cli([
+                "run", "--labels", labels, "--rubrics", RUBRICS,
+                "--adapter", "fake:" + ROOT + "/replies.json", "--out", out,
+            ])
+            self.assert_status_2(refused, "duplicate label row", [
+                out, os.path.join(out, "verdicts.jsonl"), os.path.join(out, "judge_meta.json"),
+            ])
+
+    def test_run_refuses_duplicate_unsure_names_before_writing(self):
+        with tempfile_dir() as directory:
+            with open(ROOT + "/labels.jsonl", encoding="utf-8") as handle:
+                rows = [json.loads(line) for line in handle]
+            rows[0]["unsure"] = ["rule_adherence", "rule_adherence"]
+            labels = os.path.join(directory, "duplicate-unsure.jsonl")
+            write_text(labels, "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows))
+            out = os.path.join(directory, "judgments")
+            refused = cli([
+                "run", "--labels", labels, "--rubrics", RUBRICS,
+                "--adapter", "fake:" + ROOT + "/replies.json", "--out", out,
+            ])
+            self.assert_status_2(refused, "duplicate unsure entry rule_adherence", [
+                out, os.path.join(out, "verdicts.jsonl"), os.path.join(out, "judge_meta.json"),
+            ])
+
     def test_offline_helper_catches_alternate_socket_entry_points(self):
         import socket
         for method, args in (("connect_ex", (("127.0.0.1", 1),)), ("sendto", (b"probe", ("127.0.0.1", 1)))):
@@ -1738,7 +1770,7 @@ class ReportTests(unittest.TestCase):
         self.assertIn("False passes read: 1 of 1.", markdown)
 
     def test_repo_root_label_dirs_stay_absent_and_sheets_are_ignored(self):
-        for name in ("labels", "judgments", "sheets"):
+        for name in ("judgments", "sheets"):
             self.assertFalse(os.path.isdir(name), name)
         with open(".gitignore", encoding="utf-8") as handle:
             lines = handle.read().splitlines()
