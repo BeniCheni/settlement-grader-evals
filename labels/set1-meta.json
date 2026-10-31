@@ -1,0 +1,8 @@
+{
+  "plan_sha256": "89a3e68dde605b1b0d21c20fbf10029ff1c769ba8bb5b91564f1d0702c4dab51",
+  "rubrics": {
+    "needs_human_correctness": "95c8bb718c854167c8ad55426ceb62bf446ac4ca61573dd6c82aaf96be0f26ab",
+    "rule_adherence": "146510e20d1e62ab03819404703201065a9a8ab062735970071295dc0e3ebbf2",
+    "tool_call_accuracy": "b784093e855cba00c6a29a68c6b1c829fc91f93017d78de4a0c87f6a6d3154e4"
+  }
+}
