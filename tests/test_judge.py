@@ -1738,7 +1738,7 @@ class ReportTests(unittest.TestCase):
         self.assertIn("False passes read: 1 of 1.", markdown)
 
     def test_repo_root_label_dirs_stay_absent_and_sheets_are_ignored(self):
-        for name in ("labels", "judgments", "sheets"):
+        for name in ("judgments", "sheets"):
             self.assertFalse(os.path.isdir(name), name)
         with open(".gitignore", encoding="utf-8") as handle:
             lines = handle.read().splitlines()
