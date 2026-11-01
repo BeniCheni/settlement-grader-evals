@@ -10,6 +10,7 @@ from unittest import mock
 import run_eval
 from grader.agent import SYSTEM_PROMPT
 from run_eval import main
+from scorer.stats import paired_difference
 
 
 def _body(payload):
@@ -216,3 +217,31 @@ class VariantTests(unittest.TestCase):
         self.assertEqual(changed, [(removed, added)])
         self.assertEqual(len(removed), 184)
         self.assertEqual(len(added), 434)
+
+
+class PairedDifferenceTests(unittest.TestCase):
+    def test_published_table_and_a_zero_sample(self):
+        # Worked by hand for 10, 5, 0, 17. n = 32.
+        # p1 = (10+5)/32 = 15/32, p2 = (10+0)/32 = 10/32, fall = (5-0)/32 = 5/32.
+        # Wilson limits of those two proportions, then Newcombe's phi from
+        # A = 10*17 - 5*0 = 170 and B = max(170 - 16, 0) = 154, give the
+        # lower and upper limits in the row below. The expected numbers are
+        # that hand table, not this function's own output.
+        table = (
+            ((10, 5, 0, 17), (0.1562, 0.0164, 0.2853)),
+            ((11, 4, 0, 17), (0.1250, -0.0036, 0.2454)),
+            ((8, 7, 1, 16), (0.1875, 0.0139, 0.3438)),
+            ((9, 6, 1, 16), (0.1562, -0.0082, 0.3067)),
+            ((0, 0, 0, 32), (0.0000, -0.1072, 0.1072)),
+            ((6, 6, 6, 14), (0.0000, -0.2104, 0.2104)),
+        )
+        for cells, expected in table:
+            with self.subTest(cells=cells):
+                got = paired_difference(*cells)
+                self.assertEqual(tuple(round(part, 4) for part in got), expected)
+                a, b, c, d = cells
+                self.assertEqual(got[0], (b - c) / (a + b + c + d))
+        swapped = paired_difference(10, 0, 5, 17)
+        self.assertLess(swapped[0], 0)
+        self.assertEqual(round(swapped[0], 4), -0.1562)
+        self.assertIsNone(paired_difference(0, 0, 0, 0))

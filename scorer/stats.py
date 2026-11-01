@@ -74,6 +74,38 @@ def wilson(k, n, z=1.96):
     return (centre - margin, centre + margin)
 
 
+def paired_difference(a, b, c, d, z=1.96):
+    """Newcombe's 1998 method 10, the hybrid score interval for a paired proportion.
+
+    a is the tickets both runs count, b those only A counts, c those only B counts
+    and d neither. The fall is (b - c) / n, positive when B counts fewer tickets.
+    Returns (fall, lower, upper), or None when n is 0. Built on wilson.
+    """
+    n = a + b + c + d
+    if n == 0:
+        return None
+    p1 = (a + b) / n
+    p2 = (a + c) / n
+    l1, u1 = wilson(a + b, n, z)
+    l2, u2 = wilson(a + c, n, z)
+    disc = a * d - b * c
+    if disc > 0:
+        adj = max(disc - n / 2.0, 0.0)
+    else:
+        adj = float(disc)
+    product = (a + b) * (c + d) * (a + c) * (b + d)
+    if product == 0:
+        phi = 0.0
+    else:
+        phi = adj / math.sqrt(product)
+    diff = p1 - p2
+    lower_inside = (p1 - l1) ** 2 - 2 * phi * (p1 - l1) * (u2 - p2) + (u2 - p2) ** 2
+    upper_inside = (u1 - p1) ** 2 - 2 * phi * (u1 - p1) * (p2 - l2) + (p2 - l2) ** 2
+    lower = diff - math.sqrt(lower_inside if lower_inside > 0.0 else 0.0)
+    upper = diff + math.sqrt(upper_inside if upper_inside > 0.0 else 0.0)
+    return (diff, lower, upper)
+
+
 def false_pass_rate(counts):
     """Missed real failures over all real failures. None when there are no real failures."""
     tp, _fp, fn, _tn = _parts(counts)
