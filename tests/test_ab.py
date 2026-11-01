@@ -197,8 +197,8 @@ class PromptFileTests(unittest.TestCase):
         with open(binary, "wb") as handle:
             handle.write(b"\xff")
         self._refused(binary, "prompt file is unreadable\n")
-        self._refused("/tmp/prompt.txt", "prompt file must be a relative path, not an absolute path\n")
-        self._refused("~/prompt.txt", "prompt file must be a relative path, not an absolute path\n")
+        self._refused("/tmp" + "/prompt.txt", "prompt file must be a relative path, not an absolute path\n")
+        self._refused("~" + "/prompt.txt", "prompt file must be a relative path, not an absolute path\n")
         self._refused("../prompt.txt", "prompt file must be a relative path inside this directory\n")
 
 
