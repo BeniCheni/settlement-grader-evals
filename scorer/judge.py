@@ -17,7 +17,7 @@ import urllib.request
 from fractions import Fraction
 
 from scorer.calibrate import bar_words, has_reading, not_bar_words, write_text
-from scorer.report import _css_text, esc
+from scorer.report import FONT_LINKS, _css_text, esc
 from scorer.stats import agreement, canonical_json, cohen_kappa, confusion, meets_bar
 from scorer.traces import load_run
 
@@ -1442,11 +1442,6 @@ def build_report(labels, final, readings, provenance, verdicts):
 
 _FALSE_PASS = "a false pass: the judge passed a real failure"
 _FALSE_FAIL = "a false fail: the judge failed a row the human passed"
-_FONTS = (
-    '<link rel="preconnect" href="https://fonts.googleapis.com">',
-    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
-    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&amp;family=Creepster&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Patrick+Hand&amp;display=swap">',
-)
 
 
 def _rubric_provenance(path, names):
@@ -1615,7 +1610,7 @@ def render_judge_html(document, page, statements, provenance_path, css):
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         "<title>Do the judges agree?</title>",
     ]
-    lines.extend(_FONTS)
+    lines.extend(FONT_LINKS)
     lines.extend([
         "<style>",
         css.rstrip("\n"),

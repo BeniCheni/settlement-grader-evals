@@ -13,6 +13,11 @@ from scorer.stats import canonical_json
 
 
 _CSS = os.path.join(os.path.dirname(__file__), "..", "ui", "ledger.css")
+FONT_LINKS = (
+    '<link rel="preconnect" href="https://fonts.googleapis.com">',
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&amp;family=Creepster&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Patrick+Hand&amp;display=swap">',
+)
 
 
 def esc(value):
@@ -70,9 +75,7 @@ def render_html(doc, css):
         "<meta charset=\"utf-8\">",
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
         "<title>Do the checks agree?</title>",
-        "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">",
-        "<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>",
-        "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Bangers&amp;family=Creepster&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Patrick+Hand&amp;display=swap\">",
+        *FONT_LINKS,
         "<style>",
         css.rstrip("\n"),
         "</style>",
