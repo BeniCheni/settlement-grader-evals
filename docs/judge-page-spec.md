@@ -142,7 +142,7 @@ What review changed, so a cold reader does not take the contract above for the w
 - **Two-tier rows (the owner's ruling).** At 761 px and wider each row's short facts (run, case, verdict, first-pass
   label, final label when given, agreement) sit on one line, each under its own label, and its reason, change reason and
   reading each span the row beneath. The first build inherited `.ledger`'s 26% first column, which gave every reading a
-  39 px column and a 292,114 px page at 1000 px while every test and the overflow check stayed green. The rules are
+  39 px column and a page about 290,000 px tall at 1000 px while every test and the overflow check stayed green. The rules are
   scoped to `.judge-rows`, and the calibration page's `.ledger` keeps its layout.
 - **Empty cells (the owner's ruling).** A row's empty change or reading cell is hidden at every width, so no label sits
   over nothing.
