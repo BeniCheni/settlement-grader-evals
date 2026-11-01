@@ -41,7 +41,8 @@ stays empty until the runs are committed.
 
 `run_eval.py` gains `--prompt-file FILE`. The file's bytes are the system prompt for every ticket in the run, read once at the
 start and not stripped. A missing, unreadable, empty or whitespace-only file exits with status 2, prints one message, shows no
-traceback, calls no model and writes nothing. `FILE` must be a relative path inside the repository, as a run name must.
+traceback, calls no model and writes nothing. `FILE` must be a relative path inside the repository, using the same path
+validation as `scorer.judge.relative_path`.
 
 `run_meta.json`'s `system_prompt` records the text the run used. No other key changes. Without the flag the run uses
 `SYSTEM_PROMPT`, and the requests sent to the model are byte for byte what they are on `main`.
@@ -49,8 +50,9 @@ traceback, calls no model and writes nothing. `FILE` must be a relative path ins
 `variants/compare-first.txt` is `SYSTEM_PROMPT` with one line replaced, step 3. A test proves that: split both on newlines, and
 exactly one line differs, the one below. If `SYSTEM_PROMPT` changes later the test fails, because the baseline has moved. The wording
 asks for the comparison in the same message as the `settle_ticket` call because `grade_ticket` treats any message with no tool call as
-the final answer, so a comparison written on its own would end the run as `UNPARSEABLE_FINAL`. If the model does that anyway, the
-ticket counts under `NO_FINAL_ANSWER`, which has its own threshold.
+the final answer. A comparison on its own without parseable JSON would end the run as `UNPARSEABLE_FINAL`, counted under
+`NO_FINAL_ANSWER`, which has its own threshold. The parser can extract JSON surrounded by other text, so a leaked line does not
+necessarily make the final answer unparseable.
 
 ```diff
 -3. Grade each leg: W (won), L (lost), P (push), VOID, MOOT (not needed: another leg already lost), OPEN (match not final) or NEEDS_HUMAN (a fact you need is missing or a rule says so).
@@ -66,11 +68,13 @@ python3 -m scorer.judge run-ab --a traces/ab-a --b traces/ab-b --rubrics rubrics
 It judges every ticket of both runs under all three rubrics, with the case text, the rubrics, the adapter and the strict reply
 parsing that `run` uses, and it writes `verdicts.jsonl` and `judge_meta.json` in `run`'s shape through `write_outputs`. `--http-fixture` works
 as it does on `run`. No human label is read, and no column is added to any label file. `judge_meta.json` has no `labels_sha256`
-and gains `runs`, the two run names. The case text carries no run name and no system prompt, so the judge cannot tell the
-variants apart; a test proves it by finding neither run's name nor the prompt's changed sentence in the text.
+and gains `runs`, the two run names. The case text carries no run name or system prompt; a test checks that neither run's
+name nor the prompt's changed sentence appears in it. The judge may still infer a variant from its output. `render_case`
+does not include the assistant's content accompanying a tool call, so the judges cannot directly assess the requested
+comparison; their verdicts assess the tool calls and final answer they can see.
 
 It refuses, with status 2, one message, no traceback and nothing written, before any model call, when: the two runs do not hold
-the same case ids, or either holds a duplicate; either run's `run_meta.json` lacks `ollama_version` or `model_digest`, or the
+the same case ids, or either holds a duplicate; either run's `run_meta.json` lacks a non-empty string for `ollama_version` or `model_digest`, or the
 file is missing; the two `run_meta.json` files differ in any key other than `run_id`, `outcome_matches` and `system_prompt`;
 the two `system_prompt` values are equal; or a rubric's SHA-256 is not the one the `--frozen-rubrics` file records. The rubrics are
 frozen from set 1, so a tightened rubric cannot slip into this comparison.
@@ -79,7 +83,7 @@ frozen from set 1, so a tightened rubric cannot slip into this comparison.
 
 `paired_difference(a, b, c, d, z=1.96)`, where `a` is the tickets both runs count, `b` those only A counts, `c` those only B
 counts and `d` neither, returns the fall `(b - c) / n`, positive when B counts fewer tickets, with its lower and upper limits. `n` of
-0 returns `None`. For a judge, the tickets counted are its FAILs, so the fall in FAILs is the rise in PASS. The method is Newcombe's
+0 returns `None`. For a judge, the tickets counted are its FAILs and UNPARSED replies, so the fall in that count is the rise in PASS. The method is Newcombe's
 1998 method 10 for paired proportions, the hybrid score interval, built on `stats.wilson`. With `p1 = (a+b)/n`, `p2 = (a+c)/n` and
 their Wilson limits `l1, u1` and `l2, u2`:
 
@@ -108,7 +112,9 @@ python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/
 ```
 
 The outputs are byte-stable, go through `write_outputs` and refuse as the other commands do. It runs the same refusals as `run-ab`,
-except the rubric check, which it makes against `judge_meta.json`. The statement file is written by hand, because code cannot decide
+except the rubric check, which it makes against `judge_meta.json`. It also refuses a missing, extra or duplicate verdict, a verdict
+whose run, case or trace id does not match the inputs, or a mismatch between the run names in `judge_meta.json` and the inputs.
+The statement file is written by hand, because code cannot decide
 that a result is in sample or held out; a missing, empty or whitespace-only file is a refusal. Computed text never contains
 "held out", "held-out", "trusted", "generalise" or "generalize", in any case, and never the words "ship" or "no-ship" as a
 verdict: the verdict is the owner's sentence in `ab_report.md`. The report states:
@@ -120,7 +126,7 @@ verdict: the verdict is the owner's sentence in `ab_report.md`. The report state
 - **The thresholds.** Each row of `thresholds.json` with its numbers and whether it held, then a count, "k of n thresholds held".
   A `report_only` row says so and is not counted. A code or rubric named in the file that the data lacks is a refusal.
 - **The trust flags.** For each judge, whether `meets_bar` held on the final labels of set 1, from `--set1`, both numbers beside it,
-  and the sentence naming `weakest_judge` from `thresholds.json` as the delta to read with most care.
+  the false passes read beside it, and the sentence naming `weakest_judge` from `thresholds.json` as the delta to read with most care.
 - **The setup.** The Ollama version, the grader's model and digest, the judge's model and digest, and the prompt's line-level diff
   between the two runs' `system_prompt`, computed, so a reader sees the one change without trusting a document.
 - **Every ticket.** In the order of the runs: the case id, each run's final result, the codes that fired in A and in B, each
@@ -146,7 +152,7 @@ from the repository root. The package copies it to `submissions/week-02/assignme
    disk. Nothing is downloaded without the owner's approval.
 2. In one session, against one running server, run A and then B over all 32 tickets: `python3 run_eval.py data/gold.json --run-id ab-a`,
    then the same with `--run-id ab-b --prompt-file variants/compare-first.txt`. If either stops early, both are run again.
-3. Run `run-ab`, then `ab`. Read every ticket whose code or verdict changed.
+3. Review `statement.txt` against the actual evidence and update it if needed, then run `run-ab` and `ab`. Read every ticket whose code or verdict changed.
 4. Commit `traces/ab-a`, `traces/ab-b`, `judgments/ab/` and `reports/ab.*` in their own PR. Then the results section of
    `ab_report.md` is filled in from the report, and the owner writes the verdict and what would change his mind.
 
@@ -156,15 +162,16 @@ from the repository root. The package copies it to `submissions/week-02/assignme
    `main` and a run with it sending the file's bytes as the system message.
 2. `variants/compare-first.txt`'s one-line test.
 3. `run-ab` on two fixture runs through `--http-fixture`: 2 × tickets × 3 rubrics verdicts, sorted as `run` sorts them, regenerating
-   byte for byte; every refusal above, each with status 2, one message and nothing written.
+   byte for byte; fixture replies vary by run, case and rubric, and the output preserves their mapping and values; every refusal above,
+   each with status 2, one message and nothing written.
 4. The test that the case text does not reveal the variant.
 5. `paired_difference` against the table above, to 4 decimals, and the table's sign convention, with `n` of 0 and a zero margin
    covered. Also one worked example by hand in the test's comment.
 6. `ab` on fixtures with every threshold kind holding and failing, checked against counts the test makes itself from the fixtures, not
    against output of the same code. A byte comparison alone does not count as checking a figure.
 7. No blended figure: a test that finds no sum or average across metrics in the JSON's keys, and each metric in its own row.
-8. The banned words, on a fixture page and report, with each input string removed only where the page prints it and not everywhere it
-   occurs, so a computed sentence cannot hide behind an input (`docs/week-2-package.md`, "Follow-ups").
+8. The banned words, on a fixture page and report: exclude the output nodes or spans that render input text, not every occurrence of
+   the same string in the output, so a computed sentence cannot hide behind an input (`docs/week-2-package.md`, "Follow-ups").
 9. Every dynamic string escaped, including the reasons, the statement, the prompt diff and the paths.
 10. AA on every new pair in `tests/test_contrast.py`, both themes, losing none; `reports/calibration-v1.html` and
     `reports/judge-set1.html` regenerated if the stylesheet moves, with their JSON and Markdown unchanged and their layout measured unchanged.

@@ -8,8 +8,8 @@ of the v1 configuration that gave the same final answer on all 32 tickets, so it
 
 `GRADE_CONTRADICTS_FACTS`: the grader commits a leg grade that the facts contradict. It fires on 15 of 32 tickets in `traces/aa-1`, level with
 `WIN_LOSS_FLIP` for the most of any code, and the two overlap on 11. The course says to take the worst numbers, and of those two this one re-grades from
-the facts, while `WIN_LOSS_FLIP` reads the expected result, and only 4 of the 32 expected results are `verified_by_beni`. It is also the failure that costs
-money: 12 tickets end WIN where the expected result is LOSS. Its plain-code check matched the labels on 14 of 14 tickets on `traces/v1`, in sample.
+the facts, while `WIN_LOSS_FLIP` reads the expected result, and only 4 of the 32 expected results are `verified_by_beni`. It can misstate settlement:
+12 tickets end WIN where the expected result is LOSS, with 1 of those 12 expected results verified. Its plain-code check matched the labels on 14 of 14 tickets on `traces/v1`, in sample.
 
 ## Ten traces, read together
 
@@ -42,6 +42,7 @@ the opposite of what it had just settled.
 ## What this does not cover
 
 The other five tickets on which the check fires are a different shape. On B05 and X01, `get_match_facts` returned an error because the match is outside the
-frozen set, and the grader graded anyway; B10's expected result is VOID, which is its own question; and C04 and C08 commit L on a leg the facts win. Five tickets
+frozen set, and the grader graded anyway. The check synthesizes full-time facts from `find_match` candidates in those traces; it does not rely on a successful
+`get_match_facts` call. B10's expected result is VOID, which is its own question; and C04 and C08 commit L on a leg the facts win. Five tickets
 make no tool call at all (`GRADED_WITHOUT_LOOKUP`), and comparing facts cannot help a ticket that fetched none. The change is not expected to move those, and a
 comparison asked for in a prompt can simply be ignored, since `settle_ticket` still accepts a bare list. That is what the A/B is for.
