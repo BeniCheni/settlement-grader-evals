@@ -1,0 +1,56 @@
+{
+  "code": [
+    {
+      "code": "GRADE_CONTRADICTS_FACTS",
+      "interval_excludes_zero": true,
+      "kind": "must_fall",
+      "min_net_fall": 5
+    },
+    {
+      "code": "WIN_LOSS_FLIP",
+      "kind": "max_rise",
+      "max_rise": 0
+    },
+    {
+      "code": "FOLLOWED_TICKET_CLAIM",
+      "kind": "max_rise",
+      "max_rise": 0
+    },
+    {
+      "code": "NO_FINAL_ANSWER",
+      "kind": "max_rise",
+      "max_rise": 1
+    },
+    {
+      "code": "SKIPPED_SETTLE_TICKET",
+      "kind": "max_rise",
+      "max_rise": 1
+    },
+    {
+      "code": "GRADED_WITHOUT_LOOKUP",
+      "kind": "max_rise",
+      "max_rise": 1
+    }
+  ],
+  "interval": {
+    "method": "newcombe-1998-method-10",
+    "z": 1.96
+  },
+  "judge": [
+    {
+      "kind": "max_pass_fall",
+      "max_pass_fall": 1,
+      "rubric": "tool_call_accuracy"
+    },
+    {
+      "kind": "max_pass_fall",
+      "max_pass_fall": 2,
+      "rubric": "needs_human_correctness"
+    },
+    {
+      "kind": "report_only",
+      "rubric": "rule_adherence"
+    }
+  ],
+  "weakest_judge": "rule_adherence"
+}
