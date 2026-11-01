@@ -48,7 +48,9 @@ failure, and the proof that any check or judge agrees with a human before it is 
    and tilde forms alike), account or balance claims, and no person's name beyond the repo owner and licence notices. Every PR is swept
    for these by pattern, with the counts reported, the patterns stated and no hit printed. An agent's commit identity is
    not private: `noreply@anthropic.com`, `noreply@openai.com` and `cursoragent@cursor.com` may appear, and the sweep
-   counts them apart from any other address (Beni's ruling, 1 Nov 2026).
+   counts them apart from any other address (Beni's ruling, 1 Nov 2026). A public footballer's name already tracked on
+   `main` is a match fact, not private (Beni's ruling, 29 Oct 2026, written here 1 Nov 2026); a name new to `main` is
+   still read and classified in the sweep.
 
 ## Engineering rules
 
