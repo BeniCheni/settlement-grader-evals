@@ -1080,6 +1080,19 @@ def _fmt(value):
     return "%.4f" % value
 
 
+def agreement_percent(agree_count, total):
+    """One decimal place from the integer counts, identical on 3.9 and 3.14.
+
+    The tenth of a percent is agree_count * 1000 / total. An exact half rounds
+    away from zero: 1 agreement in 16 rows is 6.25%, halfway between 6.2% and
+    6.3%, and prints 6.3%.
+    """
+    if total == 0:
+        return "none"
+    tenths = (agree_count * 1000 + total // 2) // total
+    return "%d.%d%%" % (tenths // 10, tenths % 10)
+
+
 def _readings(path):
     if path is None:
         return {}
