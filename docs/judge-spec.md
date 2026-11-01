@@ -176,6 +176,9 @@ are byte-stable, and a test fails when a committed report is stale.
   final answer and run status sections>, "human": {<rubric>: "PASS" | "FAIL"}}`;
 - `results.md`: byte for byte the Markdown that `report --md` writes for the same inputs, which says which labels it used.
 
+`docs/judge-page-spec.md` amends this list: given `--rubric-provenance`, `export-course` also writes `comparison.html`,
+the judge comparison page.
+
 `diagnosis.md` is the owner's to write and is not generated.
 
 ## Commands and errors (contract)
@@ -212,4 +215,5 @@ no traceback and writes nothing, as the slice 1 commands do. Standard library on
 ## Out of scope here
 
 The rubrics themselves, the labels, the model download and the real judge run (steps 4 to 6 of the plan); the comparison
-and A/B pages (step 7); a hosted adapter; the A/B mechanics (step 8); the fourth judge.
+page (step 7, specified in `docs/judge-page-spec.md`) and the A/B page (moved to step 8); a hosted adapter; the A/B
+mechanics (step 8); the fourth judge.
