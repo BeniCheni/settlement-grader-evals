@@ -1,0 +1,18 @@
+{
+  "adapter": "ollama",
+  "candidates": [
+    {
+      "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+      "family": "llama",
+      "model": "llama3.1:8b",
+      "parsed": 9,
+      "ran": true,
+      "replies": 9
+    }
+  ],
+  "choice": "llama3.1:8b",
+  "grader_family": "qwen3",
+  "grader_model": "qwen3:8b",
+  "not_run": [],
+  "smoke_run": "traces/smoke-1"
+}
