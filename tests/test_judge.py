@@ -1769,6 +1769,16 @@ class ReportTests(unittest.TestCase):
         self.assertIn("Worst judges on the final labels tied:", markdown)
         self.assertIn("False passes read: 1 of 1.", markdown)
 
+    def test_committed_set1_report_regenerates(self):
+        markdown, document = build_report(
+            "labels/set1.jsonl", "labels/set1-final.jsonl", "labels/set1-readings.json",
+            "labels/set1-provenance.txt", "judgments/set1-llama3.1-8b",
+        )
+        with open("reports/judge-set1.md", encoding="utf-8") as handle:
+            self.assertEqual(markdown, handle.read())
+        with open("reports/judge-set1.json", encoding="utf-8") as handle:
+            self.assertEqual(canonical_json(document), handle.read())
+
     def test_repo_root_label_dirs_stay_absent_and_sheets_are_ignored(self):
         for name in ("sheets",):
             self.assertFalse(os.path.isdir(name), name)
