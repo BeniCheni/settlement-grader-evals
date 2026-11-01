@@ -176,7 +176,8 @@ are byte-stable, and a test fails when a committed report is stale.
   final answer and run status sections>, "human": {<rubric>: "PASS" | "FAIL"}}`;
 - `results.md`: byte for byte the Markdown that `report --md` writes for the same inputs, which says which labels it used.
 
-`docs/judge-page-spec.md` amends this list: `export-course` also writes `comparison.html`, the judge comparison page.
+`docs/judge-page-spec.md` amends this list: given `--rubric-provenance`, `export-course` also writes `comparison.html`,
+the judge comparison page.
 
 `diagnosis.md` is the owner's to write and is not generated.
 
