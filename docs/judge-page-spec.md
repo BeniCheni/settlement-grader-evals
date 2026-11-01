@@ -31,11 +31,11 @@ neither reads the new file, so `reports/judge-set1.md` and `reports/judge-set1.j
 **The per-rubric provenance file (contract; the owner's ruling, Sat 31 Oct 2026).** `--rubric-provenance` names a JSON
 object whose keys are exactly the labels' rubric names and whose values are strings with at least one non-whitespace
 character. It is written by hand, like the `--provenance` file, and for the same reason: code cannot decide that a
-result is held out (`docs/judge-spec.md`, "The report"). Each value says whether that rubric's figures are in sample or
-held out, and what they do and do not show. A file that is missing, is not that object, lacks a rubric, names one the
-labels do not have, or holds an empty value is a validation error. The set-1 file is
-`labels/set1-rubric-provenance.json`, committed with this spec; its sentences restate, rubric by rubric, what
-`labels/set1-provenance.txt` says.
+result is held out (`docs/judge-spec.md`, "The report"). Each value is that rubric's statement: prose of one or more
+sentences saying whether its figures are in sample or held out, and what they do and do not show. A file that is
+missing, is not that object, lacks a rubric, names one the labels do not have, or holds an empty value is a validation
+error. The set-1 file is `labels/set1-rubric-provenance.json`, committed with this spec; its statements restate, rubric
+by rubric, what `labels/set1-provenance.txt` says.
 
 `export-course` gains `--rubric-provenance FILE`. Given, it writes a fourth file, `comparison.html`, byte for byte what
 `report --html` writes for the same inputs; not given, it writes the same three files as today. This amends
@@ -63,10 +63,11 @@ load from Google Fonts.
    false passes; false fails. The worst judge, worded as the Markdown words it, ties included.
 2. **The provenance.** The statement from the `--provenance` file, verbatim, on the cover beside the tiles, under the
    heading `PROVENANCE_HEADING` ("Written by hand, not computed"). Beside each rubric's figures, in that rubric's
-   section, its own sentence from the `--rubric-provenance` file, verbatim, under the same heading, and no other
-   rubric's. These hand-written sentences are the page's statements on in sample or held out, which `AGENTS.md`'s UI
-   rules require beside every calibration number. Code writes no sentence of its own about it. Each is a sentence, never
-   a chip.
+   section, its own statement from the `--rubric-provenance` file, verbatim, under the same heading, and no other
+   rubric's. These hand-written statements are the page's sentences on in sample or held out, which `AGENTS.md`'s UI
+   rules require beside every calibration number. Code writes no sentence of its own about it. Each is prose and never a
+   chip, which is how that rule's "a sentence, never a chip" is read here, as it is for the cover statement: it may run
+   to several sentences.
 3. **One section per rubric, in the report's order.** The rubric's SHA-256 and its text fact ("same text as when the
    labels were made", or the changed form) exactly as the report states them, and the `UNPARSED` count. For the
    first-pass labels and, when given, the final ones, side by side where width allows:
@@ -107,10 +108,10 @@ is ink, not slime, and blood marks a false pass, a false fail, an unread disagre
 2. `export-course` with `--rubric-provenance` writes `comparison.html` equal to `report --html`, with and without
    `--final`, and its other three files are unchanged; without it, it writes the same three files as on `main`.
 3. Every dynamic string is HTML-escaped: a test feeds markup through the judge's reason, a reading, a change reason, the
-   provenance text, a per-rubric provenance sentence and the labels path, and finds it escaped.
-4. A test that strips every string that came from an input file (the provenance statement, the per-rubric sentences,
+   provenance text, a per-rubric provenance statement and the labels path, and finds it escaped.
+4. A test that strips every string that came from an input file (the provenance statement, the per-rubric statements,
    reasons, readings, change reasons, paths) finds none of the five banned words, in any case, in what is left, on a
-   fixture and on the committed page; and a test that finds each rubric's own sentence in its section and in no other.
+   fixture and on the committed page; and a test that finds each rubric's own statement in its section and in no other.
 5. A test that counts, per rubric, the rows the page renders, its agree and disagree marks, its "read" and "unread"
    badges and its change reasons, against the labels, verdicts, readings and final labels, on both a fixture and the
    committed page.
