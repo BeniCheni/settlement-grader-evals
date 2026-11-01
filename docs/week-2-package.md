@@ -40,11 +40,13 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 |---|---|---|
 | Judge prompts | The three rubrics, frozen in step 4: `needs_human_correctness`, `rule_adherence`, `tool_call_accuracy` | `rubrics/` |
 | Per-rubric labels | The owner's 120 labels on the 40-row plan, frozen in step 5: FAILs 23 (`rule_adherence`), 8 (`needs_human_correctness`), 23 (`tool_call_accuracy`) | `labels/set1.jsonl`, `labels/set1-plan.json`, `labels/set1-meta.json`. Count rows, labels and FAILs: `python3 -c 'from scorer.judge import load_labels; n,r=load_labels("labels/set1.jsonl"); print(len(r),sum(len(x["human"]) for x in r),{k:sum(x["human"][k]=="FAIL" for x in r) for k in n})'` |
-| Judge calls | None yet | |
-| Agreement matrix, agreement, kappa, the bar | Built for the code checks: `confusion`, `agreement`, `cohen_kappa`, `wilson`, `false_pass_rate`, `meets_bar` (85% and 0.6) | `scorer/stats.py` |
+| Judge calls | `llama3.1:8b`, chosen by the spec's procedure: 120 verdicts on the 40-row plan, with its digest and the Ollama version recorded | `judgments/model-choice.json`, `judgments/set1-llama3.1-8b/` |
+| Adjudication | 17 of the 120 labels changed, each with the owner's reason | `labels/set1-final.jsonl`, `submissions/week-02/assignment-1/diagnosis.md` |
+| Agreement and the comparison view | On the final labels: agreement 80.0%, 65.0% and 92.5%, kappa 0.3191, 0.0000 and 0.8500 (`needs_human_correctness`, `rule_adherence`, `tool_call_accuracy`); one rubric's numbers meet 85% and 0.6. In sample: the final labels were adjudicated after the verdicts were seen, and the first-pass figures are blind to the judge but still in sample | `reports/judge-set1.md`, `.json`, `.html` |
+| Agreement matrix, agreement, kappa, the bar | Built for the code checks, and used by the judge report: `confusion`, `agreement`, `cohen_kappa`, `wilson`, `false_pass_rate`, `meets_bar` (85% and 0.6) | `scorer/stats.py` |
 | Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified. The per-rubric label counts are above | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
-| Reading every disagreement | Done for the code checks, in sample | `data/calibration_readings_v1.json` |
+| Reading every disagreement | Done for the code checks and for the judge on set 1 (41 rows across the three rubrics), in sample | `data/calibration_readings_v1.json`, `labels/set1-readings.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
 | A/B | None yet | |
 
@@ -122,7 +124,7 @@ Each step is its own pull request, unless it says otherwise. Who reviews it foll
 | 1. This plan and the judge spec | `docs/week-2-package.md`, `docs/judge-spec.md` | PM | Reviewed and merged |
 | 2. The floor | Three more runs of the v1 configuration, committed as `traces/aa-1`, `traces/aa-2`, `traces/aa-3`; the grader's `run_meta.json` recording the Ollama version and the model's digest (decision 5a); and a `compare` command that reports, between runs, the tickets whose final answer differs and each code count's difference | PM (runs), builder (`run_meta.json`, `compare`) | `compare` reproduces the floor's two counts; the runs also supply the 8 fresh outputs |
 | 3. The judge harness | Everything in `docs/judge-spec.md` | Builder | Its acceptance list holds |
-| 4. The rubrics, frozen | `rubrics/rule_adherence.md`, `rubrics/needs_human_correctness.md`, `rubrics/tool_call_accuracy.md` | Owner, from PM drafts | Merged before any label is written; written after the selection is fixed, with no boundary example from the 40 selected |
+| 4. The rubrics, frozen | `rubrics/rule_adherence.md`, `rubrics/needs_human_correctness.md`, `rubrics/tool_call_accuracy.md` | Owner, from PM drafts | Merged before any label is written; written after the selection is fixed, with no boundary example from the 40 selected, subject to the overlap exception in decision 6 |
 | 5. The labels, frozen | `labels/set1.jsonl`: 40 rows, three labels each | Owner | Merged before any judge call on them |
 | 6. The judges run | The model chosen, the verdicts committed, the report, every disagreement read, adjudication into `labels/set1-final.jsonl`, `diagnosis.md` | PM runs; owner reads and adjudicates | Assignment 1's acceptance list holds |
 | 7. The judge page | The judge comparison page (Assignment 1's comparison view), specified in `docs/judge-page-spec.md`. The A/B page moved to step 8 (the owner's ruling, 31 Oct 2026), because its inputs are step 8's decisions | Builder | The spec's acceptance list and the UI rules in `AGENTS.md` hold |
@@ -174,5 +176,26 @@ submissions/week-02/
 
 - The due dates.
 - Whether the weakest-judge cycle (step 9) is graded.
-- The judge model, chosen by the procedure in the spec.
 - The course estimates 4 to 6 hours for Assignment 1, most of it labelling, and 3 to 4 hours for Assignment 2.
+
+## Follow-ups
+
+Small pieces left by the reviews so far, each written to be read cold. The step-specific items are scheduled below.
+
+- **An output path may name an input.** `report`'s `--md`, `--json` and `--html` may name an input file and overwrite it
+  after reading it, and a missing parent directory is created. A shared refusal in `write_outputs`, roughly 20 to 40
+  lines plus tests. Found in PR #15's review; `--md` and `--json` already behaved this way.
+- **A cases entry whose `expected` is not an object.** With `expected: 5`, `scorer.score` and `scorer.compare` exit 1
+  with an `AttributeError` from the checks, not status 2 and one message. Validate it where the cases load, roughly 10
+  to 20 lines plus tests. Found in PR #10's review.
+- **The 80ch prose measure has no test.** Removing it survived the suite at PR #15's Pass 2.5. One line, in step 8's
+  page PR, which also touches the stylesheet.
+- **Set 2's `rule_adherence` wording.** The owner ruled on Sat 31 Oct 2026 that a NEEDS_HUMAN leg counts as graded; the
+  rubric leaves that to be inferred. Say it in the words when step 9 tightens the rubric. It changes no label on set 1.
+- **Page test tidiness.** Unclosed files in the markup test; `_strip_inputs` can also remove computed text identical to
+  an input, masking a banned word even when the input is as long as or longer than the word. A shorter input could split
+  a banned word; set 1's inputs are not that short, but the test fixture has shorter ones. The discovery test needs the
+  repository root as its working directory.
+- **Layout proof.** The stylesheet tests pin that the rules exist. Only a browser run measures the page, and CI has no
+  browser, so the matrix stays a review step. Assistive technology beyond Chrome's accessibility tree has not been
+  tried.
