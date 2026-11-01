@@ -1,0 +1,5 @@
+{
+  "needs_human_correctness": "Fixture statement for needs_human_correctness. These figures are in sample.",
+  "rule_adherence": "Fixture statement for rule_adherence. These figures are in sample.",
+  "tool_call_accuracy": "Fixture statement for tool_call_accuracy. These figures are in sample."
+}
