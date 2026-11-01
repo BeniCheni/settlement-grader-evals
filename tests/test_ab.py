@@ -980,6 +980,79 @@ class AbCommandTests(unittest.TestCase):
                 self.assertIsNotNone(match, name)
                 self.assertEqual(unescape(match.group(1)), text)
 
+    def test_the_page_names_every_count_its_sign_and_its_source(self):
+        # Before this: "Delta +1 tickets" had no sentence saying a plus is a fall from A to B,
+        # a judge row printed its FAIL counts as a bare "A 3. B 2.", the interval's z and the
+        # judge adapter were nowhere, the table had one th over twelve cells, and an UNPARSED
+        # reply's empty reason printed as "rubric A:  B: text".
+        from html import unescape
+        from scorer.ab import _ticket_row
+        verdicts = self._judged()
+        md_path = self.work + "/named.md"
+        html_path = self.work + "/named.html"
+        made = judge_cli(self._ab(verdicts) + ["--md", md_path, "--html", html_path])
+        self.assertEqual(made.returncode, 0, made.stderr)
+        with open(md_path, encoding="utf-8") as handle:
+            markdown = handle.read()
+        with open(html_path, encoding="utf-8") as handle:
+            html = handle.read()
+        computed_text, _input_text = _split_page(html)
+        note = (
+            "Delta is A minus B. For a code, a plus means fewer tickets with the code in B. "
+            "For a judge, the tickets counted are FAIL and UNPARSED, so a plus means more PASS in B. "
+            "Each interval is the paired interval on that delta, z 1.96."
+        )
+        cover_note = (
+            "Delta is A minus B: a plus means fewer tickets with the code in B. "
+            "The interval is the paired interval on that delta, z 1.96."
+        )
+        self.assertIn(note, computed_text)
+        self.assertIn("## Metrics\n\n" + note + "\n", markdown)
+        self.assertIn("Interval 8.5 to 95.4 points.\n" + cover_note + "\n", markdown)
+        self.assertIn('<p class="ab-legend">' + cover_note + "</p>", html)
+        self.assertIsNone(BANNED_WORD.search(note + cover_note))
+        # The FAIL counts on a judge row, counted here from the replies: not PASS, UNPARSED included.
+        with open(ROOT + "/http.json", encoding="utf-8") as handle:
+            replies = json.load(handle)["replies"]
+        for rubric in ("needs_human_correctness", "rule_adherence", "tool_call_accuracy"):
+            fails = {}
+            for run in (ALPHA, BETA):
+                fails[run] = sum(
+                    own_verdict(replies["llama3.1:8b|%s|%s|%s" % (run, case, rubric)]) != "PASS"
+                    for case in ("T1", "T2", "T3", "T4")
+                )
+            line = "FAIL A %s. B %s. Delta" % (fails[ALPHA], fails[BETA])
+            metrics_md = markdown.split("## Metrics\n", 1)[1]
+            with self.subTest(rubric=rubric):
+                self.assertIn("### %s\n" % rubric, metrics_md)
+                self.assertIn(line, metrics_md.split("### %s\n" % rubric, 1)[1].split("###", 1)[0])
+                article = re.search(r'<article class="metric" data-metric="%s".*?</article>' % rubric, html, re.S).group(0)
+                self.assertIn(line, unescape(re.sub(r"<[^>]+>", "", article)))
+        self.assertEqual(sum(1 for article in re.findall(r"<article .*?</article>", html, re.S) if "FAIL A " in article), 3)
+        self.assertEqual(markdown.count("\nFAIL A "), 3)
+        # Setup names z and the adapter that answered, in both outputs.
+        self.assertIn("Interval method newcombe-1998-method-10, z 1.96.\n", markdown)
+        self.assertIn("Judge model llama3.1:8b. Digest sha256:judge. Adapter http-fixture.\n", markdown)
+        self.assertIn('Adapter <span class="mono">http-fixture</span>. Interval method <span class="mono">newcombe-1998-method-10</span>, z <span class="mono">1.96</span>.', html)
+        # Every column has a head: the th texts equal the first row's data-labels, in order.
+        heads = re.findall(r"<th>(.*?)</th>", html.split('<table class="ledger ab-rows">', 1)[1].split("</thead>", 1)[0])
+        first_row = re.search(r'<tr class="row" data-case="T1">(.*?)</tr>', html, re.S).group(1)
+        labels = re.findall(r'<td data-label="([^"]+)"', first_row)
+        self.assertEqual([unescape(head) for head in heads], [unescape(label) for label in labels])
+        self.assertEqual(len(heads), 12)
+        # Another z prints as given.
+        other = self._thresholds_variant(lambda d: d["interval"].__setitem__("z", 2.5758))
+        made = judge_cli(self._ab(verdicts, thresholds=other) + ["--md", self.work + "/z.md"])
+        self.assertEqual(made.returncode, 0, made.stderr)
+        with open(self.work + "/z.md", encoding="utf-8") as handle:
+            self.assertIn("z 2.5758.", handle.read())
+        # An empty reason prints as none, on the page and in the document.
+        row = _ticket_row({
+            "case_id": "X", "final_a": None, "final_b": "WIN", "codes_a": [], "codes_b": [],
+            "verdicts": [{"rubric": "r", "a": "UNPARSED", "b": "PASS", "reason_a": "", "reason_b": "ok", "differs": True}],
+        })
+        self.assertIn(">r A: none B: ok</span>", row)
+
     def test_markup_in_the_prompt_diff_and_the_path_is_escaped(self):
         tree = self.work + "/tree"
         os.makedirs(tree)

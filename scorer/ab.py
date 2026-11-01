@@ -552,6 +552,7 @@ def render_markdown(document):
         "A %s. B %s." % (primary["count_a"], primary["count_b"]),
         "Delta %s tickets, %s points." % (primary["delta_tickets"], primary["delta_points"]),
         "Interval %s to %s points." % (primary["lower_points"], primary["upper_points"]),
+        document["cover_note"],
         "",
         "%s thresholds held." % document["thresholds_held"],
         "",
@@ -566,8 +567,8 @@ def render_markdown(document):
     lines.extend([
         "Ollama %s." % setup["ollama_version"],
         "Grader model %s. Digest %s." % (setup["grader_model"], setup["grader_digest"]),
-        "Judge model %s. Digest %s." % (setup["judge_model"], setup["judge_digest"]),
-        "Interval method %s." % setup["interval_method"],
+        "Judge model %s. Digest %s. Adapter %s." % (setup["judge_model"], setup["judge_digest"], setup["judge_adapter"]),
+        "Interval method %s, z %s." % (setup["interval_method"], setup["z"]),
         "A %s." % setup["a"],
         "B %s." % setup["b"],
         "",
@@ -593,7 +594,7 @@ def render_markdown(document):
             ),
             "",
         ])
-    lines.extend(["## Metrics", ""])
+    lines.extend(["## Metrics", "", document["sign_note"], ""])
     for row in document["metrics"]:
         lines.append("### %s" % row["name"])
         lines.append("")
@@ -601,7 +602,8 @@ def render_markdown(document):
             lines.append("PASS share A %s. PASS share B %s." % (row["pass_share_a"], row["pass_share_b"]))
             lines.append("UNPARSED A %s. UNPARSED B %s." % (row["unparsed_a"], row["unparsed_b"]))
             lines.append("FAIL to PASS %s. PASS to FAIL %s." % (row["fail_to_pass"], row["pass_to_fail"]))
-        lines.append("A %s. B %s. Delta %s tickets, %s points." % (
+        lines.append("%sA %s. B %s. Delta %s tickets, %s points." % (
+            "FAIL " if row["source"] == "judge" else "",
             row["count_a"], row["count_b"], row["delta_tickets"], row["delta_points"],
         ))
         lines.append("Interval %s to %s points." % (row["lower_points"], row["upper_points"]))
@@ -623,7 +625,7 @@ def render_markdown(document):
         for verdict in ticket["verdicts"]:
             lines.append("%s A %s. B %s." % (verdict["rubric"], verdict["a"], verdict["b"]))
             if verdict["differs"]:
-                lines.append(_marked("reason", "A: %s\nB: %s" % (verdict["reason_a"], verdict["reason_b"])))
+                lines.append(_marked("reason", "A: %s\nB: %s" % (_show(verdict["reason_a"]), _show(verdict["reason_b"]))))
         lines.append("")
     text = "\n".join(lines)
     if not text.endswith("\n"):
@@ -648,7 +650,7 @@ def _ticket_row(ticket):
     reasons = []
     for verdict in ticket["verdicts"]:
         if verdict["differs"]:
-            text = "%s A: %s B: %s" % (verdict["rubric"], verdict["reason_a"], verdict["reason_b"])
+            text = "%s A: %s B: %s" % (verdict["rubric"], _show(verdict["reason_a"]), _show(verdict["reason_b"]))
             reasons.append(_span(text, marker="reason"))
     cells = [
         _td("Case", _span(ticket["case_id"], short=True), short=True),
@@ -702,6 +704,7 @@ def render_ab_html(document, css):
         "<p>Interval <span class=\"mono\">%s</span> to <span class=\"mono\">%s</span> points.</p>" % (
             esc(primary["lower_points"]), esc(primary["upper_points"]),
         ),
+        '<p class="ab-legend">%s</p>' % esc(document["cover_note"]),
         '<p class="ab-held">%s thresholds held.</p>' % esc(document["thresholds_held"]),
         "</div>",
         '<div class="prov">',
@@ -717,8 +720,10 @@ def render_ab_html(document, css):
             esc(setup["ollama_version"]), esc(setup["grader_model"]), esc(setup["grader_digest"]),
         ),
         "<p>Judge <span class=\"mono\">%s</span> <span class=\"mono break\">%s</span>. "
-        "Interval method <span class=\"mono\">%s</span>.</p>" % (
-            esc(setup["judge_model"]), esc(setup["judge_digest"]), esc(setup["interval_method"]),
+        "Adapter <span class=\"mono\">%s</span>. "
+        "Interval method <span class=\"mono\">%s</span>, z <span class=\"mono\">%s</span>.</p>" % (
+            esc(setup["judge_model"]), esc(setup["judge_digest"]), esc(setup["judge_adapter"]),
+            esc(setup["interval_method"]), esc(setup["z"]),
         ),
         '<details class="prompt-fold" open><summary>Prompt</summary>',
         '<pre class="prompt-diff" data-input="diff">%s</pre>' % esc("\n".join(document["prompt_diff"])),
@@ -745,7 +750,7 @@ def render_ab_html(document, css):
                 esc(side["false_passes_read"]),
             )
         )
-    lines.extend(["</section>", '<section class="sec panel">', "<h2>Metrics</h2>"])
+    lines.extend(["</section>", '<section class="sec panel">', "<h2>Metrics</h2>", "<p>%s</p>" % esc(document["sign_note"])])
     for row in document["metrics"]:
         lines.append('<article class="metric" data-metric="%s" data-source="%s">' % (esc(row["name"]), esc(row["source"])))
         lines.append("<h3>%s</h3>" % esc(row["name"]))
@@ -756,7 +761,8 @@ def render_ab_html(document, css):
             lines.append("<p>FAIL to PASS %s. PASS to FAIL %s. UNPARSED A %s. UNPARSED B %s.</p>" % (
                 esc(row["fail_to_pass"]), esc(row["pass_to_fail"]), esc(row["unparsed_a"]), esc(row["unparsed_b"]),
             ))
-        lines.append("<p>A %s. B %s. Delta %s tickets, %s points. Interval %s to %s.</p>" % (
+        lines.append("<p>%sA %s. B %s. Delta %s tickets, %s points. Interval %s to %s points.</p>" % (
+            "FAIL " if row["source"] == "judge" else "",
             esc(row["count_a"]), esc(row["count_b"]), esc(row["delta_tickets"]), esc(row["delta_points"]),
             esc(row["lower_points"]), esc(row["upper_points"]),
         ))
@@ -782,7 +788,7 @@ def render_ab_html(document, css):
         '<section class="sec panel">',
         "<h2>Tickets</h2>",
         '<table class="ledger ab-rows">',
-        "<thead><tr><th>Case</th></tr></thead>",
+        "<thead><tr>%s</tr></thead>" % "".join("<th>%s</th>" % esc(name) for name in document["ticket_columns"]),
         "<tbody>",
     ])
     for ticket in document["tickets"]:
@@ -937,9 +943,26 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
             "codes_b": list(flags_b[case_id]),
             "verdicts": verdicts,
         })
+    z_text = "%g" % z
     return {
         "command": command,
         "statement": statement,
+        # Computed sentences that say what a sign means; without them "+1 tickets" on a
+        # code row reads as a rise, and the same plus on a judge row means more PASS.
+        "sign_note": (
+            "Delta is A minus B. For a code, a plus means fewer tickets with the code in B. "
+            "For a judge, the tickets counted are FAIL and UNPARSED, so a plus means more PASS in B. "
+            "Each interval is the paired interval on that delta, z %s." % z_text
+        ),
+        "cover_note": (
+            "Delta is A minus B: a plus means fewer tickets with the code in B. "
+            "The interval is the paired interval on that delta, z %s." % z_text
+        ),
+        "ticket_columns": (
+            ["Case", "A final", "B final", "A codes", "B codes"]
+            + [side + " " + rubric for rubric in rubric_names for side in ("A", "B")]
+            + ["Reasons"]
+        ),
         "primary": {
             "code": primary["name"],
             "count_a": primary["count_a"],
@@ -957,6 +980,8 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
             "judge_model": _show(meta.get("model")),
             "judge_digest": _show(meta.get("digest")),
             "interval_method": _METHOD,
+            "z": z_text,
+            "judge_adapter": _show(meta.get("adapter")),
             "a": pair["a"],
             "b": pair["b"],
         },
