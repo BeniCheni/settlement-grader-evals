@@ -254,11 +254,12 @@ body{
     color:var(--ink-2);
   }
   .ledger td > span{min-width:0; text-align:left; overflow-wrap:break-word}
+  .ledger td:empty{display:none}
 }
 @media (max-width: 400px){
   .stat span{font-size:14px; letter-spacing:.03em}
 }
-.break{overflow-wrap:anywhere; min-width:0; max-width:100%}
+.break{overflow-wrap:anywhere; min-width:0}
 .issue .as-recorded{
   font-family:var(--f-mono);
   text-transform:none;

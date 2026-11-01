@@ -816,6 +816,22 @@ class PageTests(unittest.TestCase):
         self.assertEqual(sorted(name for name in set(ids) if ids.count(name) > 1), [])
         self.assertNotIn("ReportTests", globals())
 
+    def test_stacked_rows_hide_empty_cells_and_break_keeps_its_host_width(self):
+        # Below 761 px .ledger stacks and prints each cell under its label. An agreeing row has
+        # nothing in its Change and Reading cells, and a label over nothing changes nothing for the
+        # reader, so the stacked sheet hides an empty cell. And .break must not resize the element
+        # that carries it: .wrap carries it and keeps its own max-width. unittest cannot lay the
+        # page out, so this pins the two rules in the stylesheet the page inlines.
+        with open("ui/ledger.css", encoding="utf-8") as handle:
+            css = handle.read()
+        with open("reports/judge-set1.html", encoding="utf-8") as handle:
+            page = handle.read()
+        self.assertGreater(page.count('<td data-label="Reading"></td>'), 0)
+        self.assertIn(".ledger td:empty{display:none}", brace_block(css, "@media (max-width: 760px)"))
+        self.assertNotIn("max-width", brace_block(css, ".break{"))
+        self.assertIn('<div class="wrap break">', page)
+        self.assertIn(css.rstrip("\n"), page)
+
     def test_font_links_are_the_calibration_pages(self):
         with open("reports/judge-set1.html", encoding="utf-8") as handle:
             page = handle.read()
