@@ -902,6 +902,7 @@ class PageTests(unittest.TestCase):
             css = handle.read()
         wide = brace_block(css, "@media (min-width: 761px)")
         self.assertIn("display:grid", brace_block(wide, ".ledger.judge-rows tr{"))
+        self.assertIn("minmax(0, 3.5fr)", brace_block(wide, ".ledger.judge-rows tr{"))
         self.assertIn("repeat(4, minmax(0, 1fr))", brace_block(wide, ".ledger.judge-rows tr{"))
         self.assertIn("repeat(5, minmax(0, 1fr))", brace_block(wide, ".ledger.judge-rows.with-final tr{"))
         self.assertIn("width:auto", brace_block(wide, ".ledger.judge-rows td:nth-child(n){"))
