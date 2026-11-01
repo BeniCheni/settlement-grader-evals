@@ -108,7 +108,8 @@ doesn't get to ship until it agrees with human labels.
   stay preliminary until it lands.
 - **Drift.** The match facts are frozen (see *Try it*): a re-run sees the facts the first run saw.
   The model’s answers are a separate matter: they are not guaranteed to repeat even at temperature 0.
-  Three repeat runs of the v1 configuration on 29 Oct gave the same final answer on all 32 tickets,
+  Three repeat runs of the v1 configuration on 29 Oct gave the same final answer on all 32 tickets
+  ([reproduce the count](docs/week-2-package.md#where-this-repo-stands)),
   but 21 of those 32 differ from `traces/v1` (`python3 -m scorer.compare traces/v1 traces/aa-1`).
   Neither recorded its Ollama version or model digest, so that difference can't be traced to a cause,
   and the `v1` counts above carry it.

@@ -192,9 +192,10 @@ Small pieces left by the reviews so far, each written to be read cold. The step-
   page PR, which also touches the stylesheet.
 - **Set 2's `rule_adherence` wording.** The owner ruled on Sat 31 Oct 2026 that a NEEDS_HUMAN leg counts as graded; the
   rubric leaves that to be inferred. Say it in the words when step 9 tightens the rubric. It changes no label on set 1.
-- **Page test tidiness.** Unclosed files in the markup test; `_strip_inputs` could mask a banned word only through an
-  input shorter than the word, which no current input is; the discovery test needs the repository root as its working
-  directory.
+- **Page test tidiness.** Unclosed files in the markup test; `_strip_inputs` can also remove computed text identical to
+  an input, masking a banned word even when the input is as long as or longer than the word. A shorter input could split
+  a banned word; set 1's inputs are not that short, but the test fixture has shorter ones. The discovery test needs the
+  repository root as its working directory.
 - **Layout proof.** The stylesheet tests pin that the rules exist. Only a browser run measures the page, and CI has no
   browser, so the matrix stays a review step. Assistive technology beyond Chrome's accessibility tree has not been
   tried.
