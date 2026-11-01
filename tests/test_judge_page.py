@@ -271,7 +271,7 @@ class _Page(HTMLParser):
         elif tag == "details" and self._sec["rows"]:
             self._sec["rows"][-1]["open"] = "open" in attr
         elif tag == "summary" and self._sec["rows"]:
-            self._sec["rows"][-1]["summary"] = attr.get("aria-label")
+            self._sec["rows"][-1]["summary"] = attr.get("aria-label", "")
         elif tag == "p" and "rubric-statement" in classes:
             self._push(tag, "statement")
         elif tag == "p" and "changed" in classes:
