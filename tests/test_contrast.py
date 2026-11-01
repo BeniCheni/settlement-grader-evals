@@ -99,6 +99,8 @@ def text_pairs(theme, scrim):
         ("cover-ink on cover-from", "cover-ink", "cover-from"),
         ("cover-ink on cover-to", "cover-ink", "cover-to"),
         ("cover-prov-ink on cover-prov-bg", "cover-prov-ink", "cover-prov-bg"),
+        ("blood on ground", "blood", "ground"),
+        ("lamp-ink on panel", "lamp-ink", "panel"),
     ):
         add(label, _solid(theme, fg), _solid(theme, bg))
     lamp_rgb, lamp_alpha = parse_color(theme["lamp-bg"])
@@ -143,6 +145,9 @@ class ContrastTests(unittest.TestCase):
         self.assertNotIn("url(", css)
         ratio, theme, label = lowest_pair(css)
         self.assertGreaterEqual(ratio, 4.5, "%s %s is %.3f" % (theme, label, ratio))
+        labels = [item[2] for item in ranked_pairs(css)]
+        self.assertIn("blood on ground", labels)
+        self.assertIn("lamp-ink on panel", labels)
 
 
 if __name__ == "__main__":

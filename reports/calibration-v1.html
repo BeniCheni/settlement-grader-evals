@@ -258,6 +258,74 @@ body{
 @media (max-width: 400px){
   .stat span{font-size:14px; letter-spacing:.03em}
 }
+.break{overflow-wrap:anywhere; min-width:0; max-width:100%}
+.issue .as-recorded{
+  font-family:var(--f-mono);
+  text-transform:none;
+  letter-spacing:0;
+  font-variant-numeric:tabular-nums;
+}
+.tile-which{margin:0 0 10px; color:var(--cover-ink)}
+.cover-main{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr);
+  gap:16px;
+  align-items:start;
+}
+.prov h2,.prov h3{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  font-size:18px;
+  line-height:1.2;
+  margin:0 0 6px;
+  color:inherit;
+}
+.prov p{margin:0}
+.rubric-top,.sides{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr);
+  gap:14px;
+  align-items:start;
+}
+.matrix{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  background:var(--panel-2);
+  font-size:15px;
+}
+.matrix th,.matrix td{
+  border:1px solid var(--rule);
+  padding:6px 8px;
+  vertical-align:top;
+  text-align:left;
+  overflow-wrap:anywhere;
+  min-width:0;
+}
+.matrix th{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:13px;
+  color:var(--ink-2);
+}
+.matrix .cell-fn,.matrix .cell-fp{color:var(--blood); background:var(--ground)}
+.disagree-mark{color:var(--blood)}
+.ledger tr.disagree td:first-child{box-shadow:inset 3px 0 0 var(--blood)}
+.reading-fold{margin:0}
+.reading-fold summary{overflow-wrap:anywhere}
+.reading-fold .reading{margin-top:8px}
+@media (min-width: 761px){
+  .sides{grid-template-columns:repeat(2, minmax(0, 1fr))}
+}
+@media (min-width: 900px){
+  .cover-main{grid-template-columns:minmax(240px, 0.85fr) minmax(0, 1.15fr)}
+  .cover-main .stats{grid-template-columns:minmax(0, 1fr)}
+  .rubric-top{grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr)}
+}
 </style>
 </head>
 <body>
