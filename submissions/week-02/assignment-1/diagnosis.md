@@ -12,7 +12,8 @@ are not blind to the judge (see the report's hand-written section), so every fin
 | First pass | 57.5% | 0.00 | 0 | 17 |
 | Final | 65.0% | 0.00 | 0 | 14 |
 
-It answered FAIL on all 40 rows. A judge that never varies its answer has a kappa of 0 whatever the labels say, and its
+It answered FAIL on all 40 rows. A judge that never varies its answer has a kappa of 0 when the labels include the other
+class; if all labels match its answer, kappa is undefined. Its
 agreement is just the share of rows the owner failed (26 of 40 after adjudication). It cannot tell a right grade from a
 wrong one, so its FAILs carry no information: the 26 it got "right" it would have failed anyway.
 
