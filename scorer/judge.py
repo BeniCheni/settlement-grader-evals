@@ -16,7 +16,8 @@ import urllib.error
 import urllib.request
 from fractions import Fraction
 
-from scorer.calibrate import bar_words, has_reading, write_text
+from scorer.calibrate import bar_words, has_reading, not_bar_words, write_text
+from scorer.report import FONT_LINKS, _css_text, esc
 from scorer.stats import agreement, canonical_json, cohen_kappa, confusion, meets_bar
 from scorer.traces import load_run
 
@@ -1080,6 +1081,19 @@ def _fmt(value):
     return "%.4f" % value
 
 
+def agreement_percent(agree_count, total):
+    """One decimal place from the integer counts, identical on 3.9 and 3.14.
+
+    The tenth of a percent is agree_count * 1000 / total. An exact half rounds
+    away from zero: 1 agreement in 16 rows is 6.25%, halfway between 6.2% and
+    6.3%, and prints 6.3%.
+    """
+    if total == 0:
+        return "none"
+    tenths = (agree_count * 1000 + total // 2) // total
+    return "%d.%d%%" % (tenths // 10, tenths % 10)
+
+
 def _readings(path):
     if path is None:
         return {}
@@ -1221,20 +1235,24 @@ def _list_lines(title, items):
     return lines
 
 
+def worst_sentence(doc):
+    """The sentence the Markdown prints. The page prints the same words."""
+    which = "final labels" if doc["worst"]["labels"] == "final" else "first-pass labels"
+    names = ", ".join(doc["worst"]["rubrics"])
+    if doc["worst"]["tied"]:
+        return "Worst judges on the %s tied: %s." % (which, names)
+    return "Worst judge on the %s: %s." % (which, names)
+
+
 def render_markdown(doc):
     lines = [
         "# Judge agreement",
         "",
         "Command: `%s`" % doc["command"],
         "",
+        worst_sentence(doc),
+        "",
     ]
-    which = "final labels" if doc["worst"]["labels"] == "final" else "first-pass labels"
-    names = ", ".join(doc["worst"]["rubrics"])
-    if doc["worst"]["tied"]:
-        lines.append("Worst judges on the %s tied: %s." % (which, names))
-    else:
-        lines.append("Worst judge on the %s: %s." % (which, names))
-    lines.append("")
     lines.append("Model: %s. Digest: %s." % (doc["model"] or "none", doc["digest"] or "none"))
     lines.append("")
     for rubric in doc["rubrics"]:
@@ -1295,7 +1313,12 @@ def report_command(labels, final, readings, provenance, verdicts):
     return " ".join([parts[0]] + [shlex.quote(part) for part in parts[1:]])
 
 
-def build_report(labels, final, readings, provenance, verdicts):
+def _labels_agree(verdict, human):
+    """PASS agrees with a human PASS. UNPARSED agrees only with a human FAIL."""
+    return (verdict == "PASS") == (human == "PASS")
+
+
+def _load_report(labels, final, readings, provenance, verdicts):
     labels = relative_path(labels, "--labels")
     final = relative_path(final, "--final") if final else None
     readings = relative_path(readings, "--readings") if readings else None
@@ -1337,10 +1360,14 @@ def build_report(labels, final, readings, provenance, verdicts):
     if set(by_key) != set(expected):
         raise JudgeError("verdicts do not match the label rows and rubrics")
     rubric_docs = []
+    page_rubrics = []
     for name in names:
         pairs = []
         final_pairs = []
         unparsed = 0
+        page_rows = []
+        changed = 0 if final_rows is not None else None
+        bucket = readings_map.get(name) or {}
         for index, row in enumerate(rows):
             verdict = by_key[(row["run"], row["case_id"], name)]
             if verdict["trace_id"] != row["trace_id"]:
@@ -1349,18 +1376,41 @@ def build_report(labels, final, readings, provenance, verdicts):
                 raise JudgeError("verdict rubric hash does not match judge_meta")
             if verdict["verdict"] == "UNPARSED":
                 unparsed += 1
-            pairs.append((row["run"], row["case_id"], verdict["verdict"], verdict["reason"], row["human"][name]))
+            first_label = row["human"][name]
+            pairs.append((row["run"], row["case_id"], verdict["verdict"], verdict["reason"], first_label))
+            final_label = None
+            change_reason = None
             if final_rows is not None:
-                final_pairs.append((
-                    row["run"], row["case_id"], verdict["verdict"], verdict["reason"], final_rows[index]["human"][name],
-                ))
+                final_label = final_rows[index]["human"][name]
+                final_pairs.append((row["run"], row["case_id"], verdict["verdict"], verdict["reason"], final_label))
+                if final_label != first_label:
+                    changed += 1
+                    for change in final_rows[index]["changes"]:
+                        if change["rubric"] == name:
+                            change_reason = change["reason"]
+                            break
+            cover_label = final_label if final_label is not None else first_label
+            show_reading = not _labels_agree(verdict["verdict"], first_label) or (
+                final_label is not None and not _labels_agree(verdict["verdict"], final_label)
+            )
+            page_rows.append({
+                "agree": _labels_agree(verdict["verdict"], cover_label),
+                "case_id": row["case_id"],
+                "change_reason": change_reason,
+                "final": final_label,
+                "first": first_label,
+                "reading": bucket.get("%s|%s" % (row["run"], row["case_id"])),
+                "reason": verdict["reason"],
+                "run": row["run"],
+                "show_reading": show_reading,
+                "verdict": verdict["verdict"],
+            })
         recorded = labels_meta["rubrics"][name]
         judged = meta_rubrics[name]
         if recorded == judged:
             text_state = "same text as when the labels were made"
         else:
             text_state = "changed since the labels were made: in sample"
-        bucket = readings_map.get(name) or {}
         rubric_docs.append({
             "final": _side(final_pairs, bucket) if final_pairs else None,
             "first_pass": _side(pairs, bucket),
@@ -1369,6 +1419,7 @@ def build_report(labels, final, readings, provenance, verdicts):
             "text": text_state,
             "unparsed": unparsed,
         })
+        page_rubrics.append({"changed": changed, "rows": page_rows, "rubric": name})
     label_key = "final" if final_rows is not None else "first_pass"
     document = {
         "command": command,
@@ -1380,16 +1431,291 @@ def build_report(labels, final, readings, provenance, verdicts):
         "rubrics": rubric_docs,
         "worst": _worst(rubric_docs, label_key),
     }
+    page = {"labels_path": labels, "row_count": len(rows), "rubrics": page_rubrics}
+    return document, page
+
+
+def build_report(labels, final, readings, provenance, verdicts):
+    document, _page = _load_report(labels, final, readings, provenance, verdicts)
     return render_markdown(document), document
 
 
+_FALSE_PASS = "a false pass: the judge passed a real failure"
+_FALSE_FAIL = "a false fail: the judge failed a row the human passed"
+
+
+def _rubric_provenance(path, names):
+    """Per-rubric statements, keyed by exactly the labels' rubric names."""
+    path = relative_path(path, "--rubric-provenance")
+    data = load_json(path)
+    if not isinstance(data, dict):
+        raise JudgeError("rubric provenance file is not an object")
+    found = set(data.keys())
+    expected = set(names)
+    if found - expected:
+        raise JudgeError("rubric provenance file names a rubric the labels do not have")
+    if expected - found:
+        raise JudgeError("rubric provenance file lacks a rubric")
+    cleaned = {}
+    for name in names:
+        value = data[name]
+        if not isinstance(value, str):
+            raise JudgeError("rubric provenance value is not text")
+        if value.strip() == "":
+            raise JudgeError("rubric provenance value is empty")
+        cleaned[name] = value
+    return path, cleaned
+
+
+def _matrix_cell(side, name, stat, description, alarm):
+    detail = ""
+    if description:
+        detail = ". " + esc(description)
+    if alarm == "fn":
+        klass = "cell-fn"
+    elif alarm == "fp":
+        klass = "cell-fp"
+    else:
+        klass = "cell"
+    return '<td class="%s" data-cell="%s"><span class="mono">%s</span> %s (%s)%s</td>' % (
+        klass, esc(name), esc(side[name]), esc(name), esc(stat), detail,
+    )
+
+
+def _matrix(side):
+    return [
+        '<table class="matrix">',
+        "<thead><tr><th></th><th>Human PASS</th><th>Human FAIL</th></tr></thead>",
+        "<tbody>",
+        "<tr><th>Judge PASS</th>%s%s</tr>" % (
+            _matrix_cell(side, "JP_HP", "tn", None, None),
+            _matrix_cell(side, "JP_HF", "fn", _FALSE_PASS, "fn"),
+        ),
+        "<tr><th>Judge FAIL</th>%s%s</tr>" % (
+            _matrix_cell(side, "JF_HP", "fp", _FALSE_FAIL, "fp"),
+            _matrix_cell(side, "JF_HF", "tp", None, None),
+        ),
+        "</tbody>",
+        "</table>",
+    ]
+
+
+def _side_block(kind, heading, side, changed):
+    agree_count = side["JP_HP"] + side["JF_HF"]
+    total = agree_count + side["JP_HF"] + side["JF_HP"]
+    percent = agreement_percent(agree_count, total)
+    if side["meets_bar"]:
+        pill, word = "ok", bar_words()
+    else:
+        pill, word = "alarm", not_bar_words()
+    read = ""
+    if side["false_passes"]:
+        read = ' <span class="mono">%s</span>' % esc(side["false_passes_read"])
+    lines = [
+        '<article class="side" data-labels="%s">' % esc(kind),
+        '<p class="shout">%s</p>' % esc(heading),
+    ]
+    lines.extend(_matrix(side))
+    lines.append("<p>Agreement %s (%s).</p>" % (esc(percent), esc(_fmt(side["agreement"]))))
+    lines.append("<p>Kappa %s. Kappa at least 0.6, the course's bar: %s.</p>" % (
+        esc(_fmt(side["kappa"])), esc("yes" if side["kappa_at_least_0_6"] else "no"),
+    ))
+    lines.append('<p><span class="pill %s">%s</span>%s</p>' % (pill, esc(word), read))
+    if changed is not None and kind == "final":
+        lines.append(
+            '<p class="changed">Labels the owner changed: <span class="mono">%s</span>.</p>' % esc(changed)
+        )
+    lines.append("</article>")
+    return lines
+
+
+def _reading_html(row, rubric):
+    if not row["show_reading"]:
+        return ""
+    if has_reading(row["reading"]):
+        badge = '<span class="pill read">read</span>'
+        body = '<div class="note"><p class="reading">%s</p></div>' % esc(row["reading"])
+    else:
+        badge = '<span class="pill alarm">unread</span>'
+        return badge
+    context = "Read %s %s %s" % (rubric, row["run"], row["case_id"])
+    return '<details class="reading-fold" open><summary aria-label="%s">%s</summary>%s</details>' % (
+        esc(context), badge, body,
+    )
+
+
+def _row_html(row, with_final, rubric):
+    mark = "agree" if row["agree"] else "disagree"
+    klass = "row" if row["agree"] else "row disagree"
+    if row["agree"]:
+        mark_html = "<span>agree</span>"
+    else:
+        mark_html = '<span class="disagree-mark">disagree</span>'
+    cells = [
+        ("Run", '<span class="mono break">%s</span>' % esc(row["run"])),
+        ("Case", '<span class="mono break">%s</span>' % esc(row["case_id"])),
+        ("Verdict", '<span class="mono">%s</span>' % esc(row["verdict"])),
+        ("First-pass", '<span class="mono">%s</span>' % esc(row["first"])),
+    ]
+    if with_final:
+        cells.append(("Final", '<span class="mono">%s</span>' % esc(row["final"])))
+    cells.append(("Agrees", mark_html))
+    cells.append(("Reason", '<span class="break">%s</span>' % esc(row["reason"])))
+    if with_final:
+        if row["change_reason"]:
+            cells.append(("Change", '<span class="change break">%s</span>' % esc(row["change_reason"])))
+        else:
+            cells.append(("Change", ""))
+    cells.append(("Reading", _reading_html(row, rubric)))
+    parts = [
+        '<tr class="%s" data-mark="%s" data-run="%s" data-case="%s">' % (
+            klass, mark, esc(row["run"]), esc(row["case_id"]),
+        )
+    ]
+    for label, inner in cells:
+        parts.append('<td data-label="%s">%s</td>' % (esc(label), inner))
+    parts.append("</tr>")
+    return "".join(parts)
+
+
+def _tiles(document):
+    key = "final" if document["worst"]["labels"] == "final" else "first_pass"
+    which = "final labels" if key == "final" else "first-pass labels"
+    rubrics = document["rubrics"]
+    meeting = sum(1 for row in rubrics if row[key]["meets_bar"])
+    passes = sum(len(row[key]["false_passes"]) for row in rubrics)
+    fails = sum(len(row[key]["false_fails"]) for row in rubrics)
+    meeting_class = "stat good" if meeting == len(rubrics) and rubrics else "stat alarm"
+    passes_class = "stat alarm" if passes else "stat"
+    fails_class = "stat alarm" if fails else "stat"
+    return [
+        '<p class="tile-which">These tiles count the %s.</p>' % esc(which),
+        '<div class="stats">',
+        '<div class="%s"><b>%s</b><span>judges at %s</span></div>' % (
+            meeting_class, esc(meeting), esc(bar_words()),
+        ),
+        '<div class="%s"><b>%s</b><span>false passes</span></div>' % (passes_class, esc(passes)),
+        '<div class="%s"><b>%s</b><span>false fails</span></div>' % (fails_class, esc(fails)),
+        "</div>",
+    ]
+
+
+def render_judge_html(document, page, statements, provenance_path, css):
+    """The comparison page. The output path is not in the text; the colophon names comparison.html."""
+    by_name = {item["rubric"]: item for item in page["rubrics"]}
+    with_final = document["worst"]["labels"] == "final"
+    which = "final labels" if with_final else "first-pass labels"
+    lines = [
+        "<!DOCTYPE html>",
+        '<html lang="en">',
+        "<head>",
+        '<meta charset="utf-8">',
+        '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        "<title>Do the judges agree?</title>",
+    ]
+    lines.extend(FONT_LINKS)
+    lines.extend([
+        "<style>",
+        css.rstrip("\n"),
+        "</style>",
+        "</head>",
+        "<body>",
+        '<div class="wrap break">',
+        '<header class="cover panel">',
+        '<p class="issue"><span>Labels</span><span class="as-recorded break">%s</span>'
+        '<span class="as-recorded break">%s · %s</span><span>%s rows · %s rubrics</span></p>' % (
+            esc(page["labels_path"]),
+            esc(document["model"] or "none"),
+            esc(document["digest"] or "none"),
+            esc(page["row_count"]),
+            esc(len(document["rubrics"])),
+        ),
+        '<h1 class="mast"><small>Settlement grader</small>Do the judges agree?</h1>',
+        '<p class="dek">%s</p>' % esc(worst_sentence(document)),
+        '<div class="cover-main">',
+        '<div class="cover-tiles">',
+    ])
+    lines.extend(_tiles(document))
+    lines.extend([
+        "</div>",
+        '<div class="prov">',
+        "<h2>%s</h2>" % esc(document["provenance_heading"]),
+        '<p class="cover-statement">%s</p>' % esc(document["provenance"]),
+        "</div>",
+        "</div>",
+        "</header>",
+    ])
+    headers = ["Run", "Case", "Verdict", "First-pass"]
+    if with_final:
+        headers.append("Final")
+    headers.extend(["Agrees", "Reason"])
+    if with_final:
+        headers.append("Change")
+    headers.append("Reading")
+    head = "".join("<th>%s</th>" % esc(header) for header in headers)
+    for rubric in document["rubrics"]:
+        info = by_name[rubric["rubric"]]
+        lines.extend([
+            '<section class="sec panel rubric" data-rubric="%s">' % esc(rubric["rubric"]),
+            '<div class="sec-head">',
+            "<h2>%s</h2>" % esc(rubric["rubric"]),
+            '<p class="break">Rubric SHA-256: <span class="mono">%s</span>.</p>' % esc(rubric["rubric_sha256"]),
+            "<p>%s</p>" % esc(rubric["text"]),
+            "<p>UNPARSED: <span class=\"mono\">%s</span>.</p>" % esc(rubric["unparsed"]),
+            "</div>",
+            '<div class="rubric-top">',
+            '<div class="sides">',
+        ])
+        lines.extend(_side_block("first-pass", "First-pass labels", rubric["first_pass"], info["changed"]))
+        if rubric["final"] is not None:
+            lines.extend(_side_block("final", "Final labels", rubric["final"], info["changed"]))
+        lines.extend([
+            "</div>",
+            '<div class="prov">',
+            "<h3>%s</h3>" % esc(PROVENANCE_HEADING),
+            '<p class="rubric-statement">%s</p>' % esc(statements[rubric["rubric"]]),
+            "</div>",
+            "</div>",
+            "<p>Agrees compares the judge with the %s.</p>" % esc(which),
+            '<table class="ledger judge-rows%s">' % (" with-final" if with_final else ""),
+            "<thead><tr>%s</tr></thead>" % head,
+            "<tbody>",
+        ])
+        for row in info["rows"]:
+            lines.append(_row_html(row, with_final, rubric["rubric"]))
+        lines.extend(["</tbody>", "</table>", "</section>"])
+    command = "%s --rubric-provenance %s --html comparison.html" % (document["command"], shlex.quote(provenance_path))
+    lines.extend([
+        '<p class="colophon">Regenerated by <code class="mono">%s</code>. Fonts load from Google Fonts.</p>' % esc(command),
+        "</div>",
+        "</body>",
+        "</html>",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def render_comparison(labels, final, readings, provenance, verdicts, rubric_provenance):
+    document, page = _load_report(labels, final, readings, provenance, verdicts)
+    names = [item["rubric"] for item in document["rubrics"]]
+    path, statements = _rubric_provenance(rubric_provenance, names)
+    return render_judge_html(document, page, statements, path, _css_text())
+
+
 def cmd_report(args):
-    markdown, document = build_report(args.labels, args.final, args.readings, args.provenance, args.verdicts)
+    if (args.html_out is None) != (args.rubric_provenance is None):
+        raise JudgeError("--html and --rubric-provenance must be given together")
+    document, page = _load_report(args.labels, args.final, args.readings, args.provenance, args.verdicts)
+    markdown = render_markdown(document)
     pairs = []
     if args.md_out:
         pairs.append((args.md_out, markdown))
     if args.json_out:
         pairs.append((args.json_out, canonical_json(document)))
+    if args.html_out is not None:
+        names = [item["rubric"] for item in document["rubrics"]]
+        path, statements = _rubric_provenance(args.rubric_provenance, names)
+        pairs.append((args.html_out, render_judge_html(document, page, statements, path, _css_text())))
     write_outputs(pairs)
     sys.stdout.write(markdown)
 
@@ -1407,8 +1733,9 @@ def _fence(text):
     return "`" * max(3, longest + 1)
 
 
-def export_files(labels, final, readings, provenance, verdicts, rubrics_dir, cache):
-    markdown, document = build_report(labels, final, readings, provenance, verdicts)
+def export_files(labels, final, readings, provenance, verdicts, rubrics_dir, cache, rubric_provenance=None):
+    document, page = _load_report(labels, final, readings, provenance, verdicts)
+    markdown = render_markdown(document)
     rubrics = load_rubrics(rubrics_dir)
     names, rows = load_labels(labels)
     final_rows = None
@@ -1433,17 +1760,29 @@ def export_files(labels, final, readings, provenance, verdicts, rubrics_dir, cac
         record = record_for(cache, row)
         ticket, output = case_sections(render_case(record))
         course_rows.append({"human": row["human"], "input": ticket, "output": output})
-    return {
+    files = {
         "labels.jsonl": jsonl_text(course_rows),
         "results.md": markdown,
         "rubrics.md": "".join(blocks),
     }
+    if rubric_provenance is not None:
+        path, statements = _rubric_provenance(
+            rubric_provenance, [item["rubric"] for item in document["rubrics"]],
+        )
+        files["comparison.html"] = render_judge_html(document, page, statements, path, _css_text())
+    return files
 
 
 def cmd_export(args):
-    files = export_files(args.labels, args.final, args.readings, args.provenance, args.verdicts, args.rubrics, {})
-    write_outputs([(os.path.join(args.out, name), files[name]) for name in ("rubrics.md", "labels.jsonl", "results.md")])
-    sys.stdout.write("files 3\n")
+    files = export_files(
+        args.labels, args.final, args.readings, args.provenance, args.verdicts, args.rubrics, {},
+        rubric_provenance=args.rubric_provenance,
+    )
+    names = ["rubrics.md", "labels.jsonl", "results.md"]
+    if "comparison.html" in files:
+        names.append("comparison.html")
+    write_outputs([(os.path.join(args.out, name), files[name]) for name in names])
+    sys.stdout.write("files %s\n" % len(names))
 
 
 def _parser():
@@ -1503,6 +1842,8 @@ def _parser():
     report.add_argument("--verdicts", required=True)
     report.add_argument("--md", dest="md_out")
     report.add_argument("--json", dest="json_out")
+    report.add_argument("--html", dest="html_out")
+    report.add_argument("--rubric-provenance", dest="rubric_provenance")
     report.set_defaults(func=cmd_report)
 
     export = sub.add_parser("export-course")
@@ -1513,6 +1854,7 @@ def _parser():
     export.add_argument("--verdicts", required=True)
     export.add_argument("--rubrics", required=True)
     export.add_argument("--out", required=True)
+    export.add_argument("--rubric-provenance", dest="rubric_provenance")
     export.set_defaults(func=cmd_export)
     return parser
 

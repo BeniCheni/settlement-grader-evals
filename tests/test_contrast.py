@@ -99,14 +99,20 @@ def text_pairs(theme, scrim):
         ("cover-ink on cover-from", "cover-ink", "cover-from"),
         ("cover-ink on cover-to", "cover-ink", "cover-to"),
         ("cover-prov-ink on cover-prov-bg", "cover-prov-ink", "cover-prov-bg"),
+        ("blood on ground", "blood", "ground"),
+        ("lamp-ink on panel", "lamp-ink", "panel"),
     ):
         add(label, _solid(theme, fg), _solid(theme, bg))
     lamp_rgb, lamp_alpha = parse_color(theme["lamp-bg"])
     if lamp_alpha < 1:
         lamp_bg = composite(lamp_rgb, lamp_alpha, _solid(theme, "panel-2"))
+        lamp_on_panel = composite(lamp_rgb, lamp_alpha, _solid(theme, "panel"))
     else:
         lamp_bg = lamp_rgb
+        lamp_on_panel = lamp_rgb
     add("lamp-ink on lamp-bg", _solid(theme, "lamp-ink"), lamp_bg)
+    # The judge page's per-rubric provenance block sits on .panel, not inside a .note on panel-2.
+    add("lamp-ink on lamp-bg over panel", _solid(theme, "lamp-ink"), lamp_on_panel)
     scrim_rgb, scrim_alpha = scrim
     for end in ("cover-from", "cover-to"):
         backdrop = composite(scrim_rgb, scrim_alpha, _solid(theme, end))
@@ -143,6 +149,10 @@ class ContrastTests(unittest.TestCase):
         self.assertNotIn("url(", css)
         ratio, theme, label = lowest_pair(css)
         self.assertGreaterEqual(ratio, 4.5, "%s %s is %.3f" % (theme, label, ratio))
+        labels = [item[2] for item in ranked_pairs(css)]
+        self.assertIn("blood on ground", labels)
+        self.assertIn("lamp-ink on panel", labels)
+        self.assertIn("lamp-ink on lamp-bg over panel", labels)
 
 
 if __name__ == "__main__":

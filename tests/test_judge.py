@@ -22,6 +22,7 @@ from scorer.judge import (
     OllamaClient,
     build_report,
     case_sections,
+    render_comparison,
     export_files,
     parse_reply,
     render_case,
@@ -1778,6 +1779,13 @@ class ReportTests(unittest.TestCase):
             self.assertEqual(markdown, handle.read())
         with open("reports/judge-set1.json", encoding="utf-8") as handle:
             self.assertEqual(canonical_json(document), handle.read())
+        html = render_comparison(
+            "labels/set1.jsonl", "labels/set1-final.jsonl", "labels/set1-readings.json",
+            "labels/set1-provenance.txt", "judgments/set1-llama3.1-8b",
+            "labels/set1-rubric-provenance.json",
+        )
+        with open("reports/judge-set1.html", encoding="utf-8") as handle:
+            self.assertEqual(html, handle.read())
 
     def test_repo_root_label_dirs_stay_absent_and_sheets_are_ignored(self):
         for name in ("sheets",):
