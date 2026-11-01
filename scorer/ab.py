@@ -507,6 +507,35 @@ def ab_command(paths):
     return " ".join(["python3 -m scorer.judge ab"] + quoted)
 
 
+def threshold_text(row):
+    """One threshold row: its rule and whether it held, its limits, and the observed value."""
+    if row["report_only"]:
+        head = "%s report_only. Not counted" % row["name"]
+    else:
+        head = "%s %s. %s" % (row["name"], row["kind"], "Held" if row["held"] else "Not held")
+    limits = []
+    for key in ("min_net_fall", "max_rise", "max_pass_fall"):
+        if key in row:
+            limits.append("%s %s" % (key, row[key]))
+    if "interval_excludes_zero" in row:
+        limits.append("interval_excludes_zero %s" % ("yes" if row["interval_excludes_zero"] else "no"))
+    observed = []
+    if "fall" in row:
+        observed.append("fall %+d tickets" % row["fall"])
+        if row.get("interval_excludes_zero"):
+            observed.append("lower limit %s points" % row["lower_points"])
+    if "rise" in row:
+        observed.append("rise %+d tickets" % row["rise"])
+    if "pass_fall" in row:
+        observed.append("PASS fall %+d tickets" % row["pass_fall"])
+    parts = [head]
+    if limits:
+        parts.append(", ".join(limits))
+    if observed:
+        parts.append("Observed " + ", ".join(observed))
+    return ". ".join(parts) + "."
+
+
 def _marked(kind, text):
     return "<!-- input:%s -->\n%s\n<!-- /input:%s -->" % (kind, text, kind)
 
@@ -580,12 +609,7 @@ def render_markdown(document):
         lines.append("")
     lines.extend(["## Thresholds", ""])
     for row in document["threshold_rows"]:
-        if row["report_only"]:
-            lines.append("%s report_only. Not counted." % row["name"])
-        elif row["held"]:
-            lines.append("%s %s. Held." % (row["name"], row["kind"]))
-        else:
-            lines.append("%s %s. Not held." % (row["name"], row["kind"]))
+        lines.append(threshold_text(row))
     lines.extend(["", "%s thresholds held." % document["thresholds_held"], "", "## Tickets", ""])
     for ticket in document["tickets"]:
         lines.append("### %s" % ticket["case_id"])
@@ -741,27 +765,16 @@ def render_ab_html(document, css):
     lines.extend(["</section>", '<section class="sec panel">', "<h2>Thresholds</h2>"])
     for row in document["threshold_rows"]:
         if row["report_only"]:
-            text = "%s report_only. Not counted." % row["name"]
             klass = "ab-threshold"
             held = "report"
         elif row["held"]:
-            text = "%s %s. Held." % (row["name"], row["kind"])
             klass = "ab-threshold"
             held = "yes"
         else:
-            text = "%s %s. Not held." % (row["name"], row["kind"])
             klass = "ab-threshold ab-fail"
             held = "no"
-        detail = []
-        for key in ("min_net_fall", "max_rise", "max_pass_fall"):
-            if key in row:
-                detail.append("%s %s" % (key, row[key]))
-        if "interval_excludes_zero" in row:
-            detail.append("interval_excludes_zero %s" % ("yes" if row["interval_excludes_zero"] else "no"))
-        if detail:
-            text = "%s. %s." % (text[:-1], ", ".join(detail))
         lines.append('<p class="%s" data-threshold="%s" data-held="%s">%s</p>' % (
-            klass, esc(row["name"]), held, esc(text),
+            klass, esc(row["name"]), held, esc(threshold_text(row)),
         ))
     lines.append('<p class="ab-held">%s thresholds held.</p>' % esc(document["thresholds_held"]))
     lines.extend([
@@ -887,6 +900,15 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
         for key in ("min_net_fall", "interval_excludes_zero", "max_rise", "max_pass_fall"):
             if key in raw:
                 item[key] = raw[key]
+        # The observed value beside the limit, so "Held" can be checked on the row itself.
+        metric = by_name[raw["name"]]
+        if raw["kind"] == "must_fall":
+            item["fall"] = metric["count_a"] - metric["count_b"]
+            item["lower_points"] = metric["lower_points"]
+        elif raw["kind"] == "max_rise":
+            item["rise"] = metric["count_b"] - metric["count_a"]
+        elif raw["kind"] == "max_pass_fall":
+            item["pass_fall"] = metric["pass_a"] - metric["pass_b"]
         applied.append(item)
     counted = [item for item in applied if not item["report_only"]]
     holding = sum(1 for item in counted if item["held"])

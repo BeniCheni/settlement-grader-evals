@@ -914,6 +914,72 @@ class AbCommandTests(unittest.TestCase):
         self._assert_ab_refused(self._ab(verdicts, cases=binary), "unreadable cases file")
         self._assert_ab_refused(self._ab(verdicts, cases=self.work + "/no-cases.json"), "unreadable cases file")
 
+    def test_threshold_rows_carry_their_limits_and_the_observed_value(self):
+        # The spec: "Each row of thresholds.json with its numbers and whether it held." Before this,
+        # the Markdown row was "NAME kind. Held." and the page row had the limit but not the value
+        # it was compared with. The expected sentences are built from the FLAGS table and the
+        # fixture replies, not from the report.
+        verdicts = self._judged()
+        md_path = self.work + "/rows.md"
+        html_path = self.work + "/rows.html"
+        made = judge_cli(self._ab(verdicts) + ["--md", md_path, "--html", html_path])
+        self.assertEqual(made.returncode, 0, made.stderr)
+        with open(md_path, encoding="utf-8") as handle:
+            markdown = handle.read()
+        with open(html_path, encoding="utf-8") as handle:
+            html = handle.read()
+        from html import unescape
+        case_ids = ["T1", "T2", "T3", "T4"]
+        with open(ROOT + "/http.json", encoding="utf-8") as handle:
+            replies = json.load(handle)["replies"]
+        with open(ROOT + "/thresholds.json", encoding="utf-8") as handle:
+            thresholds = json.load(handle)
+
+        def code_cells(code):
+            left = {case for case, sides in FLAGS.items() if code in sides["alpha"]}
+            right = {case for case, sides in FLAGS.items() if code in sides["beta"]}
+            return _cells(case_ids, left, right)
+
+        def passes(run, rubric):
+            return sum(own_verdict(replies["llama3.1:8b|%s|%s|%s" % (run, case, rubric)]) == "PASS" for case in case_ids)
+
+        expected = []
+        for row in thresholds["code"]:
+            both, only_a, only_b, neither = code_cells(row["code"])
+            count_a, count_b = both + only_a, both + only_b
+            if row["kind"] == "must_fall":
+                _fall, lower, _upper = own_paired(both, only_a, only_b, neither)
+                held = (count_a - count_b) >= row["min_net_fall"] and (not row["interval_excludes_zero"] or lower > 0)
+                text = "%s must_fall. %s. min_net_fall %s, interval_excludes_zero %s. Observed fall %+d tickets%s." % (
+                    row["code"], "Held" if held else "Not held", row["min_net_fall"],
+                    "yes" if row["interval_excludes_zero"] else "no", count_a - count_b,
+                    ", lower limit %s points" % own_limit(lower) if row["interval_excludes_zero"] else "",
+                )
+            else:
+                held = (count_b - count_a) <= row["max_rise"]
+                text = "%s max_rise. %s. max_rise %s. Observed rise %+d tickets." % (
+                    row["code"], "Held" if held else "Not held", row["max_rise"], count_b - count_a,
+                )
+            expected.append((row["code"], text))
+        for row in thresholds["judge"]:
+            if row["kind"] == "report_only":
+                expected.append((row["rubric"], "%s report_only. Not counted." % row["rubric"]))
+                continue
+            fall = passes(ALPHA, row["rubric"]) - passes(BETA, row["rubric"])
+            expected.append((row["rubric"], "%s max_pass_fall. %s. max_pass_fall %s. Observed PASS fall %+d tickets." % (
+                row["rubric"], "Held" if fall <= row["max_pass_fall"] else "Not held", row["max_pass_fall"], fall,
+            )))
+        self.assertEqual(len(expected), 9)
+        held_values = {text.split(". ")[1].rstrip(".") for _name, text in expected}
+        self.assertEqual(held_values, {"Held", "Not held", "Not counted"})
+        section = markdown.split("## Thresholds\n", 1)[1].split("\n## Tickets", 1)[0]
+        for name, text in expected:
+            with self.subTest(name=name):
+                self.assertIn("\n" + text + "\n", section)
+                match = re.search(r'data-threshold="%s" data-held="[a-z]+">(.*?)</p>' % re.escape(name), html)
+                self.assertIsNotNone(match, name)
+                self.assertEqual(unescape(match.group(1)), text)
+
     def test_markup_in_the_prompt_diff_and_the_path_is_escaped(self):
         tree = self.work + "/tree"
         os.makedirs(tree)
