@@ -23,8 +23,8 @@ and built after it. The plan records the move.
 `report` gains two options, `--html OUT` and `--rubric-provenance FILE`, given together or not at all: either one alone
 is a usage error. With them it takes the same inputs and runs the same validation as today, validates the new file, and
 writes the page alongside `--md` and `--json` through `write_outputs`, so an error at any point exits with status 2,
-prints one message, shows no traceback and writes no file. `OUT` is handled as `--md` and `--json` are. The page never
-prints the path it was written to: its colophon names the fixed output `comparison.html` instead (the owner's ruling,
+prints one message, shows no traceback and writes no file. `OUT` is handled as `--md` and `--json` are. The page does not use
+the actual output path in its contents: its colophon names the fixed output `comparison.html` instead (the owner's ruling,
 Sat 31 Oct 2026), so that `report --html` and `export-course` write the same bytes and the printed command runs as
 shown. `FILE` passes through `relative_path`, as `--provenance` does, because the page's colophon names it. For the same
 inputs, the Markdown and the JSON stay byte for byte what they are on `main` at this spec's merge: neither reads the new
