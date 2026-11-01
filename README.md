@@ -129,6 +129,10 @@ it agrees with human labels.
 | `data/codes_v1.json` | The 12 failure codes, with the traces and the dollars each one misbooked |
 | `data/espn_frozen.json` | The match facts the eval runs against |
 | `traces/` | Run receipts; `v1` is the first full run |
+| `scorer/` | The eleven plain-code checks, the agreement statistics, the calibration report and the judge harness |
+| `rubrics/`, `labels/`, `judgments/` | Three judge rubrics, my 120 labels on 40 rows, the judge's verdicts and the adjudication |
+| `reports/` | The generated reports, including the calibration page and the judge page (open either in a browser) |
+| `docs/` | The specs, the Week 2 plan and its follow-ups, and the build and review prompts that made this |
 | `viewer/` | A trace viewer for annotating `settlement-traces.json` |
 | `share/settlement-taxonomy.html` | The failure taxonomy |
 
@@ -139,11 +143,19 @@ taxonomy, the independent code check and the frozen match facts.
 
 The eleven plain-code checks are calibrated in sample against the human labels on the v1 traces.
 
-**Next**: turn the eleven code-checkable failures into a scorer; calibrate one LLM judge against
-human labels before it is allowed to grade anything; red-team the slip-text injection and report
-both how many attacks it catches and how many honest tickets it wrongly blocks; verify the 28
-remaining answer keys; and grow the set well past 32 so the confidence interval stops being the
-headline.
+One local judge, `llama3.1:8b`, has been compared with my labels on 40 rows under three rubrics. On
+the final labels it agrees 80.0% with kappa 0.3191 on `needs_human_correctness`, 65.0% with 0.0000 on
+`rule_adherence`, and 92.5% with 0.8500 on `tool_call_accuracy`, the only one of the three whose
+numbers meet the bar of 85% and 0.6. All of that is in sample: I adjudicated the final labels after
+seeing the verdicts, and the first-pass figures, blind to the judge, are still in sample. It shows
+how closely the judge reproduces my labels on these rows, not how it would do on rows it hasn't
+seen. Every row, the matrices and a written reading of every disagreement are on
+[one page](reports/judge-set1.html) (open it in a browser).
+
+**Next**: one change to the grader, A/B-tested against thresholds written first; tighten the weakest
+judge's rubric and check it on fresh labels; red-team the slip-text injection and report both how
+many attacks it catches and how many honest tickets it wrongly blocks; verify the 28 remaining
+answer keys; and grow the set well past 32 so the confidence interval stops being the headline.
 
 ## 🥅 Try it
 
@@ -155,6 +167,7 @@ python3 check_gold.py data/candidates.json /tmp/review.md   # the independent co
 python3 -m scorer.calibrate traces/v1               # agreement with the human labels, in sample
 python3 -m scorer.score traces/v1                   # which codes each ticket shows
 python3 -m scorer.report traces/v1 --out reports/calibration-v1.html --json reports/calibration-v1.json
+python3 -m scorer.judge report --labels labels/set1.jsonl --final labels/set1-final.jsonl --readings labels/set1-readings.json --provenance labels/set1-provenance.txt --verdicts judgments/set1-llama3.1-8b --md reports/judge-set1.md --json reports/judge-set1.json --html reports/judge-set1.html --rubric-provenance labels/set1-rubric-provenance.json   # the judge page; calls no model
 ```
 
 Tested on Python 3.9 and 3.14, standard library only. In the first run, a ticket took a median of about 18 seconds;
