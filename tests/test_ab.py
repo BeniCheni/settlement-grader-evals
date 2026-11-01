@@ -292,6 +292,12 @@ class NumberFormatTests(unittest.TestCase):
     def test_ship_is_a_whole_word(self):
         self.assertIsNone(BANNED_WORD.search("relationship"))
         self.assertIsNone(BANNED_WORD.search("shipshape"))
+        self.assertIsNone(BANNED_WORD.search("scholarship in sample"))
+        # The other phrases are not whole words: a computed "generalised" or "untrusted" is a hit.
+        self.assertIsNotNone(BANNED_WORD.search("generalised"))
+        self.assertIsNotNone(BANNED_WORD.search("Generalization"))
+        self.assertIsNotNone(BANNED_WORD.search("untrusted"))
+        self.assertIsNotNone(BANNED_WORD.search("Held-Out"))
         self.assertIsNotNone(BANNED_WORD.search("ship"))
         self.assertIsNotNone(BANNED_WORD.search("no-ship"))
         self.assertIsNotNone(BANNED_WORD.search("Ship it"))
@@ -300,10 +306,15 @@ class NumberFormatTests(unittest.TestCase):
 ROOT = "tests/fixtures/ab"
 ALPHA = ROOT + "/alpha"
 BETA = ROOT + "/beta"
+# The five phrases match inside a word, as tests/test_judge_page.py reads them, so "generalised",
+# "generalisation" and "untrusted" are hits. Only ship and no-ship are whole words (the spec's
+# exception for relationship and shipshape).
 BANNED_WORD = re.compile(
-    r"\b(?:held out|held-out|trusted|generalise|generalize|ship|no-ship)\b",
+    r"held out|held-out|trusted|generalis|generaliz|\b(?:ship|no-ship)\b",
     re.IGNORECASE,
 )
+# Each run's final ticket_result per fixture case, read from the traces by hand.
+FINALS = {"T1": (None, "WIN"), "T2": (None, "WIN"), "T3": (None, "LOSS"), "T4": ("WIN", "WIN")}
 # What the traces were built to fire. The test counts from this table.
 FLAGS = {
     "T1": {"alpha": {"NO_FINAL_ANSWER"}, "beta": set()},
@@ -362,6 +373,11 @@ def own_points(numerator, denominator):
     return "%s%d.%d" % (sign, quot // 10, quot % 10)
 
 
+def agreement_percent_own(count, total):
+    tenths = (count * 1000 + total // 2) // total
+    return "%d.%d%%" % (tenths // 10, tenths % 10)
+
+
 def own_limit(proportion):
     if proportion == 0.0:
         return "0.0"
@@ -379,6 +395,17 @@ def own_verdict(reply):
             return line.strip()
         return "UNPARSED"
     return "UNPARSED"
+
+
+def own_reason(reply):
+    lines = reply.splitlines()
+    first = next((index for index, line in enumerate(lines) if line.strip() != ""), None)
+    if first is None:
+        return ""
+    for line in lines[first + 1:]:
+        if line.startswith("Reason:"):
+            return line[len("Reason:"):].strip()
+    return ""
 
 
 def _cells(case_ids, left, right):
@@ -1080,6 +1107,248 @@ class AbCommandTests(unittest.TestCase):
         self.assertIn("### %s\n\n<!-- input:statement -->\n%s\n<!-- /input:statement -->" % (PROVENANCE_HEADING, statement), md_section)
         self.assertEqual(markdown.count(statement), 2)
         self.assertEqual(markdown.count(PROVENANCE_HEADING), 2)
+
+    def _expected_figures(self, replies, z=1.96):
+        """Every figure the report should print, from the FLAGS and FINALS tables, the fixture
+        replies and the test's own method 10. Nothing here calls scorer.ab."""
+        case_ids = ["T1", "T2", "T3", "T4"]
+        n = len(case_ids)
+        rubrics = ["needs_human_correctness", "rule_adherence", "tool_call_accuracy"]
+        verdicts = {}
+        for run in (ALPHA, BETA):
+            for case in case_ids:
+                for rubric in rubrics:
+                    reply = replies["llama3.1:8b|%s|%s|%s" % (run, case, rubric)]
+                    verdicts[(run, case, rubric)] = (own_verdict(reply), own_reason(reply))
+        metrics = {}
+        for rubric in rubrics:
+            left = {case for case in case_ids if verdicts[(ALPHA, case, rubric)][0] != "PASS"}
+            right = {case for case in case_ids if verdicts[(BETA, case, rubric)][0] != "PASS"}
+            both, only_a, only_b, neither = _cells(case_ids, left, right)
+            _fall, lower, upper = own_paired(both, only_a, only_b, neither, z)
+            metrics[rubric] = {
+                "source": "judge", "count_a": both + only_a, "count_b": both + only_b, "only_a": only_a, "only_b": only_b,
+                "delta_tickets": "%+d" % (only_a - only_b), "delta_points": own_points(only_a - only_b, n),
+                "lower_points": own_limit(lower), "upper_points": own_limit(upper),
+                "pass_a": n - len(left), "pass_b": n - len(right),
+                "unparsed_a": sum(verdicts[(ALPHA, case, rubric)][0] == "UNPARSED" for case in case_ids),
+                "unparsed_b": sum(verdicts[(BETA, case, rubric)][0] == "UNPARSED" for case in case_ids),
+            }
+        for code in CHECKS:
+            left = {case for case, sides in FLAGS.items() if code in sides["alpha"]}
+            right = {case for case, sides in FLAGS.items() if code in sides["beta"]}
+            both, only_a, only_b, neither = _cells(case_ids, left, right)
+            _fall, lower, upper = own_paired(both, only_a, only_b, neither, z)
+            metrics[code] = {
+                "source": "code", "count_a": both + only_a, "count_b": both + only_b, "only_a": only_a, "only_b": only_b,
+                "delta_tickets": "%+d" % (only_a - only_b), "delta_points": own_points(only_a - only_b, n),
+                "lower_points": own_limit(lower), "upper_points": own_limit(upper),
+            }
+        return case_ids, rubrics, verdicts, metrics
+
+    def test_every_figure_on_the_page_and_in_the_markdown_is_counted_from_the_fixture(self):
+        # test_ab_matches_counts_from_the_fixture_table reads the JSON. Swapping A and B on the
+        # cover, in a metric paragraph, in a ticket row or in the Markdown, inverting a set-1
+        # line, printing the wrong digest, or reversing the prompt diff all survived it.
+        from html import unescape
+        verdicts_dir = self._judged()
+        md_path = self.work + "/figures.md"
+        html_path = self.work + "/figures.html"
+        json_path = self.work + "/figures.json"
+        made = judge_cli(self._ab(verdicts_dir) + ["--md", md_path, "--json", json_path, "--html", html_path])
+        self.assertEqual(made.returncode, 0, made.stderr)
+        with open(md_path, encoding="utf-8") as handle:
+            markdown = handle.read()
+        with open(html_path, encoding="utf-8") as handle:
+            html = handle.read()
+        with open(json_path, encoding="utf-8") as handle:
+            document = json.load(handle)
+        with open(ROOT + "/http.json", encoding="utf-8") as handle:
+            replies = json.load(handle)["replies"]
+        case_ids, rubrics, verdicts, metrics = self._expected_figures(replies)
+        text = lambda fragment: unescape(re.sub(r"<[^>]+>", "", fragment))
+
+        # The cover: the first must_fall code in the thresholds file is NO_FINAL_ANSWER.
+        primary = metrics["NO_FINAL_ANSWER"]
+        cover = text(html.split('<div class="cover-tiles">', 1)[1].split("</div>", 1)[0])
+        md_cover = markdown.split("## NO_FINAL_ANSWER\n", 1)[1].split("\n## ", 1)[0]
+        for want in (
+            "A %s. B %s." % (primary["count_a"], primary["count_b"]),
+            "Delta %s tickets, %s points." % (primary["delta_tickets"], primary["delta_points"]),
+            "Interval %s to %s points." % (primary["lower_points"], primary["upper_points"]),
+        ):
+            self.assertIn(want, cover)
+            self.assertIn(want + "\n", md_cover)
+        self.assertEqual(cover.count("A %s. B %s." % (primary["count_b"], primary["count_a"])), 0 if primary["count_a"] != primary["count_b"] else 1)
+        self.assertIn('data-primary="NO_FINAL_ANSWER"', html)
+
+        # Every metric, on the page and in the Markdown, in full sentences.
+        md_metrics = markdown.split("## Metrics\n", 1)[1].split("\n## Thresholds", 1)[0]
+        for name, want in metrics.items():
+            article = text(re.search(r'<article class="metric" data-metric="%s".*?</article>' % name, html, re.S).group(0))
+            md_block = md_metrics.split("### %s\n" % name, 1)[1].split("\n### ", 1)[0]
+            prefix = "FAIL " if want["source"] == "judge" else ""
+            sentences = [
+                "%sA %s. B %s. Delta %s tickets, %s points." % (prefix, want["count_a"], want["count_b"], want["delta_tickets"], want["delta_points"]),
+                "Interval %s to %s points." % (want["lower_points"], want["upper_points"]),
+                "Only A %s. Only B %s." % (want["only_a"], want["only_b"]),
+            ]
+            if want["source"] == "judge":
+                sentences += [
+                    "PASS share A %s. PASS share B %s." % (agreement_percent_own(want["pass_a"], 4), agreement_percent_own(want["pass_b"], 4)),
+                    "UNPARSED A %s. UNPARSED B %s." % (want["unparsed_a"], want["unparsed_b"]),
+                    "FAIL to PASS %s. PASS to FAIL %s." % (want["only_a"], want["only_b"]),
+                ]
+            for sentence in sentences:
+                with self.subTest(metric=name, sentence=sentence):
+                    self.assertIn(sentence, article)
+                    self.assertIn(sentence, md_block)
+            if want["source"] == "judge":
+                self.assertIn("Delta %s points." % want["delta_points"], article)
+
+        # Set 1, from the fixture report's cells and figures.
+        with open(ROOT + "/set1.json", encoding="utf-8") as handle:
+            set1 = {item["rubric"]: item["final"] for item in json.load(handle)["rubrics"]}
+        md_set1 = markdown.split("## Set 1\n", 1)[1].split("\n## Metrics", 1)[0]
+        for rubric in rubrics:
+            final = set1[rubric]
+            agree = final["JP_HP"] + final["JF_HF"]
+            total = agree + final["JP_HF"] + final["JF_HP"]
+            read = [item for item in final["false_passes"] if item.get("reading") is True]
+            passes = "no false passes" if not final["false_passes"] else "%s of %s" % (len(read), len(final["false_passes"]))
+            line = "meets_bar: %s. Agreement %s (%.4f). Kappa %.4f. False passes read: %s." % (
+                "yes" if final["meets_bar"] else "no", agreement_percent_own(agree, total), final["agreement"], final["kappa"], passes,
+            )
+            paragraph = text(re.search(r'<p class="ab-judge[^"]*" data-set1="%s">(.*?)</p>' % rubric, html).group(1))
+            with self.subTest(rubric=rubric):
+                self.assertEqual(paragraph, "%s. %s" % (rubric, line))
+                self.assertIn("### %s\n\n%s\n" % (rubric, line), md_set1)
+                self.assertEqual(('class="ab-judge ab-fail"' in re.search(r'<p class="ab-judge[^"]*" data-set1="%s"' % rubric, html).group(0)), not final["meets_bar"])
+        self.assertIn("rule_adherence is the delta to read with most care.", md_set1)
+
+        # Setup, from the two run_meta files and the fixture's judge, and the prompt diff's direction.
+        with open(ALPHA + "/run_meta.json", encoding="utf-8") as handle:
+            meta_a = json.load(handle)
+        with open(BETA + "/run_meta.json", encoding="utf-8") as handle:
+            meta_b = json.load(handle)
+        setup = text(html.split("<h2>Setup</h2>", 1)[1].split("<details", 1)[0])
+        md_setup = markdown.split("## Setup\n", 1)[1].split("\n## Prompt", 1)[0]
+        self.assertIn("Ollama %s. Grader %s %s." % (meta_a["ollama_version"], meta_a["model"], meta_a["model_digest"]), setup)
+        self.assertIn("Judge llama3.1:8b sha256:judge. Adapter http-fixture.", setup)
+        self.assertIn("Ollama %s.\nGrader model %s. Digest %s.\n" % (meta_a["ollama_version"], meta_a["model"], meta_a["model_digest"]), md_setup)
+        self.assertIn("Judge model llama3.1:8b. Digest sha256:judge. Adapter http-fixture.\n", md_setup)
+        self.assertIn("A %s.\nB %s.\n" % (ALPHA, BETA), md_setup)
+        diff = text(re.search(r'<pre class="prompt-diff" data-input="diff">(.*?)</pre>', html, re.S).group(1))
+        removed = [line[1:] for line in diff.splitlines() if line.startswith("-") and not line.startswith("---")]
+        added = [line[1:] for line in diff.splitlines() if line.startswith("+") and not line.startswith("+++")]
+        self.assertEqual(len(removed), 1)
+        self.assertEqual(len(added), 1)
+        self.assertIn(removed[0], meta_a["system_prompt"])
+        self.assertNotIn(removed[0], meta_b["system_prompt"])
+        self.assertIn(added[0], meta_b["system_prompt"])
+        self.assertTrue(diff.startswith("--- A\n+++ B\n"))
+        self.assertIn(diff, markdown)
+
+        # Every ticket: finals, codes, each verdict and the reasons where verdicts differ.
+        rows = re.findall(r'<tr class="row" data-case="([^"]+)">(.*?)</tr>', html, re.S)
+        self.assertEqual([case for case, _row in rows], case_ids)
+        md_tickets = markdown.split("## Tickets\n", 1)[1]
+        for case, row in rows:
+            cells = {unescape(label): text(inner) for label, inner in re.findall(r'<td data-label="([^"]+)"[^>]*>(.*?)</td>', row, re.S)}
+            final_a, final_b = FINALS[case]
+            codes_a = [code for code in CHECKS if code in FLAGS[case]["alpha"]]
+            codes_b = [code for code in CHECKS if code in FLAGS[case]["beta"]]
+            md_block = md_tickets.split("### %s\n" % case, 1)[1].split("\n### ", 1)[0]
+            with self.subTest(case=case):
+                self.assertEqual(cells["Case"], case)
+                self.assertEqual((cells["A final"], cells["B final"]), (final_a or "none", final_b or "none"))
+                self.assertEqual((cells["A codes"], cells["B codes"]), (", ".join(codes_a) or "none", ", ".join(codes_b) or "none"))
+                self.assertIn("A final %s. B final %s.\n" % (final_a or "none", final_b or "none"), md_block)
+                self.assertIn("A codes %s.\nB codes %s.\n" % (", ".join(codes_a) or "none", ", ".join(codes_b) or "none"), md_block)
+                reasons = ""
+                for rubric in rubrics:
+                    (verdict_a, reason_a), (verdict_b, reason_b) = verdicts[(ALPHA, case, rubric)], verdicts[(BETA, case, rubric)]
+                    self.assertEqual((cells["A " + rubric], cells["B " + rubric]), (verdict_a, verdict_b))
+                    self.assertIn("%s A %s. B %s.\n" % (rubric, verdict_a, verdict_b), md_block)
+                    marked = "<!-- input:reason -->\nA: %s\nB: %s\n<!-- /input:reason -->" % (reason_a or "none", reason_b or "none")
+                    if verdict_a != verdict_b:
+                        reasons += "%s A: %s B: %s" % (rubric, reason_a or "none", reason_b or "none")
+                        self.assertIn(marked, md_block)
+                    else:
+                        self.assertNotIn(marked, md_block)
+                self.assertEqual(cells.get("Reasons", ""), reasons)
+        self.assertEqual(sum(1 for case in case_ids if any(verdicts[(ALPHA, case, r)][0] != verdicts[(BETA, case, r)][0] for r in rubrics)), 3)
+
+        # The JSON: the same figures, and no private key.
+        by_name = {row["name"]: row for row in document["metrics"]}
+        for name, want in metrics.items():
+            for key in ("count_a", "count_b", "only_a", "only_b", "delta_tickets", "delta_points", "lower_points", "upper_points"):
+                self.assertEqual(by_name[name][key], want[key], "%s %s" % (name, key))
+        private = []
+
+        def walk(value):
+            if isinstance(value, dict):
+                for key, item in value.items():
+                    if key.startswith("_"):
+                        private.append(key)
+                    walk(item)
+            elif isinstance(value, list):
+                for item in value:
+                    walk(item)
+
+        walk(document)
+        self.assertEqual(private, [])
+        for row in document["tickets"]:
+            self.assertEqual((row["final_a"], row["final_b"]), FINALS[row["case_id"]])
+
+    def test_the_interval_follows_the_thresholds_z(self):
+        # With z fixed at 1.96 inside the report, a thresholds file saying 2.5758 would print 95% limits as 99% ones.
+        verdicts_dir = self._judged()
+        other = self._thresholds_variant(lambda d: d["interval"].__setitem__("z", 2.5758))
+        json_path = self.work + "/z.json"
+        made = judge_cli(self._ab(verdicts_dir, thresholds=other) + ["--json", json_path])
+        self.assertEqual(made.returncode, 0, made.stderr)
+        with open(json_path, encoding="utf-8") as handle:
+            document = json.load(handle)
+        with open(ROOT + "/http.json", encoding="utf-8") as handle:
+            replies = json.load(handle)["replies"]
+        _case_ids, _rubrics, _verdicts, wide = self._expected_figures(replies, z=2.5758)
+        _case_ids, _rubrics, _verdicts, narrow = self._expected_figures(replies, z=1.96)
+        by_name = {row["name"]: row for row in document["metrics"]}
+        differing = 0
+        for name, want in wide.items():
+            self.assertEqual((by_name[name]["lower_points"], by_name[name]["upper_points"]), (want["lower_points"], want["upper_points"]), name)
+            differing += (want["lower_points"], want["upper_points"]) != (narrow[name]["lower_points"], narrow[name]["upper_points"])
+        self.assertGreater(differing, 10)
+
+    def test_a_verdict_whose_rubric_hash_is_not_judge_metas_is_refused(self):
+        verdicts_dir = self._judged()
+        with open(os.path.join(verdicts_dir, "verdicts.jsonl"), encoding="utf-8") as handle:
+            lines = handle.read().splitlines()
+        changed = json.loads(lines[0])
+        changed["rubric_sha256"] = "0" * 64
+        other = self.work + "/other-hash"
+        os.makedirs(other)
+        with open(os.path.join(other, "verdicts.jsonl"), "w", encoding="utf-8") as handle:
+            handle.write("\n".join([json.dumps(changed)] + lines[1:]) + "\n")
+        shutil.copy(os.path.join(verdicts_dir, "judge_meta.json"), os.path.join(other, "judge_meta.json"))
+        self._assert_ab_refused(self._ab(other), "does not match judge_meta.json")
+
+    def test_load_run_drops_the_prompt_the_traces_carry(self):
+        # The case text cannot leak the prompt only because load_run drops the LLM spans that
+        # carry it. The fixture traces hold no prompt, so this is checked on a tracked real run.
+        from scorer.judge import render_case
+        from scorer.traces import load_run
+        step_three = SYSTEM_PROMPT.split("\n")[5]
+        self.assertTrue(step_three.startswith("3. Grade each leg"))
+        with open("traces/v1/settlement-traces.json", encoding="utf-8") as handle:
+            raw = handle.read()
+        self.assertGreaterEqual(raw.count(json.dumps(step_three)[1:-1]), 32)
+        records = load_run("traces/v1")
+        self.assertEqual(len(records), 32)
+        for record in records:
+            self.assertNotIn(step_three, json.dumps(record, ensure_ascii=False))
+            self.assertNotIn(step_three, render_case(record))
 
     def test_markup_in_the_prompt_diff_and_the_path_is_escaped(self):
         tree = self.work + "/tree"
