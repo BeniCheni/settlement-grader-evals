@@ -1,7 +1,8 @@
 # The judge comparison page: the spec for step 7
 
-Written Sat 31 Oct 2026 by the PM seat. It is the spec of record for the step 7 build prompt, which will be archived
-under `docs/cursor-prompts/`. Precedence: the owner's rulings, then `docs/judge-spec.md`, then this spec, then the build
+Written Sat 31 Oct 2026 by the PM seat. It is the spec of record for the step 7 build prompt, archived as
+`docs/cursor-prompts/judge-page-build.md`; what review changed is under "Amendments at review".
+Precedence: the owner's rulings, then `docs/judge-spec.md`, then this spec, then the build
 prompt, then `docs/week-2-package.md`. `AGENTS.md` outranks all of them on process, and nothing here loosens it. Where
 this spec says "contract" the name or behaviour is fixed; elsewhere the builder decides and says why in the PR.
 
@@ -82,7 +83,7 @@ load from Google Fonts.
      when there are any. Nothing presents the numbers alone as the trust verdict: the word "trusted" appears nowhere in
      computed text, because `meets_bar` tests two numbers and not whether every false pass was read;
    - the number of labels the owner changed on adjudication for this rubric, when final labels are given.
-4. **Every row, per rubric.** One line per label row in the labels file's order: run and case id; the judge's verdict;
+4. **Every row, per rubric.** One entry per label row in the labels file's order: run and case id; the judge's verdict;
    the first-pass human label and, when given, the final one; whether judge and human agree on the labels the cover
    uses; and the judge's reason. A row whose label changed shows the owner's change reason verbatim. A row that
    disagrees on the first-pass or the final labels shows its reading's text verbatim, with a "read" badge when it has
@@ -133,6 +134,26 @@ is ink, not slime, and blood marks a false pass, a false fail, an unread disagre
     only gaining, without removing or weakening any existing assertion: the set-1 regeneration test gains the page, and
     the contrast test's list gains pairs (item 7); and the privacy sweep (`AGENTS.md` rule 6), patterns stated, counts
     only.
+
+## Amendments at review (PR #15, Sun 1 Nov 2026)
+
+What review changed, so a cold reader does not take the contract above for the whole page.
+
+- **Two-tier rows (the owner's ruling).** At 761 px and wider each row's short facts (run, case, verdict, first-pass
+  label, final label when given, agreement) sit on one line, each under its own label, and its reason, change reason and
+  reading each span the row beneath. The first build inherited `.ledger`'s 26% first column, which gave every reading a
+  39 px column and a 292,114 px page at 1000 px while every test and the overflow check stayed green. The rules are
+  scoped to `.judge-rows`, and the calibration page's `.ledger` keeps its layout.
+- **Empty cells (the owner's ruling).** A row's empty change or reading cell is hidden at every width, so no label sits
+  over nothing.
+- **Font links (the owner's ruling).** `scorer.report.FONT_LINKS` is the one source, used by both pages.
+- **Disclosures (Pass 2).** Each reading's summary is named with its rubric, run and case for assistive technology. An
+  unread disagreement is the blood badge alone, with no disclosure.
+- **Prose measure (Pass 2).** Above 1200 px the prose stops at 80ch. No test pins it; see the follow-ups in
+  `docs/week-2-package.md`.
+- **A measured bar for acceptance item 8 (the PM's, in the Pass 2 brief).** `scrollWidth` cannot see a column that is
+  too narrow. So item 8 also measures 761, 899 and 1400 px; at about 1000 px the page is no taller than 30,000 px, and
+  at each of those widths no short fact breaks across lines. At the merge it was 28,622 px at 1000 px in Chrome 156.
 
 ## Out of scope
 
