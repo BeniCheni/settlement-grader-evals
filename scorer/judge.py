@@ -1529,7 +1529,7 @@ def _side_block(kind, heading, side, changed):
     return lines
 
 
-def _reading_html(row):
+def _reading_html(row, rubric):
     if not row["show_reading"]:
         return ""
     if has_reading(row["reading"]):
@@ -1537,11 +1537,14 @@ def _reading_html(row):
         body = '<div class="note"><p class="reading">%s</p></div>' % esc(row["reading"])
     else:
         badge = '<span class="pill alarm">unread</span>'
-        body = ""
-    return '<details class="reading-fold" open><summary>%s</summary>%s</details>' % (badge, body)
+        return badge
+    context = "Read %s %s %s" % (rubric, row["run"], row["case_id"])
+    return '<details class="reading-fold" open><summary aria-label="%s">%s</summary>%s</details>' % (
+        esc(context), badge, body,
+    )
 
 
-def _row_html(row, with_final):
+def _row_html(row, with_final, rubric):
     mark = "agree" if row["agree"] else "disagree"
     klass = "row" if row["agree"] else "row disagree"
     if row["agree"]:
@@ -1563,7 +1566,7 @@ def _row_html(row, with_final):
             cells.append(("Change", '<span class="change break">%s</span>' % esc(row["change_reason"])))
         else:
             cells.append(("Change", ""))
-    cells.append(("Reading", _reading_html(row)))
+    cells.append(("Reading", _reading_html(row, rubric)))
     parts = [
         '<tr class="%s" data-mark="%s" data-run="%s" data-case="%s">' % (
             klass, mark, esc(row["run"]), esc(row["case_id"]),
@@ -1679,7 +1682,7 @@ def render_judge_html(document, page, statements, provenance_path, css):
             "<tbody>",
         ])
         for row in info["rows"]:
-            lines.append(_row_html(row, with_final))
+            lines.append(_row_html(row, with_final, rubric["rubric"]))
         lines.extend(["</tbody>", "</table>", "</section>"])
     command = "%s --rubric-provenance %s --html comparison.html" % (document["command"], shlex.quote(provenance_path))
     lines.extend([

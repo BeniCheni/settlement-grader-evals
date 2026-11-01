@@ -14,7 +14,6 @@ from html.parser import HTMLParser
 from scorer.calibrate import bar_words, has_reading, not_bar_words
 from scorer.judge import agreement_percent, build_report, render_comparison
 from scorer.report import esc
-from scorer.stats import confusion, meets_bar
 
 from tests import test_judge
 from tests.test_contrast import brace_block
@@ -159,19 +158,24 @@ def _kappa(side):
 
 def _side(pairs):
     """The figures one side of a rubric must print, from (verdict, human, reading) triples."""
-    predicted = [verdict != "PASS" for verdict, _human, _text in pairs]
-    truth = [human == "FAIL" for _verdict, human, _text in pairs]
-    counts = confusion(predicted, truth)
-    side = {"JP_HF": counts["fn"], "JF_HP": counts["fp"], "JP_HP": counts["tn"], "JF_HF": counts["tp"], "n": len(pairs)}
+    # Count raw input pairs directly: production confusion and meets_bar must
+    # not be able to change both the displayed answer and its oracle together.
+    side = {"JP_HF": 0, "JF_HP": 0, "JP_HP": 0, "JF_HF": 0, "n": len(pairs)}
+    for verdict, human, _text in pairs:
+        cell = ("JP" if verdict == "PASS" else "JF") + ("_HP" if human == "PASS" else "_HF")
+        side[cell] += 1
     agree = side["JP_HP"] + side["JF_HF"]
     kappa = _kappa(side)
     false_passes = [text for verdict, human, text in pairs if verdict == "PASS" and human == "FAIL"]
-    side["percent"] = agreement_percent(agree, side["n"])
+    scaled = Fraction(agree * 1000, side["n"])
+    tenths, remainder = divmod(scaled.numerator, scaled.denominator)
+    tenths += remainder * 2 >= scaled.denominator
+    side["percent"] = "%d.%d%%" % divmod(tenths, 10)
     side["four"] = "%.4f" % (agree / side["n"])
     side["kappa"] = kappa
     side["kappa_text"] = "none" if kappa is None else "%.4f" % float(kappa)
     side["kappa_flag"] = "yes" if kappa is not None and kappa >= Fraction(6, 10) else "no"
-    side["meets"] = meets_bar(counts)
+    side["meets"] = Fraction(agree, side["n"]) >= Fraction(85, 100) and kappa is not None and kappa >= Fraction(6, 10)
     side["k_of_n"] = None
     if false_passes:
         side["k_of_n"] = "%s of %s" % (sum(1 for text in false_passes if has_reading(text)), len(false_passes))
@@ -253,6 +257,8 @@ class _Page(HTMLParser):
                 "change": None,
                 "mark": attr.get("data-mark"),
                 "open": None,
+                "summary": None,
+                "badge_classes": [],
                 "reading": None,
                 "run": attr.get("data-run"),
             })
@@ -264,6 +270,8 @@ class _Page(HTMLParser):
             self._push(tag, "field:" + attr.get("data-label", ""))
         elif tag == "details" and self._sec["rows"]:
             self._sec["rows"][-1]["open"] = "open" in attr
+        elif tag == "summary" and self._sec["rows"]:
+            self._sec["rows"][-1]["summary"] = attr.get("aria-label")
         elif tag == "p" and "rubric-statement" in classes:
             self._push(tag, "statement")
         elif tag == "p" and "changed" in classes:
@@ -274,6 +282,7 @@ class _Page(HTMLParser):
         elif tag == "span" and "change" in classes and self._sec["rows"]:
             self._push(tag, "change")
         elif tag == "span" and "pill" in classes and self._sec["rows"]:
+            self._sec["rows"][-1]["badge_classes"].append(classes)
             self._push(tag, "pill")
 
     def handle_endtag(self, tag):
@@ -354,6 +363,19 @@ def _cell_count(text):
     return int(text.split()[0])
 
 
+def _check_font_links(test, page, calibration):
+    links = re.findall(r"<link\b[^>]*>", page)
+    test.assertEqual(links, re.findall(r"<link\b[^>]*>", calibration))
+    test.assertEqual(len(links), 3)
+    hosts = set(re.findall(r'href="https://([^/\"]+)', "".join(links)))
+    test.assertEqual(hosts, {"fonts.googleapis.com", "fonts.gstatic.com"})
+    test.assertEqual("".join(links).count("https://"), 3)
+    # Asset elements are different from URLs quoted as input prose. This also
+    # catches an HTTP asset, which counting HTTPS strings in the page missed.
+    assets = re.findall(r"<(?:link|img|script|iframe|audio|video|source|embed|object|input)\b[^>]*>", page, re.I)
+    test.assertEqual(assets, links)
+
+
 def _check_page(test, html, labels, final, readings, verdicts, statements):
     expected = _expected(labels, final, readings, verdicts)
     page = _parse(html)
@@ -389,14 +411,18 @@ def _check_page(test, html, labels, final, readings, verdicts, statements):
                 test.assertNotIn("Final", got["cells"])
                 test.assertNotIn("Change", got["cells"])
             if row["show"]:
-                test.assertTrue(got["open"], "a disagreement's reading is disclosed, not folded away")
                 if row["unread"]:
-                    test.assertIn("unread", got["badges"])
+                    test.assertEqual(got["badges"], ["unread"])
                     test.assertNotIn("read", got["badges"])
                     test.assertIsNone(got["reading"])
+                    test.assertIsNone(got["open"], "an unread badge discloses nothing")
+                    test.assertIsNone(got["summary"])
+                    test.assertIn("alarm", got["badge_classes"][0])
                 else:
+                    test.assertTrue(got["open"], "a disagreement's reading is disclosed, not folded away")
                     test.assertEqual(got["badges"], ["read"])
                     test.assertEqual(got["reading"], row["reading"])
+                    test.assertEqual(got["summary"], "Read %s %s %s" % (want["name"], row["run"], row["case_id"]))
             else:
                 test.assertEqual(got["badges"], [])
                 test.assertIsNone(got["reading"])
@@ -445,8 +471,37 @@ def _check_page(test, html, labels, final, readings, verdicts, statements):
 
 
 class PageTests(unittest.TestCase):
+    def test_rendered_ties_none_kappa_and_false_pass_tiebreak(self):
+        sha = "a" * 64
+        scenarios = (
+            # Both have undefined kappa: the page must print none and the tie.
+            (["PASS", "PASS"], ["PASS", "PASS"], ["PASS", "PASS"], ["PASS", "PASS"], "tied: alpha, beta."),
+            # Undefined ranks below a negative kappa, rather than above it.
+            (["PASS", "PASS"], ["PASS", "PASS"], ["FAIL", "PASS"], ["PASS", "FAIL"], "labels: alpha."),
+            # Both kappa zero: the rubric with more false passes is worst.
+            (["PASS", "FAIL"], ["PASS", "PASS"], ["PASS", "PASS"], ["FAIL", "FAIL"], "labels: alpha."),
+        )
+        for alpha_human, alpha_verdict, beta_human, beta_verdict, ending in scenarios:
+            with self.subTest(ending=ending), tempfile_dir() as directory:
+                rows = [_HELPER.row("A%d" % (i + 1), {"alpha": alpha_human[i], "beta": beta_human[i]}) for i in range(2)]
+                verdicts = [
+                    _HELPER.verdict("A%d" % (i + 1), name, values[i], "fixture reason", sha)
+                    for name, values in (("alpha", alpha_verdict), ("beta", beta_verdict)) for i in range(2)
+                ]
+                hashes = {"alpha": sha, "beta": sha}
+                labels, _final, readings, provenance, verdict_dir = _HELPER.world(
+                    directory, rows, verdicts, hashes, hashes, "Fixture provenance.",
+                )
+                statements = {"alpha": "Alpha fixture statement.", "beta": "Beta fixture statement."}
+                rubric_path = os.path.join(directory, "rubric.json")
+                write_text(rubric_path, json.dumps(statements))
+                html = render_comparison(labels, None, readings, provenance, verdict_dir, rubric_path)
+                _check_page(self, html, labels, None, readings, verdict_dir, statements)
+                self.assertTrue(_parse(html).cover["dek"].endswith(ending))
+                self.assertEqual("Kappa none." in html, len(set(alpha_human + alpha_verdict)) == 1)
+
     def test_markup_is_escaped_and_rows_follow_the_inputs(self):
-        reason = 'because <b>&"quoted"'
+        reason = 'because <b>&"quoted" https://example.invalid/proof http://example.invalid/context'
         reading = "read <script>alert(1)</script>"
         change = "changed <i>reason</i>"
         provenance = "Hand <em>written</em>. Held Out, held-out, trusted, generalise."
@@ -507,6 +562,8 @@ class PageTests(unittest.TestCase):
             ])
             self.assertEqual(made.returncode, 0, made.stderr)
             html = open(out, encoding="utf-8").read()
+            with open("reports/calibration-v1.html", encoding="utf-8") as handle:
+                _check_font_links(self, html, handle.read())
             self.assertNotIn("not-comparison.html", html)
             self.assertIn("--html comparison.html", html)
             self.assertNotIn(reason, html)
@@ -837,12 +894,7 @@ class PageTests(unittest.TestCase):
             page = handle.read()
         with open("reports/calibration-v1.html", encoding="utf-8") as handle:
             calibration = handle.read()
-        links = re.findall(r"<link[^>]*>", page)
-        self.assertEqual(links, re.findall(r"<link[^>]*>", calibration))
-        self.assertEqual(len(links), 3)
-        hosts = set(re.findall(r'href="https://([^/"]+)', "".join(links)))
-        self.assertEqual(hosts, {"fonts.googleapis.com", "fonts.gstatic.com"})
-        self.assertEqual(page.count("https://"), 3)
+        _check_font_links(self, page, calibration)
 
     def test_wide_rows_have_two_tiers_without_a_spare_final_track(self):
         # This pins the rule, not its rendered geometry: the browser measures that.
