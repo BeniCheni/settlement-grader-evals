@@ -1,6 +1,6 @@
 # PR #8 — Pass 1 (fast-track): the brief for Codex's cold read of the floor's three A/A runs (TZ=America/New_York)
 
-The text delivered Thu 29 Oct 2026, as archived by the PM seat (Claude) on Sun 1 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
+The text delivered Fri 30 Oct 2026, as archived by the PM seat (Claude) on Sun 1 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
 
 ---
 

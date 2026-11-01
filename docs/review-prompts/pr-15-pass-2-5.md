@@ -1,6 +1,6 @@
 # PR #15 — Pass 2.5: the Executive Summary Brief (TZ=America/New_York)
 
-The text delivered Sun 1 Nov 2026, as archived by the PM seat (Claude) on Sun 1 Nov 2026; its handoff block is `pr-15-pass-3.md`. It was delivered in chat; this copy is recovered from the session's transcript. One closing aside to the owner, about how the session ended its turns, is left out.
+The text delivered Sun 1 Nov 2026, as archived by the PM seat (Claude) on Sun 1 Nov 2026; its handoff block is `pr-15-pass-3.md`. It was delivered in chat; this copy is recovered from the session's transcript. One closing aside to the owner, about how the session ended its turns, is left out. The text ends with a question; its answer is not in this file.
 
 ---
 

@@ -56,8 +56,9 @@ byte-stable: no timestamp, no absolute path, the same bytes on Python 3.9 and 3.
 and `traces/x`. A usage or validation error (a missing run, a duplicate `case_id`, a case missing from the cases file, an
 unreadable `run_meta.json`) exits with status 2, prints one message, shows no traceback and writes nothing, as the slice 1
 commands do. Two more refusals of the same kind are the owner's rulings of Fri 30 Oct 2026, made during PR #10's review: a
-run outside the working directory, however it is spelled and including through a symlink, and a run whose trace file holds
-no records. A run without a `run_meta.json` is reported as not recording its setup, not refused.
+run whose path resolves outside the working directory, including through a symlink, and a run whose trace file holds no
+records. A run that resolves inside the working directory is not refused as outside, regardless of how its path is
+spelled. A run without a `run_meta.json` is reported as not recording its setup, not refused.
 
 The command reports differences and draws no conclusion from them: no verdict, no "noise" or "drift" label, no
 threshold. Reading a delta is the A/B's job (step 8), with the paired interval decision 5 names.

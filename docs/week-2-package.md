@@ -124,7 +124,7 @@ Each step is its own pull request, unless it says otherwise. Who reviews it foll
 | 1. This plan and the judge spec | `docs/week-2-package.md`, `docs/judge-spec.md` | PM | Reviewed and merged |
 | 2. The floor | Three more runs of the v1 configuration, committed as `traces/aa-1`, `traces/aa-2`, `traces/aa-3`; the grader's `run_meta.json` recording the Ollama version and the model's digest (decision 5a); and a `compare` command that reports, between runs, the tickets whose final answer differs and each code count's difference | PM (runs), builder (`run_meta.json`, `compare`) | `compare` reproduces the floor's two counts; the runs also supply the 8 fresh outputs |
 | 3. The judge harness | Everything in `docs/judge-spec.md` | Builder | Its acceptance list holds |
-| 4. The rubrics, frozen | `rubrics/rule_adherence.md`, `rubrics/needs_human_correctness.md`, `rubrics/tool_call_accuracy.md` | Owner, from PM drafts | Merged before any label is written; written after the selection is fixed, with no boundary example from the 40 selected |
+| 4. The rubrics, frozen | `rubrics/rule_adherence.md`, `rubrics/needs_human_correctness.md`, `rubrics/tool_call_accuracy.md` | Owner, from PM drafts | Merged before any label is written; written after the selection is fixed, with no boundary example from the 40 selected, subject to the overlap exception in decision 6 |
 | 5. The labels, frozen | `labels/set1.jsonl`: 40 rows, three labels each | Owner | Merged before any judge call on them |
 | 6. The judges run | The model chosen, the verdicts committed, the report, every disagreement read, adjudication into `labels/set1-final.jsonl`, `diagnosis.md` | PM runs; owner reads and adjudicates | Assignment 1's acceptance list holds |
 | 7. The judge page | The judge comparison page (Assignment 1's comparison view), specified in `docs/judge-page-spec.md`. The A/B page moved to step 8 (the owner's ruling, 31 Oct 2026), because its inputs are step 8's decisions | Builder | The spec's acceptance list and the UI rules in `AGENTS.md` hold |
@@ -180,7 +180,7 @@ submissions/week-02/
 
 ## Follow-ups
 
-Small pieces left by the reviews so far, each written to be read cold. None blocks a step.
+Small pieces left by the reviews so far, each written to be read cold. The step-specific items are scheduled below.
 
 - **An output path may name an input.** `report`'s `--md`, `--json` and `--html` may name an input file and overwrite it
   after reading it, and a missing parent directory is created. A shared refusal in `write_outputs`, roughly 20 to 40

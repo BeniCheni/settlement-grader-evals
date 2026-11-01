@@ -149,9 +149,9 @@ What review changed, so a cold reader does not take the contract above for the w
 - **Font links (the owner's ruling).** `scorer.report.FONT_LINKS` is the one source, used by both pages.
 - **Disclosures (Pass 2).** Each reading's summary is named with its rubric, run and case for assistive technology. An
   unread disagreement is the blood badge alone, with no disclosure.
-- **Prose measure (Pass 2).** Above 1200 px the prose stops at 80ch. No test pins it; see the follow-ups in
+- **Prose measure (Pass 2).** At 1200 px and wider the prose stops at 80ch. No test pins it; see the follow-ups in
   `docs/week-2-package.md`.
-- **A measured bar for acceptance item 8 (the PM's, in the Pass 2 brief).** `scrollWidth` cannot see a column that is
+- **A measured bar for acceptance item 8 (added in the Pass 2 brief).** `scrollWidth` cannot see a column that is
   too narrow. So item 8 also measures 761, 899 and 1400 px; at about 1000 px the page is no taller than 30,000 px, and
   at each of those widths no short fact breaks across lines. At the merge it was 28,622 px at 1000 px in Chrome 156.
 
