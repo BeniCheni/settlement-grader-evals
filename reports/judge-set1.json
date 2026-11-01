@@ -1,0 +1,542 @@
+{
+  "command": "python3 -m scorer.judge report --labels labels/set1.jsonl --final labels/set1-final.jsonl --readings labels/set1-readings.json --provenance labels/set1-provenance.txt --verdicts judgments/set1-llama3.1-8b",
+  "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+  "labels_sha256": "dd37a1885e4c7f58a3600db9ae7edc12c90eb783693e560cf4b42573c25c9a94",
+  "model": "llama3.1:8b",
+  "provenance": "Written by Claude, in the PM seat, at the owner's request on 31 Oct 2026, from the repository record and the adjudication log. The owner made every label and every ruling it describes. Set 1: the rubrics merged in PR #11 (37b6e7f) before the labels merged in PR #12 (0055d07). Each verdict carries its rubric's hash, and every hash matches the one recorded in labels/set1-meta.json, so no rubric changed after labelling or during adjudication. Decision 6: each rubric's boundary example shares an underlying bet with labelled rows (needs_human_correctness: v1 A12; tool_call_accuracy: v1 C08; rule_adherence: v1 C09 and X01), so those rows are in sample for that rubric. Adjudication: the owner ruled on all 40 first-pass disagreements one at a time, each shown with the ticket, the tool calls, the final answer, the run status and the judge's verdict and reason. 17 labels changed, each with the owner's reason recorded in labels/set1-final.jsonl, and every disagreement that remains has a reading in labels/set1-readings.json. The PM seat wrote the readings from the owner's rulings; the note that the judge gave a stock PASS sentence on the seven tool_call rows that changed to PASS is the PM seat's observation, not the owner's. 16 of the 17 changes moved the label to the judge's verdict. The one that did not, needs_human_correctness v1 B01 (PASS to FAIL), created a new disagreement in which the judge passes a row the owner fails. Because the owner saw the judge's verdicts before ruling, the final labels are not blind to the judge and the final agreement figures are optimistic; the first-pass figures are the blind ones, and set 2 is the independent test. The report covers all 40 rows of each rubric; it does not compute the 39/39/38-row held-out figures. Per rubric, every result in this report is in sample, not held out. needs_human_correctness: in sample, because v1 A12 shares its bet with the boundary example and the final labels were adjudicated after the verdicts were seen. tool_call_accuracy: in sample, for the same two reasons, through v1 C08. rule_adherence: in sample, for the same two reasons, through v1 C09 and X01. For each rubric the figures show how closely llama3.1:8b reproduces the owner's labels on these 40 rows; they do not show how it would agree on rows the rubric's examples and the adjudication never touched, and the first-pass figures are the nearest this set comes to that.\n",
+  "provenance_heading": "Written by hand, not computed",
+  "rubrics": [
+    {
+      "final": {
+        "JF_HF": 3,
+        "JF_HP": 2,
+        "JP_HF": 6,
+        "JP_HP": 29,
+        "agreement": 0.8,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "B10",
+            "reading": true,
+            "reason": "The ticket was not decided because the match facts are not available.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C10",
+            "reading": true,
+            "reason": "The ticket is decided, but the final answer is UNSETTLED, which is only correct when a leg that matters is not final.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes": [
+          {
+            "case_id": "B01",
+            "reading": true,
+            "reason": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B05",
+            "reading": true,
+            "reason": "The ticket is decided because every leg that matters has a final result, but the grader did not settle it because the run status is incomplete.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B06",
+            "reading": true,
+            "reason": "The ticket is decided, but the grader's premature finalization of the ticket is not a failure to settle or escalate correctly.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B08",
+            "reading": true,
+            "reason": "The ticket is decided because every leg that matters has a final result, but the grader did not settle it because it ran out of turns.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C02",
+            "reading": true,
+            "reason": "The ticket is unsettled because all legs are still ongoing, and the grader did not settle it when the facts decided it.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C03",
+            "reading": true,
+            "reason": "The ticket was decided, but the grader did not settle it because the match results were not final.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes_read": "6 of 6",
+        "fn": 6,
+        "fp": 2,
+        "kappa": 0.3191,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 29,
+        "tp": 3
+      },
+      "first_pass": {
+        "JF_HF": 2,
+        "JF_HP": 3,
+        "JP_HF": 6,
+        "JP_HP": 29,
+        "agreement": 0.775,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "A02",
+            "reading": true,
+            "reason": "No match found for the given date and teams.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B10",
+            "reading": true,
+            "reason": "The ticket was not decided because the match facts are not available.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C10",
+            "reading": true,
+            "reason": "The ticket is decided, but the final answer is UNSETTLED, which is only correct when a leg that matters is not final.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes": [
+          {
+            "case_id": "B02",
+            "reading": true,
+            "reason": "The ticket is decided because every leg that matters has a final result.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B05",
+            "reading": true,
+            "reason": "The ticket is decided because every leg that matters has a final result, but the grader did not settle it because the run status is incomplete.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B06",
+            "reading": true,
+            "reason": "The ticket is decided, but the grader's premature finalization of the ticket is not a failure to settle or escalate correctly.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B08",
+            "reading": true,
+            "reason": "The ticket is decided because every leg that matters has a final result, but the grader did not settle it because it ran out of turns.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C02",
+            "reading": true,
+            "reason": "The ticket is unsettled because all legs are still ongoing, and the grader did not settle it when the facts decided it.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C03",
+            "reading": true,
+            "reason": "The ticket was decided, but the grader did not settle it because the match results were not final.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes_read": "6 of 6",
+        "fn": 6,
+        "fp": 3,
+        "kappa": 0.1818,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 29,
+        "tp": 2
+      },
+      "rubric": "needs_human_correctness",
+      "rubric_sha256": "95c8bb718c854167c8ad55426ceb62bf446ac4ca61573dd6c82aaf96be0f26ab",
+      "text": "same text as when the labels were made",
+      "unparsed": 0
+    },
+    {
+      "final": {
+        "JF_HF": 26,
+        "JF_HP": 14,
+        "JP_HF": 0,
+        "JP_HP": 0,
+        "agreement": 0.65,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "A01",
+            "reading": true,
+            "reason": "Leg 1, Portugal won 2-4 in regulation, but the grader should have used the exact score 2-4, not just that Portugal won.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A05",
+            "reading": true,
+            "reason": "Leg 1, USA selection, regulation score 3-0, rule \"Money Line 3-Way / Match Result settles on the 90-minute regulation result...\"",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A08",
+            "reading": true,
+            "reason": "Leg 1, Slovenia selection, regulation score 1-2, Draw selection wins on a regulation draw.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A13",
+            "reading": true,
+            "reason": "Leg 1, Draw No Bet, Rayo Vallecano selection, score 1-1.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "B01",
+            "reading": true,
+            "reason": "Leg 1, Sehrou Guirassy did not score in regulation time, but the grader's rule was \"Anytime goalscorer wins if the player scores in regulation time. Own goals do not count for the player.\"",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Leg 3, Total goals: the tool results show 4 goals, but the rule says a whole line pushes on exactly that number.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A01",
+            "reading": true,
+            "reason": "Leg 1, Portugal won 2-4 in regulation, but the grader should have used the exact score 2-4, not just that Portugal won.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A02",
+            "reading": true,
+            "reason": "Leg 1, no match found for the given date and teams.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A05",
+            "reading": true,
+            "reason": "Leg 1, USA selection in a Money Line 3-Way market, but the score_regulation_90 is 3-0, which is a win for Mexico.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A08",
+            "reading": true,
+            "reason": "Leg 1, Slovenia won the regulation 90-minute match (score 1-2) contradicts the rule that the Draw selection wins on a regulation draw.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A13",
+            "reading": true,
+            "reason": "Leg 1, Draw No Bet market, the selected team Rayo Vallecano did not win or lose.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Leg 3, Total goals market, regulation score is 3-1, but the grader graded it W instead of L.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C06",
+            "reading": true,
+            "reason": "Leg 1, Brighton won 0-2, but the rule says the Draw selection wins on a regulation draw.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C12",
+            "reading": true,
+            "reason": "Leg 1, Manchester City selection, regulation score 2-1, Money Line 3-Way rule.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 14,
+        "kappa": 0.0,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 0,
+        "tp": 26
+      },
+      "first_pass": {
+        "JF_HF": 23,
+        "JF_HP": 17,
+        "JP_HF": 0,
+        "JP_HP": 0,
+        "agreement": 0.575,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "A01",
+            "reading": true,
+            "reason": "Leg 1, Portugal won 2-4 in regulation, but the grader should have used the exact score 2-4, not just that Portugal won.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A05",
+            "reading": true,
+            "reason": "Leg 1, USA selection, regulation score 3-0, rule \"Money Line 3-Way / Match Result settles on the 90-minute regulation result...\"",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A08",
+            "reading": true,
+            "reason": "Leg 1, Slovenia selection, regulation score 1-2, Draw selection wins on a regulation draw.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A13",
+            "reading": true,
+            "reason": "Leg 1, Draw No Bet, Rayo Vallecano selection, score 1-1.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "B01",
+            "reading": true,
+            "reason": "Leg 1, Sehrou Guirassy did not score in regulation time, but the grader's rule was \"Anytime goalscorer wins if the player scores in regulation time. Own goals do not count for the player.\"",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Leg 3, Total goals: the tool results show 4 goals, but the rule says a whole line pushes on exactly that number.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A01",
+            "reading": true,
+            "reason": "Leg 1, Portugal won 2-4 in regulation, but the grader should have used the exact score 2-4, not just that Portugal won.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A02",
+            "reading": true,
+            "reason": "Leg 1, no match found for the given date and teams.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A05",
+            "reading": true,
+            "reason": "Leg 1, USA selection in a Money Line 3-Way market, but the score_regulation_90 is 3-0, which is a win for Mexico.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A08",
+            "reading": true,
+            "reason": "Leg 1, Slovenia won the regulation 90-minute match (score 1-2) contradicts the rule that the Draw selection wins on a regulation draw.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A13",
+            "reading": true,
+            "reason": "Leg 1, Draw No Bet market, the selected team Rayo Vallecano did not win or lose.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B01",
+            "reading": true,
+            "reason": "Leg 1, Sehrou Guirassy did not score in regulation time.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Leg 3, Total goals market, regulation score is 3-1, but the grader graded it W instead of L.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C06",
+            "reading": true,
+            "reason": "Leg 1, Brighton won 0-2, but the rule says the Draw selection wins on a regulation draw.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C09",
+            "reading": true,
+            "reason": "Leg 2, result \"L\" for Juventus, but the grader did not apply the rule for Money Line 3-Way / Match Result, which requires checking the exact score, not just who won.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C12",
+            "reading": true,
+            "reason": "Leg 1, Manchester City selection, regulation score 2-1, Money Line 3-Way rule.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C13",
+            "reading": true,
+            "reason": "Leg 1, selection \"Bayern Munich\" in Moneyline 3-Way market, score_regulation_90 is 0-0, which is a draw, and the selection should win.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 17,
+        "kappa": 0.0,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 0,
+        "tp": 23
+      },
+      "rubric": "rule_adherence",
+      "rubric_sha256": "146510e20d1e62ab03819404703201065a9a8ab062735970071295dc0e3ebbf2",
+      "text": "same text as when the labels were made",
+      "unparsed": 0
+    },
+    {
+      "final": {
+        "JF_HF": 20,
+        "JF_HP": 3,
+        "JP_HF": 0,
+        "JP_HP": 17,
+        "agreement": 0.925,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Tool call 3, lookup_rule, returned UNKNOWN_TOPIC for \"btts\" and no subsequent lookup_rule call with a listed topic for that market.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Tool call 3, lookup_rule with topic \"btts\", returned UNKNOWN_TOPIC, and the grader never looked up \"btts\" again.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C09",
+            "reading": true,
+            "reason": "Tool call 5: lookup_rule returned UNKNOWN_TOPIC, but the grader never looked up \"moneyline_3way\" again.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 3,
+        "kappa": 0.85,
+        "kappa_at_least_0_6": true,
+        "meets_bar": true,
+        "tn": 17,
+        "tp": 20
+      },
+      "first_pass": {
+        "JF_HF": 16,
+        "JF_HP": 7,
+        "JP_HF": 7,
+        "JP_HP": 10,
+        "agreement": 0.65,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Tool call 3, lookup_rule, returned UNKNOWN_TOPIC for \"btts\" and no subsequent lookup_rule call with a listed topic for that market.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "B01",
+            "reading": true,
+            "reason": "lookup_rule call with topic \"goalscorer\" returned UNKNOWN_TOPIC, but the grader never looked up \"goalscorer\" again.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B04",
+            "reading": true,
+            "reason": "Tool call 3, lookup_rule with topic \"btts\", returned UNKNOWN_TOPIC, and the grader never looked up \"btts\" again.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C06",
+            "reading": true,
+            "reason": "lookup_rule call returned \"moneyline_3way\" topic, but the grader never called it again with a listed topic for that market.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C09",
+            "reading": true,
+            "reason": "Tool call 5: lookup_rule returned UNKNOWN_TOPIC, but the grader never looked up \"moneyline_3way\" again.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "C13",
+            "reading": true,
+            "reason": "Tool call 3 with args {\"topic\": \"moneyline_3way\"} returned {\"rule\": \"Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time. Extra time and penalties are ignored. Use score_regulation_90. The Draw selection wins on a regulation draw; both team selections lose on a draw.\", \"topic\": \"moneyline_3way\"} but the grader never called lookup_rule again with a listed topic for that market.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "X02",
+            "reading": true,
+            "reason": "The grader gave a final grade with no tool calls at all.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes": [
+          {
+            "case_id": "A11",
+            "reading": true,
+            "reason": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A03",
+            "reading": true,
+            "reason": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A06",
+            "reading": true,
+            "reason": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A09",
+            "reading": true,
+            "reason": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A11",
+            "reading": true,
+            "reason": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "A12",
+            "reading": true,
+            "reason": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+            "run": "traces/v1"
+          },
+          {
+            "case_id": "B12",
+            "reading": true,
+            "reason": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+            "run": "traces/v1"
+          }
+        ],
+        "false_passes_read": "7 of 7",
+        "fn": 7,
+        "fp": 7,
+        "kappa": 0.2839,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 10,
+        "tp": 16
+      },
+      "rubric": "tool_call_accuracy",
+      "rubric_sha256": "b784093e855cba00c6a29a68c6b1c829fc91f93017d78de4a0c87f6a6d3154e4",
+      "text": "same text as when the labels were made",
+      "unparsed": 0
+    }
+  ],
+  "worst": {
+    "labels": "final",
+    "rubrics": [
+      "rule_adherence"
+    ],
+    "tied": false
+  }
+}

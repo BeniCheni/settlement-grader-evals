@@ -1,0 +1,18 @@
+{
+  "adapter": "ollama",
+  "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+  "labels_sha256": "dd37a1885e4c7f58a3600db9ae7edc12c90eb783693e560cf4b42573c25c9a94",
+  "model": "llama3.1:8b",
+  "options": {
+    "num_ctx": 16384,
+    "num_predict": 256,
+    "seed": 0,
+    "temperature": 0
+  },
+  "rubrics": {
+    "needs_human_correctness": "95c8bb718c854167c8ad55426ceb62bf446ac4ca61573dd6c82aaf96be0f26ab",
+    "rule_adherence": "146510e20d1e62ab03819404703201065a9a8ab062735970071295dc0e3ebbf2",
+    "tool_call_accuracy": "b784093e855cba00c6a29a68c6b1c829fc91f93017d78de4a0c87f6a6d3154e4"
+  },
+  "server_version": "0.34.0"
+}
