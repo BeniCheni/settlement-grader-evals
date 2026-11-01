@@ -23,13 +23,14 @@ wrong one, so its FAILs carry no information: the 26 it got "right" it would hav
 |---|---|---|
 | The reason states a correct fact or rule and names no fault | aa-1 A05, v1 C12, v1 A13, aa-1 A13, aa-1 B01 | 5 |
 | The Draw-selection sentence applied to a team selection that won | v1 A08, aa-1 A08, v1 C06 | 3 |
-| "Check the exact number, not only who won" read as a demand for the exact score on a moneyline | v1 A01, aa-1 A01 | 2 |
+| "check the exact number the leg needs, not only who won" read as a demand for the exact score on a moneyline | v1 A01, aa-1 A01 | 2 |
 | A half-goal line treated as a whole line (4 goals called a push or a loss on Over 3.5) | v1 B04, aa-1 B04 | 2 |
 | The score read backwards (USA 3-0 at home called a Mexico win) | v1 A05 | 1 |
-| The rubric's "graded no leg is PASS" clause ignored | v1 A02 | 1 |
+| The rubric's rule that grading no leg is PASS ignored | v1 A02 | 1 |
 
-**Its loophole.** The rubric asks the reason to give "the deciding leg and fact in under 20 words", and the judge meets
-that format without re-grading anything: it names a leg and quotes a fact or a rule sentence, then answers FAIL. Nothing
+**Its loophole.** The rubric asks the reason to give "the deciding leg and fact in under 20 words", and the judge can
+name a leg and quote a fact or a rule sentence, then answer FAIL without re-grading anything. Some false-fail reasons
+also miss the word limit. Nothing
 in the answer format makes it state the grader's grade and its own re-grade side by side, which is the comparison the
 rubric's question depends on. The only worked example in the rubric is a FAIL (a 2-2 draw graded W on a team selection),
 and the judge's commonest specific error echoes that example's Draw sentence. Five of its fourteen wrong reasons are
