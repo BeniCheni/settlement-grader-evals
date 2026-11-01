@@ -12,11 +12,12 @@ import sys
 from decimal import Decimal, ROUND_HALF_UP
 
 from scorer.checks import CHECKS
-from scorer.compare import CompareError, _check_cases, _load_meta, _load_records
+from scorer.compare import CompareError, _canon, _check_cases, _load_meta, _load_records
 from scorer.judge import (
+    PROVENANCE_HEADING,
     FakeAdapter,
-    FixtureClient,
     JudgeError,
+    _source,
     agreement_percent,
     build_adapter,
     collect_verdicts,
@@ -72,10 +73,6 @@ def format_limit(proportion):
     if points == 0:
         return "0.0"
     return format(points, "f")
-
-
-def _canon(value):
-    return json.dumps(value, sort_keys=True, ensure_ascii=False)
 
 
 def _same_value(left, right, key):
@@ -167,11 +164,8 @@ def _frozen(path, rubrics):
 
 
 def _adapter_name(adapter):
-    if isinstance(adapter, FakeAdapter):
-        return "fake"
-    if isinstance(getattr(adapter, "client", None), FixtureClient):
-        return "http-fixture"
-    return "ollama"
+    """As run records it: fake, or what _source says answered."""
+    return "fake" if isinstance(adapter, FakeAdapter) else _source(adapter.client)
 
 
 def run_ab(args):
@@ -556,7 +550,7 @@ def render_markdown(document):
         "",
         "%s thresholds held." % document["thresholds_held"],
         "",
-        "## Written by hand, not computed",
+        "## %s" % PROVENANCE_HEADING,
         "",
         _marked("statement", document["statement"]),
         "",
@@ -594,6 +588,9 @@ def render_markdown(document):
             ),
             "",
         ])
+    # Agreement and kappa are calibration numbers, and AGENTS.md wants the hand-written
+    # statement beside every one of them, not three sections away on the cover.
+    lines.extend(["### %s" % PROVENANCE_HEADING, "", _marked("statement", document["statement"]), ""])
     lines.extend(["## Metrics", "", document["sign_note"], ""])
     for row in document["metrics"]:
         lines.append("### %s" % row["name"])
@@ -708,7 +705,7 @@ def render_ab_html(document, css):
         '<p class="ab-held">%s thresholds held.</p>' % esc(document["thresholds_held"]),
         "</div>",
         '<div class="prov">',
-        "<h2>Written by hand, not computed</h2>",
+        "<h2>%s</h2>" % esc(PROVENANCE_HEADING),
         '<p class="cover-statement" data-input="statement">%s</p>' % esc(document["statement"]),
         "</div>",
         "</div>",
@@ -750,6 +747,12 @@ def render_ab_html(document, css):
                 esc(side["false_passes_read"]),
             )
         )
+    lines.extend([
+        '<div class="prov">',
+        "<h3>%s</h3>" % esc(PROVENANCE_HEADING),
+        '<p class="set1-statement" data-input="statement">%s</p>' % esc(document["statement"]),
+        "</div>",
+    ])
     lines.extend(["</section>", '<section class="sec panel">', "<h2>Metrics</h2>", "<p>%s</p>" % esc(document["sign_note"])])
     for row in document["metrics"]:
         lines.append('<article class="metric" data-metric="%s" data-source="%s">' % (esc(row["name"]), esc(row["source"])))

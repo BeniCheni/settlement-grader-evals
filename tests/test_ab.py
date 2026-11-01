@@ -1053,6 +1053,34 @@ class AbCommandTests(unittest.TestCase):
         })
         self.assertIn(">r A: none B: ok</span>", row)
 
+    def test_the_set_1_numbers_have_the_hand_written_statement_beside_them(self):
+        # AGENTS.md: wherever a calibration number is shown, a hand-written statement beside it
+        # says whether it is in sample or held out. Agreement and kappa are shown in the Set 1
+        # section, which had only a computed sentence; the statement sat three panels up.
+        from html import escape
+        from scorer.judge import PROVENANCE_HEADING
+        verdicts = self._judged()
+        md_path = self.work + "/beside.md"
+        html_path = self.work + "/beside.html"
+        made = judge_cli(self._ab(verdicts) + ["--md", md_path, "--html", html_path])
+        self.assertEqual(made.returncode, 0, made.stderr)
+        with open(md_path, encoding="utf-8") as handle:
+            markdown = handle.read()
+        with open(html_path, encoding="utf-8") as handle:
+            html = handle.read()
+        with open(ROOT + "/statement.txt", encoding="utf-8") as handle:
+            statement = handle.read()
+        section = html.split("<h2>Set 1</h2>", 1)[1].split("</section>", 1)[0]
+        self.assertIn('data-set1="tool_call_accuracy"', section)
+        self.assertIn("<h3>%s</h3>" % PROVENANCE_HEADING, section)
+        self.assertIn('<p class="set1-statement" data-input="statement">%s</p>' % escape(statement, quote=True), section)
+        self.assertEqual(html.count(escape(statement, quote=True)), 2)
+        md_section = markdown.split("## Set 1\n", 1)[1].split("## Metrics\n", 1)[0]
+        self.assertIn("Kappa", md_section)
+        self.assertIn("### %s\n\n<!-- input:statement -->\n%s\n<!-- /input:statement -->" % (PROVENANCE_HEADING, statement), md_section)
+        self.assertEqual(markdown.count(statement), 2)
+        self.assertEqual(markdown.count(PROVENANCE_HEADING), 2)
+
     def test_markup_in_the_prompt_diff_and_the_path_is_escaped(self):
         tree = self.work + "/tree"
         os.makedirs(tree)
