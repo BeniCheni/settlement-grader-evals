@@ -48,7 +48,7 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks and for the judge on set 1 (41 rows across the three rubrics), in sample | `data/calibration_readings_v1.json`, `labels/set1-readings.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
-| A/B | None yet | |
+| A/B | Specified, with the diagnosis, the one change and the thresholds written; not run | `docs/ab-spec.md`, `submissions/week-02/assignment-2/`, `variants/compare-first.txt` |
 
 Reproduce the repository counts in the table, from the repository root:
 
@@ -107,6 +107,12 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    label set: each overlapping row is in sample for its rubric, so any held-out statement about set 1 covers at most 39
    rows for `needs_human_correctness` and `tool_call_accuracy` and at most 38 for `rule_adherence`.
 
+7. **The A/B's one change and its order** (the owner's, Sun 1 Nov 2026). Variant B changes step 3 of the grader's system prompt so
+   each leg's selection and fact are set side by side before its result, in the same message as the `settle_ticket` call
+   (`variants/compare-first.txt`). Step 8 runs before step 9,
+   with `rule_adherence` flagged as the delta to trust least and the verdict resting on the plain-code check. He approved the
+   thresholds in `submissions/week-02/assignment-2/ab_report.md`.
+
 ## The order of work
 
 Each step is its own pull request, unless it says otherwise. Who reviews it follows who wrote it (the owner's ruling,
@@ -128,7 +134,7 @@ Each step is its own pull request, unless it says otherwise. Who reviews it foll
 | 5. The labels, frozen | `labels/set1.jsonl`: 40 rows, three labels each | Owner | Merged before any judge call on them |
 | 6. The judges run | The model chosen, the verdicts committed, the report, every disagreement read, adjudication into `labels/set1-final.jsonl`, `diagnosis.md` | PM runs; owner reads and adjudicates | Assignment 1's acceptance list holds |
 | 7. The judge page | The judge comparison page (Assignment 1's comparison view), specified in `docs/judge-page-spec.md`. The A/B page moved to step 8 (the owner's ruling, 31 Oct 2026), because its inputs are step 8's decisions | Builder | The spec's acceptance list and the UI rules in `AGENTS.md` hold |
-| 8. The A/B | One change to the grader as variant B; thresholds written first; both variants through the three judges and the code checks; `ab_report.md`; the A/B page (per-metric deltas), specified with this step and built after its inputs are fixed | Owner decides; PM runs and drafts; builder (the page) | Assignment 2's acceptance list holds, and the UI rules in `AGENTS.md` for the page |
+| 8. The A/B | One change to the grader as variant B; thresholds written first; both variants through the three judges and the code checks; `ab_report.md`; the A/B page (per-metric deltas), specified in `docs/ab-spec.md` and built after its inputs are fixed | Owner decides; PM runs and drafts; builder (the page) | Assignment 2's acceptance list holds, and the UI rules in `AGENTS.md` for the page |
 | 9. The weakest judge again | Its rubric tightened once, validated on fresh labels (`labels/set2.jsonl`, that one rubric, at least 30 rows) | Owner, PM | Its kappa on labels it was never tuned on is reported |
 | 10. The package | `submissions/week-02/`, below | PM | Every course item maps to a file |
 
