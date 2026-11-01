@@ -69,9 +69,11 @@ failure, and the proof that any check or judge agrees with a human before it is 
 `ui/ledger.css` is the only source of colour and type. Ink speaks, slime confirms, lamp marks where data came from and
 nothing else, blood alarms. A label earns its place only if it changes what the reader can do: no always-green status
 chips, no "local mode" banners. The one required exception is provenance: wherever a calibration number is shown, a
-sentence beside it says whether it is in sample or held out and what it does and does not show, because that decides how
-far the reader may trust it. It is a sentence, never a chip, and it changes when the evidence changes. Both themes; AA contrast on every text pair, computed; reduced motion respected; at
-360, 375, 390 and about 1000 px the page's `scrollWidth` equals its `innerWidth`, with the viewport set before any capture.
+statement beside it, of one or more sentences, says whether it is in sample or held out and what it does and does not
+show, because that decides how far the reader may trust it. It is prose, never a chip, and it changes when the evidence
+changes (the owner's ruling, Sat 31 Oct 2026). Both themes; AA contrast on every text pair, computed;
+reduced motion respected; at 360, 375, 390 and about 1000 px the page's `scrollWidth` equals its `innerWidth`, with the
+viewport set before any capture.
 
 ## How work moves
 

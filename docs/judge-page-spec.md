@@ -23,10 +23,12 @@ and built after it. The plan records the move.
 `report` gains two options, `--html OUT` and `--rubric-provenance FILE`, given together or not at all: either one alone
 is a usage error. With them it takes the same inputs and runs the same validation as today, validates the new file, and
 writes the page alongside `--md` and `--json` through `write_outputs`, so an error at any point exits with status 2,
-prints one message, shows no traceback and writes no file. `OUT` is handled as `--md` and `--json` are; the page never
-prints its own path. `FILE` passes through `relative_path`, as `--provenance` does, because the page's colophon names
-it. For the same inputs, the Markdown and the JSON stay byte for byte what they are on `main` at this spec's merge:
-neither reads the new file, so `reports/judge-set1.md` and `reports/judge-set1.json` do not change.
+prints one message, shows no traceback and writes no file. `OUT` is handled as `--md` and `--json` are. The page never
+prints the path it was written to: its colophon names the fixed output `comparison.html` instead (the owner's ruling,
+Sat 31 Oct 2026), so that `report --html` and `export-course` write the same bytes and the printed command runs as
+shown. `FILE` passes through `relative_path`, as `--provenance` does, because the page's colophon names it. For the same
+inputs, the Markdown and the JSON stay byte for byte what they are on `main` at this spec's merge: neither reads the new
+file, so `reports/judge-set1.md` and `reports/judge-set1.json` do not change.
 
 **The per-rubric provenance file (contract; the owner's ruling, Sat 31 Oct 2026).** `--rubric-provenance` names a JSON
 object whose keys are exactly the labels' rubric names and whose values are strings with at least one non-whitespace
@@ -54,7 +56,8 @@ it.
 
 One self-contained page with `ui/ledger.css` inlined, as `scorer/report.py` does for the calibration page. No script
 element, no external asset beyond the Google Fonts link the calibration page already uses, and a colophon that gives the
-command line the Markdown prints (`report_command`) followed by `--rubric-provenance` and its path, and says the fonts
+command line the Markdown prints (`report_command`) followed by `--rubric-provenance` and its path and by `--html
+comparison.html`, which, run from the repository root, writes a page byte for byte equal to this one, and says the fonts
 load from Google Fonts.
 
 1. **The cover.** The labels file, the model and its digest, the row count and the rubric count; the headline question
@@ -65,9 +68,8 @@ load from Google Fonts.
    heading `PROVENANCE_HEADING` ("Written by hand, not computed"). Beside each rubric's figures, in that rubric's
    section, its own statement from the `--rubric-provenance` file, verbatim, under the same heading, and no other
    rubric's. These hand-written statements are the page's sentences on in sample or held out, which `AGENTS.md`'s UI
-   rules require beside every calibration number. Code writes no sentence of its own about it. Each is prose and never a
-   chip, which is how that rule's "a sentence, never a chip" is read here, as it is for the cover statement: it may run
-   to several sentences.
+   rules require beside every calibration number. Code writes no sentence of its own about it. Each is prose, never a
+   chip, and may run to several sentences, as that rule says (the owner's ruling, Sat 31 Oct 2026).
 3. **One section per rubric, in the report's order.** The rubric's SHA-256 and its text fact ("same text as when the
    labels were made", or the changed form) exactly as the report states them, and the `UNPARSED` count. For the
    first-pass labels and, when given, the final ones, side by side where width allows:
@@ -104,7 +106,9 @@ is ink, not slime, and blood marks a false pass, a false fail, an unread disagre
 ## Acceptance
 
 1. `report --html` on the test fixtures and on the committed set-1 inputs; `reports/judge-set1.html` regenerates byte
-   for byte on Python 3.9 and 3.14, and `reports/judge-set1.md` and `.json` are byte-identical to `main`.
+   for byte on Python 3.9 and 3.14, and `reports/judge-set1.md` and `.json` are byte-identical to `main`. A test runs
+   the colophon's command as the page prints it, from a scratch copy of the repository root, and finds the
+   `comparison.html` it writes equal to the committed page.
 2. `export-course` with `--rubric-provenance` writes `comparison.html` equal to `report --html`, with and without
    `--final`, and its other three files are unchanged; without it, it writes the same three files as on `main`.
 3. Every dynamic string is HTML-escaped: a test feeds markup through the judge's reason, a reading, a change reason, the
