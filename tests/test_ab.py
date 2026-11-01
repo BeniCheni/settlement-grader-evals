@@ -21,6 +21,7 @@ from run_eval import main
 from scorer.ab import format_limit, signed_points
 from scorer.checks import CHECKS
 from scorer.stats import paired_difference, wilson
+from tests.test_contrast import brace_block
 
 
 def _body(payload):
@@ -269,6 +270,18 @@ class NumberFormatTests(unittest.TestCase):
         self.assertEqual(format_limit(-0.0004), "0.0")
         self.assertEqual(format_limit(0.0125), "1.3")
         self.assertEqual(format_limit(-0.0125), "-1.3")
+
+    def test_ab_rows_have_their_own_empty_cell_rule(self):
+        with open("ui/ledger.css", encoding="utf-8") as handle:
+            css = handle.read()
+        # The phone rule and the wide rule are each their own, so the judge rows keep theirs.
+        self.assertEqual(css.count(".ledger.ab-rows td:empty{display:none}"), 2)
+        self.assertIn(".ledger td:empty{display:none}", css)
+        self.assertIn(".ledger.judge-rows td:empty{display:none}", css)
+        self.assertIn(".ledger.ab-rows td[data-short] > span{white-space:nowrap}", css)
+        self.assertIn('td[data-label="A codes"]', css)
+        self.assertIn('td[data-label="Reasons"]{grid-column:1 / -1}', css)
+        self.assertIn("pre-wrap", brace_block(css, ".prompt-diff{"))
 
     def test_ship_is_a_whole_word(self):
         self.assertIsNone(BANNED_WORD.search("relationship"))
