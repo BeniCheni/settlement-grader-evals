@@ -72,7 +72,7 @@ Sample size: n = 32 per variant.
 Why 5: with n of 32 and no ticket made worse, at any count for A, a fall of 4 has an interval that still includes zero and a fall of 5 does not, so 5 is the smallest fall this method can distinguish. If any ticket gets worse, the interval
 rule asks for more: a net fall of 5 with 1 ticket made worse still includes zero. If A has fewer than 5 tickets, this row cannot hold. Why one ticket on the guards: one ticket is 3.1 points, the smallest step 32 tickets allow.
 
-**Which regression is acceptable, and why:** at most one ticket on `tool_call_accuracy`, and at most two on `needs_human_correctness`, in exchange for the primary fall. A wrong WIN books money that is not there, while a wrong escalation costs a manual look, so a small move on the guards is worth a real fall in wrong grades. `needs_human_correctness` gets the wider margin because its kappa of 0.3191 on set 1, in sample, means a move of one or two tickets may be the judge as much as the grader. Anything larger stops the ship even if the primary falls.
+**Which regression is acceptable, and why:** at most one ticket on `tool_call_accuracy`, and at most two on `needs_human_correctness`, in exchange for the primary fall. A wrong WIN can overstate a settlement, and an unnecessary escalation requires a manual look; failing to escalate when a fact is missing can also lead to a wrong settlement. The guard allows a small regression in exchange for a real fall in wrong grades. `needs_human_correctness` gets the wider margin because its kappa of 0.3191 on set 1, in sample, means a move of one or two tickets may be the judge as much as the grader. Anything larger stops the ship even if the primary falls.
 
 **Verdict:** not yet. The owner writes it after the results.
 
