@@ -1,0 +1,13 @@
+# PR #12 — the owner's answer on decision 6 for X01, and the instruction to land if the gate held (TZ=America/New_York)
+
+The text delivered Fri 30 Oct 2026, as archived by the PM seat (Claude) on Sun 1 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
+
+---
+
+PR #12 — the owner's answer: decision 6 amended for X01; read it and land if the gate holds (fast-track; this note carries no --no-merge and instructs you to land if the gate holds)
+
+The owner's answer, named as his (you cannot see where he gave it, so do not confirm it second-hand as fact), Fri 30 Oct 2026: yes, amend decision 6 for X01. The PM pushed it, after git fetch origin showed the tip at f89d4ed, as one commit authored as Claude: f3a1291ac02e5421fa089623dafa317671b265bf, changing docs/week-2-package.md only. verify run 41158519816 was green there on Python 3.9 and 3.14. As claims for you to weigh: the PM matched all 40 plan rows against the three traces/smoke-1 tickets on book, stake and each leg's fixture, selection and line, and found exactly four overlapping rows (SMOKE1 with C08, SMOKE2 with A12, SMOKE3 with C09 and X01); the X01 ticket and final answer differ from SMOKE3's; and the PM turned off each check your f89d4ed covers and saw the suite go red on both Pythons.
+
+WHAT TO CHECK, bounded to git diff f89d4ed f3a1291: whether decision 6 now names every overlapping row, states the 39 / 39 / 38 limits correctly, says what the owner ruled and no more, and contradicts nothing else in the plan or the spec; re-derive the overlap yourself rather than taking the count above. Then the suite and compileall on both Pythons at the head.
+
+LANDING. If nothing is escalated and the gate in AGENTS.md holds at f3a1291ac02e5421fa089623dafa317671b265bf, with verify green there on both jobs, squash-merge pinned to that head: gh pr merge 12 --squash --match-head-commit f3a1291ac02e5421fa089623dafa317671b265bf --subject "<a subject in the repo's voice>" --body-file <file>, where the file holds a terse body, one blank line, then Co-authored-by: Claude <noreply@anthropic.com> and Co-authored-by: Codex <noreply@openai.com>. If the head has moved, stop and say so. The labels are the owner's: no label, note or unsure entry may change. Post one PR comment in the shape of the skill's pr-comment.md. Then confirm, with the commands and what they printed: main's tree equals the tree of f3a1291; git log -1 --format='%(trailers:key=Co-authored-by)' on main prints both trailers; git ls-remote --tags origin prints nothing; and verify is green on the push to main. Leave the branch and the clone for the owner's word. Create no tag and no release.
