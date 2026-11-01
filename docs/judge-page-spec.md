@@ -10,7 +10,8 @@ this spec says "contract" the name or behaviour is fixed; elsewhere the builder 
 Assignment 1 asks for a comparison view: per rubric, the judge's verdict on each row next to the hand label, the
 agreement rate, and the disagreeing rows with the judge's reasoning (the course's Step 10). The plan's decision 2 makes
 that view this repo's own page in the Haunted Ledger style, and the package puts it at
-`submissions/week-02/assignment-1/comparison.html`. `report` already computes every number the page shows. The page adds
+`submissions/week-02/assignment-1/comparison.html`. `report` computes the per-rubric agreement figures; the page also
+counts rows, rubrics, changed labels and judges whose numbers meet the bar. The page adds
 what the Markdown leaves out: every row's verdict, not only the disagreements, the text of each reading, and the owner's
 reason on each changed label.
 
@@ -57,8 +58,9 @@ command line the Markdown prints (`report_command`) and says the fonts load from
 3. **One section per rubric, in the report's order.** The rubric's SHA-256 and its text fact ("same text as when the
    labels were made", or the changed form) exactly as the report states them, and the `UNPARSED` count. For the
    first-pass labels and, when given, the final ones, side by side where width allows:
-   - the agreement matrix as a two-by-two table, judge PASS and FAIL by human PASS and FAIL, each cell with its count
-     and both its names (`JP_HF` and false pass, and so on) as the report names them;
+   - the agreement matrix as a two-by-two table, judge PASS and FAIL by human PASS and FAIL, each cell with its count,
+     report name and statistical name (`JP_HF` and `fn`, and so on), and the false-pass or false-fail description for
+     the disagreement cells;
    - agreement as a percentage and to four decimals as in the report, kappa to four decimals or "none" when it cannot be
      computed, and whether kappa is at least 0.6, named as the course's bar;
    - a pill naming `bar_words()` or `not_bar_words()` for `meets_bar`, with the false passes read beside it as "k of n"
@@ -69,8 +71,8 @@ command line the Markdown prints (`report_command`) and says the fonts load from
    the first-pass human label and, when given, the final one; whether judge and human agree on the labels the cover
    uses; and the judge's reason. A row whose label changed shows the owner's change reason verbatim. A row that
    disagrees on the first-pass or the final labels shows its reading's text verbatim, with a "read" badge when it has
-   one (`has_reading`) and "unread" in blood when it does not. A row that agrees shows no reading badge. The table
-   stacks at 760 px and narrower, as `.ledger` does.
+   one (`has_reading`) and "unread" in blood when it does not. A row that agrees on both first-pass and final labels
+   (or on the first-pass labels when no final labels are given) shows no reading badge. The table stacks at 760 px and narrower, as `.ledger` does.
 5. **The colophon**, as above.
 
 Computed text never contains "held out", "trusted" or "generalise": the first may appear only inside the reproduced
@@ -97,7 +99,8 @@ is ink, not slime, and blood marks a false pass, a false fail, an unread disagre
    reasons, paths) finds none of "held out", "trusted" or "generalise" in what is left, on a fixture and on the committed
    page, and finds the per-rubric sentence in every rubric section.
 5. A test that counts, per rubric, the rows the page renders, its agree and disagree marks, its "read" and "unread"
-   badges and its change reasons, against the labels, verdicts, readings and final labels.
+   badges and its change reasons, against the labels, verdicts, readings and final labels, on both a fixture and the
+   committed page.
 6. Status 2, one message and nothing written for each existing refusal when `--html` is given, and when `--html` names
    the same path as `--md` or `--json`; no partial file when a later output fails to write.
 7. `tests/test_contrast.py`'s list of pairs gains every text and background pair the new primitives add, in both themes,
@@ -108,7 +111,8 @@ is ink, not slime, and blood marks a false pass, a false fail, an unread disagre
 9. At least three mutations named in the PR body, each turning the suite red for the right reason, among them: swapping
    the matrix's two disagreement cells, dropping one reading's text, and marking an agreeing row as a disagreement.
 10. The suite and `python3 -m compileall -q .` on Python 3.9 and 3.14; the existing tests unmodified except three, each
-    only gaining: the set-1 regeneration test gains the page, the export test's set of written file names gains
+    only gaining, without removing or weakening any existing assertion: the set-1 regeneration test gains the page, the
+    export test's set of written file names gains
     `comparison.html`, and the contrast test's list gains pairs (item 7); and the privacy sweep (`AGENTS.md` rule 6),
     patterns stated, counts only.
 
