@@ -256,6 +256,12 @@ class PairedDifferenceTests(unittest.TestCase):
         self.assertLess(swapped[0], 0)
         self.assertEqual(round(swapped[0], 4), -0.1562)
         self.assertIsNone(paired_difference(0, 0, 0, 0))
+        # A z whose square overflows leaves NaN Wilson limits. They must come back as NaN,
+        # not be clamped to a point: the report refuses what it cannot print.
+        _fall, lower, upper = paired_difference(10, 5, 0, 17, z=1e308)
+        self.assertTrue(math.isnan(lower) and math.isnan(upper))
+        _fall, lower, upper = paired_difference(10, 5, 0, 17, z=float("nan"))
+        self.assertTrue(math.isnan(lower) and math.isnan(upper))
 
 
 class NumberFormatTests(unittest.TestCase):
@@ -845,6 +851,68 @@ class AbCommandTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2, result.stderr)
         self.assertIn("distinct", result.stderr)
         self.assertFalse(os.path.exists(same))
+
+    def _thresholds_variant(self, mutate, text=None):
+        path = self.work + "/thr-%s.json" % len(os.listdir(self.work))
+        if text is not None:
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write(text)
+            return path
+        with open(ROOT + "/thresholds.json", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        mutate(payload)
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+        return path
+
+    def test_nonsense_threshold_values_are_refused(self):
+        # Before this check, z of NaN, 0 or 1e308 printed a collapsed interval ("75.0 to 75.0")
+        # and an interval-gated row read "Held" on any positive fall; -1.96 mirrored the limits;
+        # a negative limit or a must_fall of 0 was a rule that decided nothing. Each exited 0.
+        verdicts = self._judged()
+        with open(ROOT + "/thresholds.json", encoding="utf-8") as handle:
+            source = handle.read()
+        self.assertEqual(source.count("1.96"), 1)
+        nan = self._thresholds_variant(None, text=source.replace("1.96", "NaN"))
+        self._assert_ab_refused(self._ab(verdicts, thresholds=nan), "interval.z is not a finite number above zero")
+        for value in (0, -1.96, float("inf")):
+            bad = self._thresholds_variant(lambda d, v=value: d["interval"].__setitem__("z", v))
+            with self.subTest(z=value):
+                self._assert_ab_refused(self._ab(verdicts, thresholds=bad), "interval.z is not a finite number above zero")
+        huge = self._thresholds_variant(lambda d: d["interval"].__setitem__("z", 1e308))
+        self._assert_ab_refused(self._ab(verdicts, thresholds=huge), "is not finite")
+        for label, mutate in (
+            ("min_net_fall 0", lambda d: d["code"][0].__setitem__("min_net_fall", 0)),
+            ("min_net_fall -1", lambda d: d["code"][0].__setitem__("min_net_fall", -1)),
+            ("max_rise -1", lambda d: d["code"][4].__setitem__("max_rise", -1)),
+            ("max_pass_fall -1", lambda d: d["judge"][0].__setitem__("max_pass_fall", -1)),
+        ):
+            bad = self._thresholds_variant(mutate)
+            with self.subTest(label=label):
+                self._assert_ab_refused(self._ab(verdicts, thresholds=bad), "is below")
+        # The committed thresholds still pass: z 1.96 and every limit at least 0.
+        fine = judge_cli(self._ab(verdicts) + ["--md", self.work + "/fine.md"])
+        self.assertEqual(fine.returncode, 0, fine.stderr)
+
+    def test_a_cases_file_of_the_wrong_shape_is_refused(self):
+        # [1] raised TypeError and {"expected": 5} raised AttributeError, each a traceback with status 1.
+        verdicts = self._judged()
+        for label, payload in (
+            ("a list of integers", [1]),
+            ("expected not an object", [{"case_id": case, "expected": 5} for case in ("T1", "T2", "T3", "T4")]),
+            ("an object, not a list", {}),
+            ("a case missing", [{"case_id": case, "expected": {"ticket_result": "WIN", "net": 1.0}} for case in ("T1", "T2", "T3")]),
+        ):
+            path = self.work + "/cases-%s.json" % len(os.listdir(self.work))
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle)
+            with self.subTest(label=label):
+                self._assert_ab_refused(self._ab(verdicts, cases=path), "cases")
+        binary = self.work + "/cases-binary.json"
+        with open(binary, "wb") as handle:
+            handle.write(b"\xff")
+        self._assert_ab_refused(self._ab(verdicts, cases=binary), "unreadable cases file")
+        self._assert_ab_refused(self._ab(verdicts, cases=self.work + "/no-cases.json"), "unreadable cases file")
 
     def test_markup_in_the_prompt_diff_and_the_path_is_escaped(self):
         tree = self.work + "/tree"

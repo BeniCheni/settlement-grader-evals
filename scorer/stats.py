@@ -101,8 +101,10 @@ def paired_difference(a, b, c, d, z=1.96):
     diff = p1 - p2
     lower_inside = (p1 - l1) ** 2 - 2 * phi * (p1 - l1) * (u2 - p2) + (u2 - p2) ** 2
     upper_inside = (u1 - p1) ** 2 - 2 * phi * (u1 - p1) * (p2 - l2) + (p2 - l2) ** 2
-    lower = diff - math.sqrt(lower_inside if lower_inside > 0.0 else 0.0)
-    upper = diff + math.sqrt(upper_inside if upper_inside > 0.0 else 0.0)
+    # A radicand a rounding error pushes below zero is clamped; NaN is not, so a z that
+    # overflows the Wilson limits gives NaN limits for the caller to refuse, not a point.
+    lower = diff - math.sqrt(0.0 if lower_inside < 0.0 else lower_inside)
+    upper = diff + math.sqrt(0.0 if upper_inside < 0.0 else upper_inside)
     return (diff, lower, upper)
 
 

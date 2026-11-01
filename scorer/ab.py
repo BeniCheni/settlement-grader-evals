@@ -5,13 +5,14 @@ This module does not call a model except through the adapter run-ab is given.
 """
 import difflib
 import json
+import math
 import os
 import shlex
 import sys
 from decimal import Decimal, ROUND_HALF_UP
 
 from scorer.checks import CHECKS
-from scorer.compare import CompareError, _load_meta, _load_records
+from scorer.compare import CompareError, _check_cases, _load_meta, _load_records
 from scorer.judge import (
     FakeAdapter,
     FixtureClient,
@@ -207,9 +208,12 @@ def run_ab(args):
     sys.stdout.write("verdicts %s\n" % len(verdicts))
 
 
-def _integer(value, label):
+def _integer(value, label, least=0):
+    """A count. A negative limit, or a must_fall of nothing, reads as a rule and decides nothing."""
     if isinstance(value, bool) or not isinstance(value, int):
         raise JudgeError("%s is not an integer" % label)
+    if value < least:
+        raise JudgeError("%s is below %s" % (label, least))
     return value
 
 
@@ -226,6 +230,10 @@ def _thresholds(path, codes, rubrics):
     z = interval.get("z")
     if isinstance(z, bool) or not isinstance(z, (int, float)):
         raise JudgeError("interval.z is not a number")
+    # NaN, zero and a negative z each collapse or mirror the interval, so any positive fall
+    # would satisfy interval_excludes_zero. JSON accepts NaN; the method needs z above zero.
+    if not math.isfinite(z) or z <= 0:
+        raise JudgeError("interval.z is not a finite number above zero")
     if not isinstance(data["code"], list) or not isinstance(data["judge"], list):
         raise JudgeError("thresholds.json has the wrong keys")
     rows = []
@@ -244,7 +252,7 @@ def _thresholds(path, codes, rubrics):
         seen_codes.add(code)
         row = {"name": code, "kind": kind, "source": "code"}
         if kind == "must_fall":
-            row["min_net_fall"] = _integer(raw.get("min_net_fall"), "min_net_fall")
+            row["min_net_fall"] = _integer(raw.get("min_net_fall"), "min_net_fall", least=1)
             flag = raw.get("interval_excludes_zero")
             if not isinstance(flag, bool):
                 raise JudgeError("interval_excludes_zero is not a boolean")
@@ -394,6 +402,9 @@ def _metric(name, source, case_ids, left, right, z, extra):
     both, only_a, only_b, neither = _cells(case_ids, left, right)
     n = len(case_ids)
     fall, lower, upper = paired_difference(both, only_a, only_b, neither, z=z)
+    if not all(math.isfinite(value) for value in (fall, lower, upper)):
+        # A z large enough to overflow z squared leaves NaN limits, which would print as a point.
+        raise JudgeError("the interval for %s is not finite" % name)
     count_a = both + only_a
     count_b = both + only_b
     row = {
@@ -417,10 +428,14 @@ def _metric(name, source, case_ids, left, right, z, extra):
 
 
 def _score(name, cases):
+    """The checks' flags for one run. A cases file that cannot be read is a refusal, never a traceback."""
     try:
+        _check_cases(cases)
         return score_run(name, cases_path=cases)
-    except (MissingCaseError, FileNotFoundError, OSError, ValueError) as error:
+    except (MissingCaseError, CompareError) as error:
         raise JudgeError(str(error)) from None
+    except (OSError, ValueError, TypeError, AttributeError, KeyError):
+        raise JudgeError("unreadable cases file %s" % cases) from None
 
 
 def _verdict_map(rows, pair, recorded):
