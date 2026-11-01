@@ -911,6 +911,29 @@ def build_adapter(spec, http_fixture):
     raise JudgeError("adapter must be fake:<file> or ollama:<model>")
 
 
+def collect_verdicts(row, rubrics, adapter, cache):
+    """One ticket's replies. The row needs run, case_id and trace_id, and no human label."""
+    record = record_for(cache, row)
+    case_text = render_case(record)
+    found = []
+    for rubric in rubrics:
+        key = "%s|%s|%s" % (row["run"], row["case_id"], rubric["name"])
+        adapter.key = key
+        reply = run_judge(rubric["text"], case_text, adapter)
+        verdict, reason = parse_reply(reply)
+        found.append({
+            "run": row["run"],
+            "case_id": row["case_id"],
+            "trace_id": row["trace_id"],
+            "rubric": rubric["name"],
+            "rubric_sha256": rubric["sha256"],
+            "verdict": verdict,
+            "reason": reason,
+            "reply": reply,
+        })
+    return found
+
+
 def judge_rows(label_rows, rubrics, adapter, cache):
     """Every reply is collected before the caller writes a file."""
     by_name = {rubric["name"]: rubric for rubric in rubrics}
@@ -918,23 +941,7 @@ def judge_rows(label_rows, rubrics, adapter, cache):
     for row in label_rows:
         if set(row["human"].keys()) != set(by_name):
             raise JudgeError("labels and rubrics do not match")
-        record = record_for(cache, row)
-        case_text = render_case(record)
-        for rubric in rubrics:
-            key = "%s|%s|%s" % (row["run"], row["case_id"], rubric["name"])
-            adapter.key = key
-            reply = run_judge(rubric["text"], case_text, adapter)
-            verdict, reason = parse_reply(reply)
-            verdicts.append({
-                "run": row["run"],
-                "case_id": row["case_id"],
-                "trace_id": row["trace_id"],
-                "rubric": rubric["name"],
-                "rubric_sha256": rubric["sha256"],
-                "verdict": verdict,
-                "reason": reason,
-                "reply": reply,
-            })
+        verdicts.extend(collect_verdicts(row, rubrics, adapter, cache))
     verdicts.sort(key=lambda item: (item["run"], item["case_id"], item["rubric"]))
     return verdicts
 
@@ -954,6 +961,26 @@ def _meta_for_adapter(adapter, labels_path, rubrics):
         "rubrics": {rubric["name"]: rubric["sha256"] for rubric in rubrics},
         "server_version": adapter.server_version,
     }
+
+
+def _relay(func, args):
+    """ab.py imports this module by name, which is a second copy when this file is __main__."""
+    try:
+        func(args)
+    except Exception as error:
+        if type(error).__name__ != "JudgeError":
+            raise
+        raise JudgeError(str(error)) from None
+
+
+def cmd_run_ab(args):
+    from scorer.ab import run_ab
+    _relay(run_ab, args)
+
+
+def cmd_ab(args):
+    from scorer.ab import report_ab
+    _relay(report_ab, args)
 
 
 def cmd_run(args):
@@ -1823,6 +1850,29 @@ def _parser():
     run.add_argument("--out", required=True)
     run.add_argument("--http-fixture", dest="http_fixture")
     run.set_defaults(func=cmd_run)
+
+    paired = sub.add_parser("run-ab")
+    paired.add_argument("--a", required=True)
+    paired.add_argument("--b", required=True)
+    paired.add_argument("--rubrics", required=True)
+    paired.add_argument("--frozen-rubrics", dest="frozen_rubrics", required=True)
+    paired.add_argument("--adapter", required=True)
+    paired.add_argument("--out", required=True)
+    paired.add_argument("--http-fixture", dest="http_fixture")
+    paired.set_defaults(func=cmd_run_ab)
+
+    compared = sub.add_parser("ab")
+    compared.add_argument("--a", required=True)
+    compared.add_argument("--b", required=True)
+    compared.add_argument("--verdicts", required=True)
+    compared.add_argument("--thresholds", required=True)
+    compared.add_argument("--statement", required=True)
+    compared.add_argument("--set1", required=True)
+    compared.add_argument("--cases", default="data/gold.json")
+    compared.add_argument("--md", dest="md_out")
+    compared.add_argument("--json", dest="json_out")
+    compared.add_argument("--html", dest="html_out")
+    compared.set_defaults(func=cmd_ab)
 
     pick = sub.add_parser("pick-model")
     pick.add_argument("--candidates", required=True)

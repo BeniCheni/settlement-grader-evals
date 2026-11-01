@@ -1,0 +1,221 @@
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T1"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "0"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "aT1r",
+              "startTimeUnixNano": "1",
+              "traceId": "aT1"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T2"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "0"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "aT2r",
+              "startTimeUnixNano": "1",
+              "traceId": "aT2"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T3"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "0"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "aT3r",
+              "startTimeUnixNano": "1",
+              "traceId": "aT3"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T4"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "2"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "aT4r",
+              "startTimeUnixNano": "1",
+              "traceId": "aT4"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "settle_ticket"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "tool.settle_ticket",
+              "parentSpanId": "aT4r",
+              "spanId": "aT4s",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 0
+              },
+              "traceId": "aT4"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "lookup_rule"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"error\":\"UNKNOWN_TOPIC\"}"
+                  }
+                }
+              ],
+              "name": "tool.lookup_rule",
+              "parentSpanId": "aT4r",
+              "spanId": "aT4u",
+              "startTimeUnixNano": "3",
+              "status": {
+                "code": 0
+              },
+              "traceId": "aT4"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "ollama.done_reason",
+                  "value": {
+                    "stringValue": "length"
+                  }
+                }
+              ],
+              "name": "llm.generate",
+              "parentSpanId": "aT4r",
+              "spanId": "aT4l",
+              "startTimeUnixNano": "4",
+              "traceId": "aT4"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

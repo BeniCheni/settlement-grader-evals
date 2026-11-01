@@ -1,0 +1,59 @@
+{
+  "code": [
+    {
+      "code": "NO_FINAL_ANSWER",
+      "interval_excludes_zero": true,
+      "kind": "must_fall",
+      "min_net_fall": 3
+    },
+    {
+      "code": "RULE_TOPIC_MISS",
+      "interval_excludes_zero": false,
+      "kind": "must_fall",
+      "min_net_fall": 1
+    },
+    {
+      "code": "OUTPUT_LIMIT_SPRAY",
+      "interval_excludes_zero": true,
+      "kind": "must_fall",
+      "min_net_fall": 1
+    },
+    {
+      "code": "PLACEHOLDER_ECHO",
+      "interval_excludes_zero": false,
+      "kind": "must_fall",
+      "min_net_fall": 1
+    },
+    {
+      "code": "GRADED_WITHOUT_LOOKUP",
+      "kind": "max_rise",
+      "max_rise": 0
+    },
+    {
+      "code": "WIN_LOSS_FLIP",
+      "kind": "max_rise",
+      "max_rise": 0
+    }
+  ],
+  "interval": {
+    "method": "newcombe-1998-method-10",
+    "z": 1.96
+  },
+  "judge": [
+    {
+      "kind": "max_pass_fall",
+      "max_pass_fall": 0,
+      "rubric": "needs_human_correctness"
+    },
+    {
+      "kind": "max_pass_fall",
+      "max_pass_fall": 0,
+      "rubric": "tool_call_accuracy"
+    },
+    {
+      "kind": "report_only",
+      "rubric": "rule_adherence"
+    }
+  ],
+  "weakest_judge": "rule_adherence"
+}

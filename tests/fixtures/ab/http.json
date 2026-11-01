@@ -1,0 +1,35 @@
+{
+  "replies": {
+    "llama3.1:8b|tests/fixtures/ab/alpha|T1|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T1|rule_adherence": "FAIL\nReason: a planted <b>ship</b>\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T1|tool_call_accuracy": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T2|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T2|rule_adherence": "FAIL\nReason: same\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T2|tool_call_accuracy": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T3|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T3|rule_adherence": "PASS\nReason: clear\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T3|tool_call_accuracy": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T4|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T4|rule_adherence": "maybe\nReason: unclear\n",
+    "llama3.1:8b|tests/fixtures/ab/alpha|T4|tool_call_accuracy": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T1|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T1|rule_adherence": "PASS\nReason: clear\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T1|tool_call_accuracy": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T2|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T2|rule_adherence": "FAIL\nReason: same\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T2|tool_call_accuracy": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T3|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T3|rule_adherence": "FAIL\nReason: missed\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T3|tool_call_accuracy": "FAIL\nReason: missed a call\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T4|needs_human_correctness": "PASS\nReason: ok\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T4|rule_adherence": "PASS\nReason: clear\n",
+    "llama3.1:8b|tests/fixtures/ab/beta|T4|tool_call_accuracy": "PASS\nReason: ok\n"
+  },
+  "show": {
+    "llama3.1:8b": "llama"
+  },
+  "tags": {
+    "llama3.1:8b": "sha256:judge"
+  },
+  "version": "0.6.2"
+}

@@ -1,0 +1,284 @@
+{
+  "resourceSpans": [
+    {
+      "scopeSpans": [
+        {
+          "spans": [
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T1"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "bT1r",
+              "startTimeUnixNano": "1",
+              "traceId": "bT1"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "settle_ticket"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "tool.settle_ticket",
+              "parentSpanId": "bT1r",
+              "spanId": "bT1s",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 0
+              },
+              "traceId": "bT1"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T2"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "bT2r",
+              "startTimeUnixNano": "1",
+              "traceId": "bT2"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "settle_ticket"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "tool.settle_ticket",
+              "parentSpanId": "bT2r",
+              "spanId": "bT2s",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 0
+              },
+              "traceId": "bT2"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T3"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"LOSS\"}"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "bT3r",
+              "startTimeUnixNano": "1",
+              "traceId": "bT3"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "settle_ticket"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"LOSS\"}"
+                  }
+                }
+              ],
+              "name": "tool.settle_ticket",
+              "parentSpanId": "bT3r",
+              "spanId": "bT3s",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 0
+              },
+              "traceId": "bT3"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "case.id",
+                  "value": {
+                    "stringValue": "T4"
+                  }
+                },
+                {
+                  "key": "input.ticket",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "run.status",
+                  "value": {
+                    "stringValue": "complete"
+                  }
+                },
+                {
+                  "key": "run.tool_calls",
+                  "value": {
+                    "intValue": "1"
+                  }
+                },
+                {
+                  "key": "output.final",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "grade_ticket",
+              "spanId": "bT4r",
+              "startTimeUnixNano": "1",
+              "traceId": "bT4"
+            },
+            {
+              "attributes": [
+                {
+                  "key": "tool.name",
+                  "value": {
+                    "stringValue": "settle_ticket"
+                  }
+                },
+                {
+                  "key": "tool.call.args",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                },
+                {
+                  "key": "tool.call.result",
+                  "value": {
+                    "stringValue": "{\"net\":1.0,\"ticket_result\":\"WIN\"}"
+                  }
+                }
+              ],
+              "name": "tool.settle_ticket",
+              "parentSpanId": "bT4r",
+              "spanId": "bT4s",
+              "startTimeUnixNano": "2",
+              "status": {
+                "code": 0
+              },
+              "traceId": "bT4"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
