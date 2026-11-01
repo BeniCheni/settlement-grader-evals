@@ -843,3 +843,29 @@ class PageTests(unittest.TestCase):
         hosts = set(re.findall(r'href="https://([^/"]+)', "".join(links)))
         self.assertEqual(hosts, {"fonts.googleapis.com", "fonts.gstatic.com"})
         self.assertEqual(page.count("https://"), 3)
+
+    def test_wide_rows_have_two_tiers_without_a_spare_final_track(self):
+        # This pins the rule, not its rendered geometry: the browser measures that.
+        with open("ui/ledger.css", encoding="utf-8") as handle:
+            css = handle.read()
+        wide = brace_block(css, "@media (min-width: 761px)")
+        self.assertIn("display:grid", brace_block(wide, ".ledger.judge-rows tr{"))
+        self.assertIn("repeat(4, minmax(0, 1fr))", brace_block(wide, ".ledger.judge-rows tr{"))
+        self.assertIn("repeat(5, minmax(0, 1fr))", brace_block(wide, ".ledger.judge-rows.with-final tr{"))
+        self.assertIn("width:auto", brace_block(wide, ".ledger.judge-rows td:nth-child(n){"))
+        self.assertIn("content:attr(data-label)", brace_block(wide, ".ledger.judge-rows td::before{"))
+        self.assertIn('td[data-label="Reason"]', wide)
+        self.assertIn('td[data-label="Change"]', wide)
+        self.assertIn('td[data-label="Reading"]{grid-column:1 / -1}', wide)
+        self.assertIn(".ledger.judge-rows td:empty{display:none}", wide)
+        self.assertIn("white-space:nowrap", wide)
+        self.assertIn("box-shadow:inset 3px 0 0 var(--blood)", brace_block(wide, ".ledger.judge-rows tr.disagree{"))
+        with open("reports/judge-set1.html", encoding="utf-8") as handle:
+            page = handle.read()
+        self.assertEqual(page.count('<table class="ledger judge-rows with-final">'), 3)
+        self.assertIn(css.rstrip("\n"), page)
+        plain = render_comparison(ROOT + "/labels.jsonl", None, None, ROOT + "/provenance.txt",
+                                  ROOT + "/verdicts", ROOT + "/rubric-provenance.json")
+        self.assertEqual(plain.count('<table class="ledger judge-rows">'), 3)
+        self.assertNotIn('data-label="Final"', plain)
+        self.assertNotIn('<td data-label="Change"', plain)

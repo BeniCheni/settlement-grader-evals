@@ -321,11 +321,52 @@ body{
 .reading-fold .reading{margin-top:8px}
 @media (min-width: 761px){
   .sides{grid-template-columns:repeat(2, minmax(0, 1fr))}
+  /* One entry stays one tr. Short facts share a tier; prose takes every track.
+     The default has five facts; final labels add the sixth, with no spare track. */
+  .ledger.judge-rows,.ledger.judge-rows tbody{display:block; width:100%}
+  .ledger.judge-rows thead{display:none}
+  .ledger.judge-rows tr{
+    display:grid;
+    grid-template-columns:minmax(0, 3fr) repeat(4, minmax(0, 1fr));
+    border:2px solid var(--rule);
+    margin:0 0 10px;
+    padding:6px 10px;
+  }
+  .ledger.judge-rows.with-final tr{grid-template-columns:minmax(0, 1.5fr) repeat(5, minmax(0, 1fr))}
+  .ledger.judge-rows td:nth-child(n){
+    display:grid;
+    grid-template-columns:minmax(0, 1fr);
+    gap:2px;
+    border:0;
+    padding:4px 4px;
+    width:auto;
+    min-width:0;
+  }
+  .ledger.judge-rows td::before{
+    content:attr(data-label);
+    font-family:var(--f-shout);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    font-size:13px;
+    color:var(--ink-2);
+  }
+  .ledger.judge-rows td[data-label="Reason"],
+  .ledger.judge-rows td[data-label="Change"],
+  .ledger.judge-rows td[data-label="Reading"]{grid-column:1 / -1}
+  .ledger.judge-rows td:empty{display:none}
+  .ledger.judge-rows td:not([data-label="Reason"]):not([data-label="Change"]):not([data-label="Reading"]) > span{white-space:nowrap}
+  .ledger.judge-rows tr.disagree{box-shadow:inset 3px 0 0 var(--blood)}
+  .ledger.judge-rows tr.disagree td:first-child{box-shadow:none}
 }
 @media (min-width: 900px){
   .cover-main{grid-template-columns:minmax(240px, 0.85fr) minmax(0, 1.15fr)}
   .cover-main .stats{grid-template-columns:minmax(0, 1fr)}
   .rubric-top{grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr)}
+}
+@media (min-width: 1200px){
+  /* Keep long prose readable on the largest wrap without narrowing its cell. */
+  .judge-rows td[data-label="Reason"] > span,
+  .judge-rows .change,.judge-rows .reading{max-width:80ch}
 }
 </style>
 </head>

@@ -1674,7 +1674,7 @@ def render_judge_html(document, page, statements, provenance_path, css):
             "</div>",
             "</div>",
             "<p>Agrees compares the judge with the %s.</p>" % esc(which),
-            '<table class="ledger">',
+            '<table class="ledger judge-rows%s">' % (" with-final" if with_final else ""),
             "<thead><tr>%s</tr></thead>" % head,
             "<tbody>",
         ])
