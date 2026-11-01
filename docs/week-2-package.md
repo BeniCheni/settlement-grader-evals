@@ -108,7 +108,8 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    rows for `needs_human_correctness` and `tool_call_accuracy` and at most 38 for `rule_adherence`.
 
 7. **The A/B's one change and its order** (the owner's, Sun 1 Nov 2026). Variant B changes step 3 of the grader's system prompt so
-   each leg's selection and fact are set side by side before its result (`variants/compare-first.txt`). Step 8 runs before step 9,
+   each leg's selection and fact are set side by side before its result, in the same message as the `settle_ticket` call
+   (`variants/compare-first.txt`). Step 8 runs before step 9,
    with `rule_adherence` flagged as the delta to trust least and the verdict resting on the plain-code check. He approved the
    thresholds in `submissions/week-02/assignment-2/ab_report.md`.
 

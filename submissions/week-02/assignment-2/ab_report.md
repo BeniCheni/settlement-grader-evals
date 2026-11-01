@@ -37,9 +37,8 @@ been shown to do anything. Each metric is reported on its own row, and nothing i
 **In sample, and said now.** The change was chosen by reading these tickets and the checks were built against `traces/v1`, so every figure this report will hold is in sample. It can show the change moved
 these 32 tickets; it cannot show how the change does on tickets it has not seen. The statement the report prints is `statement.txt`.
 
-**The judges, flagged before the results.** On set 1's final labels only `tool_call_accuracy` meets 85% and 0.6 (92.5%, 0.8500). `needs_human_correctness` does not (80.0%, 0.3191). `rule_adherence` does not (65.0%, 0.0000): it
-answered FAIL on all 40 rows, so it cannot register an improvement in grades, and **its delta is the one to trust least**, though it is the judge closest to this failure. All of those figures are in sample as well.
-So the primary metric is the plain-code check, which re-grades legs from the facts, not from the answer keys.
+**The judges, flagged before the results.** On set 1's final labels only `tool_call_accuracy` meets 85% and 0.6 (92.5%, 0.8500, false passes read 0 of 0). `needs_human_correctness` does not (80.0%, 0.3191, false passes read 6 of 6). `rule_adherence` does not (65.0%, 0.0000, false passes read 0 of 0): it answered FAIL on all 40 rows there, so it showed no ability to tell a right grade from a wrong one. That does not prove it will answer FAIL on these runs, but a move in its delta cannot be read as a move in grades, and **its delta is the one to trust least**, though it is the judge closest to this failure. All of those figures are in sample as well.
+So the primary metric is the plain-code check, which re-grades legs from the facts in the trace, not from the answer keys.
 
 ## A/B results
 
@@ -56,7 +55,7 @@ Sample size: n = 32 per variant.
 
 ## Ship / no-ship decision
 
-**Thresholds (written before seeing results):** ship only if every one of these holds. The PM seat drafted them and the owner approved them on Sun 1 Nov 2026. The same numbers are in `thresholds.json`, which the report reads.
+**Thresholds (written before seeing results):** these are necessary for a ship and not sufficient: ship only if every row with a condition holds, and the owner can still say no. The PM seat drafted them and the owner approved them on Sun 1 Nov 2026. The same numbers are in `thresholds.json`, which the report reads.
 
 | Metric | Source | Holds when |
 |---|---|---|
@@ -68,10 +67,12 @@ Sample size: n = 32 per variant.
 | `GRADED_WITHOUT_LOOKUP` | Code check | Rises by at most 1 ticket |
 | `tool_call_accuracy` | Judge, at the bar | PASS falls by at most 1 ticket (3.1 points) |
 | `needs_human_correctness` | Judge, below the bar | PASS falls by at most 2 tickets (6.3 points) |
-| `rule_adherence` | Judge, below the bar | Reported only: it cannot hold or fail a change while it answers FAIL on everything |
+| `rule_adherence` | Judge, below the bar | Reported only, with no condition: on set 1 it answered FAIL on every row, so a move here is not evidence about grades either way |
 
-Why 5: with n of 32, A at 15 tickets and no ticket made worse, a fall of 4 has an interval that still includes zero and a fall of 5 does not, so 5 is the smallest fall this method can distinguish. If any ticket gets worse, the interval
-rule asks for more: a net fall of 5 with 1 ticket made worse still includes zero. Why one ticket on the guards: one ticket is 3.1 points, the smallest step 32 tickets allow.
+Why 5: with n of 32 and no ticket made worse, at any count for A, a fall of 4 has an interval that still includes zero and a fall of 5 does not, so 5 is the smallest fall this method can distinguish. If any ticket gets worse, the interval
+rule asks for more: a net fall of 5 with 1 ticket made worse still includes zero. If A has fewer than 5 tickets, this row cannot hold. Why one ticket on the guards: one ticket is 3.1 points, the smallest step 32 tickets allow.
+
+**Which regression is acceptable, and why:** at most one ticket on `tool_call_accuracy`, and at most two on `needs_human_correctness`, in exchange for the primary fall. A wrong WIN books money that is not there, while a wrong escalation costs a manual look, so a small move on the guards is worth a real fall in wrong grades. `needs_human_correctness` gets the wider margin because its kappa of 0.3191 on set 1, in sample, means a move of one or two tickets may be the judge as much as the grader. Anything larger stops the ship even if the primary falls.
 
 **Verdict:** not yet. The owner writes it after the results.
 
