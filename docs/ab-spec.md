@@ -22,10 +22,10 @@ set 1, is flagged up front as the delta to trust least, and the verdict rests on
 
 | What | Where |
 |---|---|
-| The failure mode, the ten traces and the root cause | `submissions/week-02/assignment-2/diagnosis.md` |
+| The failure mode, the ten traces and the root cause | `packages/llm-judges/assignment-2/diagnosis.md` |
 | The one change, as a full prompt | `variants/compare-first.txt` |
-| The thresholds and the interval's method | `submissions/week-02/assignment-2/ab_report.md`, and as data in `thresholds.json` beside it |
-| The statement beside the figures, written by hand | `submissions/week-02/assignment-2/statement.txt` |
+| The thresholds and the interval's method | `packages/llm-judges/assignment-2/ab_report.md`, and as data in `thresholds.json` beside it |
+| The statement beside the figures, written by hand | `packages/llm-judges/assignment-2/statement.txt` |
 
 These merge before variant B runs (`docs/week-2-package.md`, "Gates this repo adds"). The results section of `ab_report.md`
 stays empty until the runs are committed.
@@ -109,7 +109,7 @@ A delta whose interval includes zero has not been shown to do anything (`docs/we
 ## The report (contract: `python3 -m scorer.judge ab`)
 
 ```bash
-python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds submissions/week-02/assignment-2/thresholds.json --statement submissions/week-02/assignment-2/statement.txt --set1 reports/judge-set1.json --md reports/ab.md --json reports/ab.json --html reports/ab.html
+python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds packages/llm-judges/assignment-2/thresholds.json --statement packages/llm-judges/assignment-2/statement.txt --set1 reports/judge-set1.json --md reports/ab.md --json reports/ab.json --html reports/ab.html
 ```
 
 The outputs are byte-stable, go through `write_outputs` and refuse as the other commands do. It runs the same refusals as `run-ab`,
@@ -145,7 +145,7 @@ primitives where they fit, and has no script. The cover asks "Did the change wor
 B, its delta and interval, and the thresholds' count, with the hand-written statement beside them, verbatim. No tile, pill or
 sentence presents a threshold count as the trust verdict. The every-ticket section follows the judge page's two-tier rows at 761 px
 and wider and stacks at 760 px and narrower, hiding empty cells. A colophon prints the command, which rebuilds the page byte for byte
-from the repository root. The package copies it to `submissions/week-02/assignment-2/comparison.html` at step 10.
+from the repository root. The package copies it to `packages/llm-judges/assignment-2/comparison.html` at step 10.
 
 ## The run (the PM's, after the builder's PR merges)
 
@@ -223,7 +223,17 @@ What review and the run changed, so a cold reader does not take the contract abo
 - **The statement.** Amended under step 3 of "The run": on none of the 29 tickets where variant B called `settle_ticket` did
   it write the requested comparison beside that call, and it settled in the same message as a lookup on 8 tickets against
   A's 3. So the figures show what this wording did, not whether a comparison made before the grade would help.
-- **The result.** 6 of 8 thresholds held. The verdict is the owner's, in `submissions/week-02/assignment-2/ab_report.md`.
+- **The result.** 6 of 8 thresholds held. The verdict is the owner's, in `packages/llm-judges/assignment-2/ab_report.md`.
+
+**After the run (Mon 2 Nov 2026).**
+
+- **Page fixes (PR #21).** Each paired interval stays on one line from 761 px. A count of one prints "ticket". A metric's
+  name is two spans: the visible one wraps at underscores and is `aria-hidden`, and a visually hidden one carries the whole
+  name. `ab` also refuses a wrong type or a non-finite `net` inside a case's `expected`. With web fonts blocked, the longest
+  ticket label wraps inside its cell at 761 px, which review accepted. No figure moved.
+- **The path (the owner's ruling).** `submissions/week-02/` moved to `packages/llm-judges/`, so the commands above name the
+  new path and the report and page print it. The bytes of the thresholds and the statement did not change, `git log --follow`
+  shows their history, and the archived prompts keep the old path as delivered.
 
 ## Out of scope
 

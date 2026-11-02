@@ -11,7 +11,7 @@ this spec says "contract" the name or behaviour is fixed; elsewhere the builder 
 Assignment 1 asks for a comparison view: per rubric, the judge's verdict on each row next to the hand label, the
 agreement rate, and the disagreeing rows with the judge's reasoning (the course's Step 10). The plan's decision 2 makes
 that view this repo's own page in the Haunted Ledger style, and the package puts it at
-`submissions/week-02/assignment-1/comparison.html`. `report` computes the per-rubric agreement figures; the page also
+`packages/llm-judges/assignment-1/comparison.html`. `report` computes the per-rubric agreement figures; the page also
 counts rows, rubrics, changed labels and judges whose numbers meet the bar. The page adds what the Markdown leaves out:
 every row's verdict, not only the disagreements, the text of each reading, and the owner's reason on each changed label.
 

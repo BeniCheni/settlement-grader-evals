@@ -1,6 +1,6 @@
 # Did the change work?
 
-Command: `python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds submissions/week-02/assignment-2/thresholds.json --statement submissions/week-02/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html`
+Command: `python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds packages/llm-judges/assignment-2/thresholds.json --statement packages/llm-judges/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html`
 
 ## GRADE_CONTRADICTS_FACTS
 

@@ -134,7 +134,8 @@ doesn't get to ship until it agrees with human labels.
 | `data/espn_frozen.json` | The match facts the eval runs against |
 | `traces/` | Run receipts; `v1` is the first full run |
 | `scorer/` | The eleven plain-code checks, the agreement statistics, the calibration report, the judge harness and the A/B report |
-| `rubrics/`, `labels/`, `judgments/`, `submissions/` | Three judge rubrics, my 120 labels on 40 rows and adjudication, the judge's verdicts, the course diagnosis and the A/B report |
+| `rubrics/`, `labels/`, `judgments/` | Three judge rubrics, my 120 labels on 40 rows and adjudication, and the judge's verdicts |
+| `packages/llm-judges/` | The Week 2 course package: each assignment's deliverables, the A/B report, and a table mapping every acceptance item to its file |
 | `variants/compare-first.txt` | The one prompt change the A/B tested |
 | `reports/` | The generated reports, including the calibration page, the judge page and the A/B page (open any of them in a browser) |
 | `docs/` | The specs, the Week 2 plan and its follow-ups, and the build and review prompts that made this |
@@ -162,7 +163,7 @@ is no-ship. The change asked the grader to compare each leg with the facts befor
 `GRADE_CONTRADICTS_FACTS`, rose from 15 tickets to 16 where I required at least 5 fewer, and `tool_call_accuracy` fell by 3
 tickets against a limit of 1. No comparison was written beside any `settle_ticket` call, so this tested the wording and not
 the idea. Every figure is in sample and every interval includes zero: see [the page](reports/ab.html) (open it in a browser)
-and [the report](submissions/week-02/assignment-2/ab_report.md).
+and [the report](packages/llm-judges/assignment-2/ab_report.md).
 
 **Next**: tighten the weakest
 judge's rubric and check it on fresh labels; red-team the slip-text injection and report both how
@@ -181,7 +182,7 @@ python3 -m scorer.calibrate traces/v1               # agreement with the human l
 python3 -m scorer.score traces/v1                   # which codes each ticket shows
 python3 -m scorer.report traces/v1 --out reports/calibration-v1.html --json reports/calibration-v1.json
 python3 -m scorer.judge report --labels labels/set1.jsonl --final labels/set1-final.jsonl --readings labels/set1-readings.json --provenance labels/set1-provenance.txt --verdicts judgments/set1-llama3.1-8b --md reports/judge-set1.md --json reports/judge-set1.json --html reports/judge-set1.html --rubric-provenance labels/set1-rubric-provenance.json   # the judge page; calls no model
-python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds submissions/week-02/assignment-2/thresholds.json --statement submissions/week-02/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html
+python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds packages/llm-judges/assignment-2/thresholds.json --statement packages/llm-judges/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html
 ```
 
 Tested on Python 3.9 and 3.14, standard library only. In the first run, a ticket took a median of about 18 seconds;
