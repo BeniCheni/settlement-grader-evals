@@ -383,8 +383,17 @@ body{
 .ledger.ab-rows td[data-label="Changed"]::before{content:none}
 .ab-verdicts{display:flex; flex-wrap:wrap; gap:0 6px; min-width:0}
 .ab-verdicts > span{white-space:nowrap}
+.ledger.ab-metrics{table-layout:auto; font-size:14px; line-height:1.25; margin:12px 0}
+.ab-metrics caption{text-align:left; margin:0 0 8px}
+.ledger.ab-metrics th{font-size:12px; letter-spacing:0; padding:5px 4px; overflow-wrap:normal}
+.ledger.ab-metrics td{padding:5px 4px}
+.ledger.ab-metrics th:first-child,.ledger.ab-metrics td:first-child{width:20%}
+.ab-metrics .mono{font-size:12px; overflow-wrap:normal}
 @media (max-width: 760px){
   .ledger.ab-rows td:empty{display:none}
+  .ledger.ab-metrics,.ledger.ab-metrics tbody{display:block; width:100%}
+  .ledger.ab-metrics td:first-child{width:auto}
+  .ledger.ab-metrics td{padding:6px 0}
 }
 @media (min-width: 761px){
   .ledger.ab-rows,.ledger.ab-rows tbody{display:block; width:100%}

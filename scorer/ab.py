@@ -562,6 +562,54 @@ def _changed_count(document):
     )
 
 
+def _metric_columns(source):
+    if source == "judge":
+        return (
+            ("Judge", "name"), ("PASS A (%)", "pass_share_a"), ("PASS B (%)", "pass_share_b"),
+            ("Non-PASS A (tickets)", "count_a"), ("Non-PASS B (tickets)", "count_b"),
+            ("Delta (tickets)", "delta_tickets"), ("Delta (points)", "delta_points"),
+            ("Paired interval (points)", "interval"),
+            ("FAIL to PASS (tickets)", "fail_to_pass"), ("PASS to FAIL (tickets)", "pass_to_fail"),
+            ("UNPARSED A (subset)", "unparsed_a"), ("UNPARSED B (subset)", "unparsed_b"),
+        )
+    return (
+        ("Code", "name"), ("A (tickets)", "count_a"), ("B (tickets)", "count_b"),
+        ("Delta (tickets)", "delta_tickets"), ("Delta (points)", "delta_points"),
+        ("Paired interval (points)", "interval"), ("Only A (tickets)", "only_a"), ("Only B (tickets)", "only_b"),
+    )
+
+
+def _metric_value(row, key):
+    if key == "interval":
+        return "%s to %s" % (row["lower_points"], row["upper_points"])
+    return str(row[key])
+
+
+def _metric_caption(source, n):
+    text = "%s — %s tickets per run." % ("Judges" if source == "judge" else "Codes", n)
+    if source == "judge":
+        text += " Non-PASS includes UNPARSED; the UNPARSED columns are subsets. FAIL in the transition columns includes UNPARSED."
+    return text
+
+
+def _metric_table(rows, source):
+    columns = _metric_columns(source)
+    lines = ['<table class="ledger ab-metrics" data-metrics="%s">' % source,
+             "<caption>%s</caption>" % esc(_metric_caption(source, rows[0]["n"])),
+             "<thead><tr>%s</tr></thead>" % "".join('<th scope="col">%s</th>' % esc(label) for label, _key in columns),
+             "<tbody>"]
+    for row in rows:
+        cells = []
+        for label, key in columns:
+            value = esc(_metric_value(row, key))
+            if key == "name":
+                value = value.replace("_", "_<wbr>")
+            cells.append(_td(label, '<span class="%s">%s</span>' % ("break" if key == "name" else "mono", value)))
+        lines.append('<tr data-metric="%s" data-source="%s">%s</tr>' % (esc(row["name"]), source, "".join(cells)))
+    lines.extend(["</tbody>", "</table>"])
+    return "\n".join(lines)
+
+
 def render_markdown(document):
     primary = document["primary"]
     lines = [
@@ -620,19 +668,14 @@ def render_markdown(document):
     # statement beside every one of them, not three sections away on the cover.
     lines.extend(["### %s" % PROVENANCE_HEADING, "", _marked("statement", document["statement"]), ""])
     lines.extend(["## Metrics", "", document["sign_note"], ""])
-    for row in document["metrics"]:
-        lines.append("### %s" % row["name"])
-        lines.append("")
-        if row["source"] == "judge":
-            lines.append("PASS share A %s. PASS share B %s." % (row["pass_share_a"], row["pass_share_b"]))
-            lines.append("UNPARSED A %s. UNPARSED B %s." % (row["unparsed_a"], row["unparsed_b"]))
-            lines.append("FAIL to PASS %s. PASS to FAIL %s." % (row["fail_to_pass"], row["pass_to_fail"]))
-        lines.append("%sA %s. B %s. Delta %s tickets, %s points." % (
-            "FAIL " if row["source"] == "judge" else "",
-            row["count_a"], row["count_b"], row["delta_tickets"], row["delta_points"],
-        ))
-        lines.append("Interval %s to %s points." % (row["lower_points"], row["upper_points"]))
-        lines.append("Only A %s. Only B %s." % (row["only_a"], row["only_b"]))
+    for source in ("judge", "code"):
+        rows = [row for row in document["metrics"] if row["source"] == source]
+        columns = _metric_columns(source)
+        lines.extend(["### %s" % ("Judges" if source == "judge" else "Codes"), "", _metric_caption(source, rows[0]["n"]), "",
+                      "| " + " | ".join(label for label, _key in columns) + " |",
+                      "| " + " | ".join("---" for _column in columns) + " |"])
+        for row in rows:
+            lines.append("| " + " | ".join(_metric_value(row, key).replace("|", "\\|") for _label, key in columns) + " |")
         lines.append("")
     lines.extend(["## Thresholds", ""])
     for row in document["threshold_rows"]:
@@ -791,23 +834,8 @@ def render_ab_html(document, css):
         "</div>",
     ])
     lines.extend(["</section>", '<section class="sec panel">', "<h2>Metrics</h2>", '<p class="ab-sign">%s</p>' % esc(document["sign_note"])])
-    for row in document["metrics"]:
-        lines.append('<article class="metric" data-metric="%s" data-source="%s">' % (esc(row["name"]), esc(row["source"])))
-        lines.append("<h3>%s</h3>" % esc(row["name"]))
-        if row["source"] == "judge":
-            lines.append("<p>PASS share A %s. PASS share B %s. Delta %s points.</p>" % (
-                esc(row["pass_share_a"]), esc(row["pass_share_b"]), esc(row["delta_points"]),
-            ))
-            lines.append("<p>FAIL to PASS %s. PASS to FAIL %s. UNPARSED A %s. UNPARSED B %s.</p>" % (
-                esc(row["fail_to_pass"]), esc(row["pass_to_fail"]), esc(row["unparsed_a"]), esc(row["unparsed_b"]),
-            ))
-        lines.append("<p>%sA %s. B %s. Delta %s tickets, %s points. Interval %s to %s points.</p>" % (
-            "FAIL " if row["source"] == "judge" else "",
-            esc(row["count_a"]), esc(row["count_b"]), esc(row["delta_tickets"]), esc(row["delta_points"]),
-            esc(row["lower_points"]), esc(row["upper_points"]),
-        ))
-        lines.append("<p>Only A %s. Only B %s.</p>" % (esc(row["only_a"]), esc(row["only_b"])))
-        lines.append("</article>")
+    for source in ("judge", "code"):
+        lines.append(_metric_table([row for row in document["metrics"] if row["source"] == source], source))
     lines.extend(["</section>", '<section class="sec panel">', "<h2>Thresholds</h2>"])
     for row in document["threshold_rows"]:
         if row["report_only"]:

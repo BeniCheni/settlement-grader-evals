@@ -372,7 +372,48 @@ FLAGS = {
     "T3": {"alpha": {"NO_FINAL_ANSWER"}, "beta": {"WIN_LOSS_FLIP"}},
     "T4": {"alpha": {"RULE_TOPIC_MISS", "OUTPUT_LIMIT_SPRAY"}, "beta": set()},
 }
-VOID = {"meta", "link", "br", "img", "input", "col"}
+VOID = {"meta", "link", "br", "img", "input", "col", "wbr"}
+JUDGE_HEADS = ["Judge", "PASS A (%)", "PASS B (%)", "Non-PASS A (tickets)", "Non-PASS B (tickets)",
+               "Delta (tickets)", "Delta (points)", "Paired interval (points)", "FAIL to PASS (tickets)",
+               "PASS to FAIL (tickets)", "UNPARSED A (subset)", "UNPARSED B (subset)"]
+CODE_HEADS = ["Code", "A (tickets)", "B (tickets)", "Delta (tickets)", "Delta (points)",
+              "Paired interval (points)", "Only A (tickets)", "Only B (tickets)"]
+
+
+def read_metric_tables(test, html, markdown):
+    """Read each value under its actual column head, never as a page-wide count."""
+    from html import unescape
+    text = lambda value: unescape(re.sub(r"<[^>]+>", "", value))
+    found_html, found_md = {}, {}
+    section = markdown.split("## Metrics\n", 1)[1].split("\n## Thresholds", 1)[0]
+    for source, heads, title in (("judge", JUDGE_HEADS, "Judges"), ("code", CODE_HEADS, "Codes")):
+        tables = re.findall(r'<table class="ledger ab-metrics" data-metrics="%s">(.*?)</table>' % source, html, re.S)
+        test.assertEqual(len(tables), 1)
+        table = tables[0]
+        actual_heads = re.findall(r'<th scope="col">(.*?)</th>', table)
+        test.assertEqual([text(v) for v in actual_heads], heads)
+        for name, row_source, row in re.findall(r'<tr data-metric="([^"]+)" data-source="([^"]+)">(.*?)</tr>', table, re.S):
+            test.assertEqual(row_source, source)
+            cells = re.findall(r'<td data-label="([^"]+)"[^>]*>(.*?)</td>', row, re.S)
+            test.assertEqual([text(label) for label, _value in cells], heads)
+            values = [text(value) for _label, value in cells]
+            test.assertEqual(values[0], name)
+            test.assertNotIn(name, found_html)
+            found_html[name] = dict(zip(heads, values))
+        block = section.split("### %s\n" % title, 1)[1].split("\n### ", 1)[0]
+        lines = [line for line in block.splitlines() if line.startswith("| ")]
+        split = lambda line: [cell.strip() for cell in line.strip("|").split("|")]
+        test.assertEqual(split(lines[0]), heads)
+        test.assertEqual(split(lines[1]), ["---"] * len(heads))
+        for line in lines[2:]:
+            cells = split(line)
+            test.assertEqual(len(cells), len(heads))
+            test.assertNotIn(cells[0], found_md)
+            found_md[cells[0]] = dict(zip(heads, cells))
+    test.assertEqual(len(found_html), 14)
+    test.assertEqual(len(found_md), 14)
+    test.assertEqual(found_html, found_md)
+    return found_html, found_md
 
 
 def judge_cli(args):
@@ -1125,6 +1166,7 @@ class AbCommandTests(unittest.TestCase):
         # The FAIL counts on a judge row, counted here from the replies: not PASS, UNPARSED included.
         with open(ROOT + "/http.json", encoding="utf-8") as handle:
             replies = json.load(handle)["replies"]
+        table_html, table_md = read_metric_tables(self, html, markdown)
         for rubric in ("needs_human_correctness", "rule_adherence", "tool_call_accuracy"):
             fails = {}
             for run in (ALPHA, BETA):
@@ -1132,15 +1174,11 @@ class AbCommandTests(unittest.TestCase):
                     own_verdict(replies["llama3.1:8b|%s|%s|%s" % (run, case, rubric)]) != "PASS"
                     for case in ("T1", "T2", "T3", "T4")
                 )
-            line = "FAIL A %s. B %s. Delta" % (fails[ALPHA], fails[BETA])
-            metrics_md = markdown.split("## Metrics\n", 1)[1]
-            with self.subTest(rubric=rubric):
-                self.assertIn("### %s\n" % rubric, metrics_md)
-                self.assertIn(line, metrics_md.split("### %s\n" % rubric, 1)[1].split("###", 1)[0])
-                article = re.search(r'<article class="metric" data-metric="%s".*?</article>' % rubric, html, re.S).group(0)
-                self.assertIn(line, unescape(re.sub(r"<[^>]+>", "", article)))
-        self.assertEqual(sum(1 for article in re.findall(r"<article .*?</article>", html, re.S) if "FAIL A " in article), 3)
-        self.assertEqual(markdown.count("\nFAIL A "), 3)
+            for table in (table_html, table_md):
+                self.assertEqual(table[rubric]["Non-PASS A (tickets)"], str(fails[ALPHA]))
+                self.assertEqual(table[rubric]["Non-PASS B (tickets)"], str(fails[BETA]))
+        self.assertIn("Non-PASS includes UNPARSED; the UNPARSED columns are subsets.", html)
+        self.assertIn("Non-PASS includes UNPARSED; the UNPARSED columns are subsets.", markdown)
         # Setup names z and the adapter that answered, in both outputs.
         self.assertIn("Interval method newcombe-1998-method-10, z 1.96.\n", markdown)
         self.assertIn("Judge model llama3.1:8b. Digest sha256:judge. Adapter http-fixture.\n", markdown)
@@ -1266,29 +1304,26 @@ class AbCommandTests(unittest.TestCase):
         self.assertEqual(cover.count("A %s. B %s." % (primary["count_b"], primary["count_a"])), 0 if primary["count_a"] != primary["count_b"] else 1)
         self.assertIn('data-primary="NO_FINAL_ANSWER"', html)
 
-        # Every metric, on the page and in the Markdown, in full sentences.
-        md_metrics = markdown.split("## Metrics\n", 1)[1].split("\n## Thresholds", 1)[0]
-        for name, want in metrics.items():
-            article = text(re.search(r'<article class="metric" data-metric="%s".*?</article>' % name, html, re.S).group(0))
-            md_block = md_metrics.split("### %s\n" % name, 1)[1].split("\n### ", 1)[0]
-            prefix = "FAIL " if want["source"] == "judge" else ""
-            sentences = [
-                "%sA %s. B %s. Delta %s tickets, %s points." % (prefix, want["count_a"], want["count_b"], want["delta_tickets"], want["delta_points"]),
-                "Interval %s to %s points." % (want["lower_points"], want["upper_points"]),
-                "Only A %s. Only B %s." % (want["only_a"], want["only_b"]),
-            ]
-            if want["source"] == "judge":
-                sentences += [
-                    "PASS share A %s. PASS share B %s." % (agreement_percent_own(want["pass_a"], 4), agreement_percent_own(want["pass_b"], 4)),
-                    "UNPARSED A %s. UNPARSED B %s." % (want["unparsed_a"], want["unparsed_b"]),
-                    "FAIL to PASS %s. PASS to FAIL %s." % (want["only_a"], want["only_b"]),
-                ]
-            for sentence in sentences:
-                with self.subTest(metric=name, sentence=sentence):
-                    self.assertIn(sentence, article)
-                    self.assertIn(sentence, md_block)
-            if want["source"] == "judge":
-                self.assertIn("Delta %s points." % want["delta_points"], article)
+        # Every metric's figure under its own head, in its own row, in both tables.
+        tables = read_metric_tables(self, html, markdown)
+        self.assertEqual(set(tables[0]), set(metrics))
+        for table in tables:
+            for name, want in metrics.items():
+                interval = "%s to %s" % (want["lower_points"], want["upper_points"])
+                if want["source"] == "judge":
+                    values = [name, agreement_percent_own(want["pass_a"], 4), agreement_percent_own(want["pass_b"], 4),
+                              str(want["count_a"]), str(want["count_b"]), want["delta_tickets"], want["delta_points"], interval,
+                              str(want["only_a"]), str(want["only_b"]), str(want["unparsed_a"]), str(want["unparsed_b"])]
+                    heads = JUDGE_HEADS
+                else:
+                    values = [name, str(want["count_a"]), str(want["count_b"]), want["delta_tickets"], want["delta_points"], interval,
+                              str(want["only_a"]), str(want["only_b"])]
+                    heads = CODE_HEADS
+                with self.subTest(metric=name):
+                    self.assertEqual(table[name], dict(zip(heads, values)))
+        for title in ("Judges", "Codes"):
+            self.assertIn("%s — 4 tickets per run." % title, text(html))
+            self.assertIn("%s — 4 tickets per run." % title, markdown)
 
         # Set 1, from the fixture report's cells and figures.
         with open(ROOT + "/set1.json", encoding="utf-8") as handle:
@@ -1487,6 +1522,23 @@ class AbCommandTests(unittest.TestCase):
         for selector in ('.ab-page .cover-statement', '.ab-page .set1-statement', '.ab-page .ab-sign', '.ab-rows td[data-label="Reasons"] > span'):
             self.assertIn(selector, prose)
         self.assertIn("max-width:80ch", prose)
+
+    def test_metric_table_rules_keep_their_own_width_and_phone_stack(self):
+        with open("ui/ledger.css", encoding="utf-8") as handle:
+            css = handle.read()
+        for rule in (
+            '.ledger.ab-metrics{table-layout:auto; font-size:14px; line-height:1.25; margin:12px 0}',
+            '.ab-metrics caption{text-align:left; margin:0 0 8px}',
+            '.ledger.ab-metrics th{font-size:12px; letter-spacing:0; padding:5px 4px; overflow-wrap:normal}',
+            '.ledger.ab-metrics td{padding:5px 4px}',
+            '.ledger.ab-metrics th:first-child,.ledger.ab-metrics td:first-child{width:20%}',
+            '.ab-metrics .mono{font-size:12px; overflow-wrap:normal}',
+        ):
+            self.assertIn(rule, css)
+        phone = brace_block(css, '@media (max-width: 760px){\n  .ledger.ab-rows')
+        self.assertIn('.ledger.ab-metrics,.ledger.ab-metrics tbody{display:block; width:100%}', phone)
+        self.assertIn('.ledger.ab-metrics td:first-child{width:auto}', phone)
+        self.assertIn('.ledger.ab-metrics td{padding:6px 0}', phone)
 
     def test_layout_edge_rows_keep_each_runs_verdict_unbreakable(self):
         from scorer.ab import _ticket_row
