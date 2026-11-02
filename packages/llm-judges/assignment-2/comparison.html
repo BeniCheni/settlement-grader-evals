@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Did the change work?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&amp;family=Creepster&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Patrick+Hand&amp;display=swap">
+<style>
+/* Tokens and primitives for the Haunted Ledger.
+   Extracted from the local draft. Ink speaks, slime confirms, lamp marks where
+   data came from and nothing else, blood alarms. No external asset. */
+
+:root{
+  --ground:#0c1712; --panel:#13241b; --panel-2:#1a3325; --balloon:#efe7d2; --balloon-ink:#17120f;
+  --ink:#efe7d2; --ink-2:#b4b09c; --rule:#efe7d2; --shadow:#000;
+  --slime:#56c083; --lamp:#f7c948; --lamp-ink:#f7c948; --lamp-bg:rgb(247 201 72 / .13);
+  --blood:#ff5a40; --blood-bg:rgb(255 90 64 / .13);
+  --dot:rgb(239 231 210 / .075);
+  --cover-from:#3a2a6b; --cover-to:#241a47; --cover-ink:#f3ecda;
+  --cover-prov-bg:#fbefd3; --cover-prov-ink:#6b4a00; --cover-prov-rule:#c98a00;
+  --stat-alarm:#ff7a5f; --stat-good:#7fe0a6;
+  --f-mast:'Creepster','Bangers',Impact,fantasy;
+  --f-shout:'Bangers',Impact,'Arial Narrow',sans-serif;
+  --f-hand:'Patrick Hand','Comic Sans MS','Segoe Print',cursive;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ground:#efe4c8; --panel:#fbf6e8; --panel-2:#f2e8cc; --balloon:#ffffff; --balloon-ink:#17120f;
+    --ink:#17120f; --ink-2:#5c5345; --rule:#17120f; --shadow:#17120f;
+    --slime:#2c7a4b; --lamp:#c98a00; --lamp-ink:#8a5f00; --lamp-bg:#fbefd3;
+    --blood:#c4261b; --blood-bg:rgb(196 38 27 / .08);
+    --dot:rgb(23 18 15 / .085);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --ground:#efe4c8; --panel:#fbf6e8; --panel-2:#f2e8cc; --balloon:#ffffff; --balloon-ink:#17120f;
+  --ink:#17120f; --ink-2:#5c5345; --rule:#17120f; --shadow:#17120f;
+  --slime:#2c7a4b; --lamp:#c98a00; --lamp-ink:#8a5f00; --lamp-bg:#fbefd3;
+  --blood:#c4261b; --blood-bg:rgb(196 38 27 / .08);
+  --dot:rgb(23 18 15 / .085);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background-color:var(--ground);
+  background-image:radial-gradient(var(--dot) 1.1px, transparent 1.6px);
+  background-size:7px 7px;
+  color:var(--ink);
+  font-family:var(--f-hand);
+  font-size:17px;
+  line-height:1.4;
+}
+.wrap{
+  max-width:1180px;
+  margin:0 auto;
+  display:grid;
+  gap:30px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:22px 56px;
+}
+.mono{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--slime); outline-offset:2px}
+.panel{
+  background:var(--panel);
+  border:2.5px solid var(--rule);
+  box-shadow:4px 4px 0 var(--shadow);
+  border-radius:3px 7px 4px 6px / 6px 3px 7px 4px;
+  min-width:0;
+}
+.shout{font-family:var(--f-shout); letter-spacing:.045em; text-transform:uppercase; font-weight:400}
+.cover{
+  position:relative;
+  overflow:hidden;
+  color:var(--cover-ink);
+  padding:22px clamp(16px, 3vw, 32px) 22px;
+  background:linear-gradient(135deg, var(--cover-from), var(--cover-to));
+  border-color:var(--rule);
+}
+.cover::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background-image:radial-gradient(rgb(243 236 218 / .10) 1.3px, transparent 1.8px);
+  background-size:8px 8px;
+}
+.cover > *{position:relative}
+.issue{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:6px 18px;
+  font-size:15px;
+  border-bottom:2px solid rgb(243 236 218 / .55);
+  padding-bottom:8px;
+  margin:0;
+}
+.issue span{font-family:var(--f-shout); letter-spacing:.07em; text-transform:uppercase}
+.mast{
+  font-family:var(--f-mast);
+  font-weight:400;
+  margin:14px 0 4px;
+  line-height:.92;
+  font-size:clamp(54px, 11vw, 124px);
+  letter-spacing:.01em;
+  color:var(--cover-ink);
+  text-shadow:3px 3px 0 var(--blood), -2px -1px 0 rgb(86 192 131 / .55);
+  overflow-wrap:anywhere;
+}
+.mast small{
+  display:block;
+  font-family:var(--f-shout);
+  font-size:.24em;
+  letter-spacing:.14em;
+  text-shadow:none;
+  margin-bottom:.15em;
+}
+.dek{max-width:58ch; font-size:19px; margin:6px 0 18px}
+.stats{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-bottom:16px}
+.stat{
+  border:2px solid rgb(243 236 218 / .8);
+  border-radius:3px;
+  padding:8px 12px 10px;
+  background:rgb(10 8 24 / .28);
+  min-width:0;
+}
+.stat b{
+  display:block;
+  font-family:var(--f-mono);
+  font-weight:600;
+  font-size:clamp(28px, 4vw, 38px);
+  line-height:1.1;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.stat span{
+  display:block;
+  font-family:var(--f-shout);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:15px;
+  white-space:nowrap;
+}
+.stat.alarm b{color:var(--stat-alarm)}
+.stat.good b{color:var(--stat-good)}
+.prov{
+  margin:0;
+  background:var(--lamp-bg);
+  color:var(--lamp-ink);
+  border-left:4px solid var(--lamp);
+  padding:8px 12px;
+  font-size:16px;
+  border-radius:2px;
+}
+.cover .prov{
+  background:var(--cover-prov-bg);
+  color:var(--cover-prov-ink);
+  border-left-color:var(--cover-prov-rule);
+}
+.sec{padding:18px clamp(14px, 2.4vw, 26px) 20px}
+.sec-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 18px; margin-bottom:10px}
+.sec-head h2{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  font-size:30px;
+  margin:0;
+  line-height:1;
+}
+.sec-head p{margin:0; color:var(--ink-2); max-width:72ch}
+.pill{
+  display:inline-block;
+  font-family:var(--f-shout);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-size:13px;
+  line-height:1;
+  padding:4px 8px 3px;
+  border:1.5px solid currentColor;
+  border-radius:999px;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:normal;
+}
+.pill.ok{color:var(--slime)}
+.pill.alarm{color:var(--blood)}
+.pill.read{color:var(--lamp-ink)}
+.ledger{width:100%; border-collapse:collapse; table-layout:fixed; font-size:16px}
+.ledger th,.ledger td{padding:6px 8px; border-bottom:1px solid var(--rule); vertical-align:top; text-align:left}
+.ledger th{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:14px;
+  color:var(--ink-2);
+}
+.ledger td{overflow-wrap:anywhere}
+.ledger th:nth-child(1),.ledger td:nth-child(1){width:26%}
+.note{
+  background:var(--panel-2);
+  border:2px solid var(--rule);
+  border-left:4px solid var(--blood);
+  padding:10px 12px;
+  margin:0 0 12px;
+}
+.note p{margin:0 0 8px}
+.note .reading{
+  margin:0;
+  background:var(--lamp-bg);
+  color:var(--lamp-ink);
+  border-left:4px solid var(--lamp);
+  padding:8px 12px;
+}
+.colophon{color:var(--ink-2); font-size:15px; max-width:80ch; margin:0}
+.colophon code{overflow-wrap:anywhere}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+@media (max-width: 760px){
+  .stats{grid-template-columns:minmax(0, 1fr)}
+  .mast{font-size:clamp(40px, 12vw, 72px)}
+  .ledger,.ledger tbody,.ledger tr{display:block; width:auto}
+  .ledger td,.ledger td:nth-child(n){display:grid; width:auto}
+  .ledger thead{display:none}
+  .ledger tr{border:2px solid var(--rule); margin:0 0 12px; padding:8px 10px}
+  .ledger td{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr);
+    gap:2px;
+    border:0;
+    padding:6px 0;
+    width:auto;
+  }
+  .ledger td::before{
+    content:attr(data-label);
+    font-family:var(--f-shout);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    font-size:13px;
+    color:var(--ink-2);
+  }
+  .ledger td > span{min-width:0; text-align:left; overflow-wrap:break-word}
+  .ledger td:empty{display:none}
+}
+@media (max-width: 400px){
+  .stat span{font-size:14px; letter-spacing:.03em}
+}
+.break{overflow-wrap:anywhere; min-width:0}
+.issue .as-recorded{
+  font-family:var(--f-mono);
+  text-transform:none;
+  letter-spacing:0;
+  font-variant-numeric:tabular-nums;
+}
+.tile-which{margin:0 0 10px; color:var(--cover-ink)}
+.cover-main{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr);
+  gap:16px;
+  align-items:start;
+}
+.prov h2,.prov h3{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  font-size:18px;
+  line-height:1.2;
+  margin:0 0 6px;
+  color:inherit;
+}
+.prov p{margin:0}
+.rubric-top,.sides{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr);
+  gap:14px;
+  align-items:start;
+}
+.matrix{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  background:var(--panel-2);
+  font-size:15px;
+}
+.matrix th,.matrix td{
+  border:1px solid var(--rule);
+  padding:6px 8px;
+  vertical-align:top;
+  text-align:left;
+  overflow-wrap:anywhere;
+  min-width:0;
+}
+.matrix th{
+  font-family:var(--f-shout);
+  font-weight:400;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:13px;
+  color:var(--ink-2);
+}
+.matrix .cell-fn,.matrix .cell-fp{color:var(--blood); background:var(--ground)}
+.disagree-mark{color:var(--blood)}
+.ledger tr.disagree td:first-child{box-shadow:inset 3px 0 0 var(--blood)}
+.reading-fold{margin:0}
+.reading-fold summary{overflow-wrap:anywhere}
+.reading-fold .reading{margin-top:8px}
+@media (min-width: 761px){
+  .sides{grid-template-columns:repeat(2, minmax(0, 1fr))}
+  /* One entry stays one tr. Short facts share a tier; prose takes every track.
+     The default has five facts; final labels add the sixth, with no spare track. */
+  .ledger.judge-rows,.ledger.judge-rows tbody{display:block; width:100%}
+  .ledger.judge-rows thead{display:none}
+  .ledger.judge-rows tr{
+    display:grid;
+    grid-template-columns:minmax(0, 3.5fr) repeat(4, minmax(0, 1fr));
+    border:2px solid var(--rule);
+    margin:0 0 10px;
+    padding:6px 10px;
+  }
+  .ledger.judge-rows.with-final tr{grid-template-columns:minmax(0, 1.5fr) repeat(5, minmax(0, 1fr))}
+  .ledger.judge-rows td:nth-child(n){
+    display:grid;
+    grid-template-columns:minmax(0, 1fr);
+    gap:2px;
+    border:0;
+    padding:4px 4px;
+    width:auto;
+    min-width:0;
+  }
+  .ledger.judge-rows td::before{
+    content:attr(data-label);
+    font-family:var(--f-shout);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    font-size:13px;
+    color:var(--ink-2);
+  }
+  .ledger.judge-rows td[data-label="Reason"],
+  .ledger.judge-rows td[data-label="Change"],
+  .ledger.judge-rows td[data-label="Reading"]{grid-column:1 / -1}
+  .ledger.judge-rows td:empty{display:none}
+  .ledger.judge-rows td:not([data-label="Reason"]):not([data-label="Change"]):not([data-label="Reading"]) > span{white-space:nowrap}
+  .ledger.judge-rows tr.disagree{box-shadow:inset 3px 0 0 var(--blood)}
+  .ledger.judge-rows tr.disagree td:first-child{box-shadow:none}
+}
+@media (min-width: 900px){
+  .cover-main{grid-template-columns:minmax(240px, 0.85fr) minmax(0, 1.15fr)}
+  .cover-main .stats{grid-template-columns:minmax(0, 1fr)}
+  .rubric-top{grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr)}
+}
+@media (min-width: 1200px){
+  /* Keep long prose readable on the largest wrap without narrowing its cell. */
+  .judge-rows td[data-label="Reason"] > span,
+  .judge-rows .change,.judge-rows .reading,
+  .ab-page .cover-statement,
+  .ab-page .set1-statement,
+  .ab-page .ab-sign,
+  .ab-rows td[data-label="Reasons"] > span{max-width:80ch}
+}
+.prompt-diff{
+  font-family:var(--f-mono);
+  font-size:14px;
+  line-height:1.35;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  min-width:0;
+  max-width:100%;
+  margin:0;
+}
+.prompt-fold{min-width:0; max-width:100%}
+.prompt-fold summary{overflow-wrap:anywhere}
+.ab-held{margin:8px 0 0; color:inherit}
+.ab-fail{color:var(--blood)}
+.ab-primary{margin:0 0 8px; font-family:var(--f-shout); letter-spacing:.04em; text-transform:uppercase}
+.ledger.ab-rows tr.disagree{box-shadow:inset 3px 0 0 var(--blood)}
+.ledger.ab-rows tr.disagree td:first-child{box-shadow:none}
+.ledger.ab-rows td[data-label="Changed"]::before{content:none}
+.ab-verdicts{display:flex; flex-wrap:wrap; gap:0 6px; min-width:0}
+.ab-verdicts > span{white-space:nowrap}
+.ledger.ab-metrics{table-layout:auto; font-size:14px; line-height:1.25; margin:12px 0}
+.ab-metrics caption{text-align:left; margin:0 0 8px}
+.ledger.ab-metrics th{font-size:12px; letter-spacing:0; padding:5px 4px; overflow-wrap:normal}
+.ledger.ab-metrics td{padding:5px 4px}
+.ledger.ab-metrics th:first-child,.ledger.ab-metrics td:first-child{width:20%}
+.ab-metrics .mono{font-size:12px; overflow-wrap:normal}
+/* Keep "lower to upper" on one line. A normal wrap breaks on the spaces, and the column holds the value. */
+.ab-metrics td[data-label="Paired interval (points)"] .mono{white-space:nowrap}
+/* The cell's accessible name. The visible name is aria-hidden, so a break does not split it. */
+.ab-metrics .metric-full{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; user-select:none}
+@media (max-width: 760px){
+  .ledger.ab-rows td:empty{display:none}
+  .ledger.ab-metrics,.ledger.ab-metrics tbody{display:block; width:100%}
+  .ledger.ab-metrics td:first-child{width:auto}
+  .ledger.ab-metrics td{padding:6px 0}
+  .ab-metrics caption{display:block; width:100%}
+}
+@media (min-width: 761px){
+  .ledger.ab-rows,.ledger.ab-rows tbody{display:block; width:100%}
+  .ledger.ab-rows thead{display:none}
+  .ledger.ab-rows tr{
+    display:grid;
+    grid-template-columns:minmax(36px, .55fr) minmax(94px, 1fr) minmax(94px, 1fr) repeat(3, minmax(126px, 1.35fr));
+    border:2px solid var(--rule);
+    margin:0 0 10px;
+    padding:6px 10px;
+  }
+  .ledger.ab-rows td:nth-child(n){
+    display:grid;
+    align-content:start;
+    grid-template-columns:minmax(0, 1fr);
+    gap:2px;
+    border:0;
+    padding:4px 2px;
+    width:auto;
+    min-width:0;
+  }
+  .ledger.ab-rows td::before{
+    content:attr(data-label);
+    font-family:var(--f-shout);
+    letter-spacing:0;
+    text-transform:uppercase;
+    font-size:12px;
+    color:var(--ink-2);
+  }
+  .ledger.ab-rows td[data-label="A codes"]{grid-column:1 / 4}
+  .ledger.ab-rows td[data-label="B codes"]{grid-column:4 / -1}
+  .ledger.ab-rows td[data-label="Changed"],
+  .ledger.ab-rows td[data-label="Reasons"]{grid-column:1 / -1}
+  .ledger.ab-rows td:empty{display:none}
+  .ledger.ab-rows td[data-short] > span{white-space:nowrap}
+  .ledger.ab-rows td[data-short] .mono{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap break ab-page">
+<header class="cover panel">
+<p class="issue"><span>A/B</span><span class="as-recorded break" data-input="path">traces/ab-a</span><span class="as-recorded break" data-input="path">traces/ab-b</span></p>
+<h1 class="mast"><small>Settlement grader</small>Did the change work?</h1>
+<div class="cover-main">
+<div class="cover-tiles">
+<p class="ab-primary" data-primary="GRADE_CONTRADICTS_FACTS">GRADE_CONTRADICTS_FACTS</p>
+<p>A <span class="mono">15</span>. B <span class="mono">16</span>.</p>
+<p>Delta <span class="mono">-1</span> ticket, <span class="mono">-3.1</span> points.</p>
+<p>Interval <span class="mono">-17.1</span> to <span class="mono">11.2</span> points.</p>
+<p class="ab-legend">Delta is A minus B: a plus means fewer tickets with the code in B. The interval is the paired interval on that delta, z 1.96.</p>
+<p class="ab-held">6 of 8 thresholds held.</p>
+</div>
+<div class="prov">
+<h2>Written by hand, not computed</h2>
+<p class="cover-statement" data-input="statement">Written by Claude, in the PM seat, at the owner&#x27;s request on 1 Nov 2026; amended by Codex during review, and by Claude after the runs, on reading them. In sample. The change was chosen by reading these 32 tickets, and the code checks were built against traces/v1, which holds them, so these figures show what the change did to these tickets and not what it would do to tickets it has not seen. The judges&#x27; rubrics are frozen from set 1, and their agreement with the owner&#x27;s labels, in sample too, is the only reason to read their deltas at all; rule_adherence answered FAIL on all 40 rows of set 1, so its delta says least. Two runs in one session with the same recorded setup reduce known setup differences but do not rule out unrecorded differences or chance: each delta has its interval beside it. Read the traces beside these figures: on none of the 29 tickets where variant B called settle_ticket did it write the requested comparison beside that call, and it settled in the same message as a lookup on 8 tickets against A&#x27;s 3. So these figures show what this wording did to these tickets, not whether a comparison made before the grade would help.
+</p>
+</div>
+</div>
+</header>
+<section class="sec panel">
+<h2>Setup</h2>
+<p>Ollama <span class="mono">0.34.0</span>. Grader <span class="mono">qwen3:8b</span> <span class="mono break">500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41</span>.</p>
+<p>Judge <span class="mono">llama3.1:8b</span> <span class="mono break">46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e</span>. Adapter <span class="mono">ollama</span>. Interval method <span class="mono">newcombe-1998-method-10</span>, z <span class="mono">1.96</span>.</p>
+<details class="prompt-fold" open><summary>Prompt</summary>
+<pre class="prompt-diff" data-input="diff">--- A
++++ B
+@@ -5,3 +5,3 @@
+ 2. Call lookup_rule for each kind of market you grade.
+-3. Grade each leg: W (won), L (lost), P (push), VOID, MOOT (not needed: another leg already lost), OPEN (match not final) or NEEDS_HUMAN (a fact you need is missing or a rule says so).
++3. Grade each leg by comparing it with the facts. In the same message as your settle_ticket call, first write one line per leg: the selection, the score or stat from get_match_facts with home and away named, and what that means for the selection. Then give its result: W (won), L (lost), P (push), VOID, MOOT (not needed: another leg already lost), OPEN (match not final) or NEEDS_HUMAN (a fact you need is missing or a rule says so).
+ 4. Call settle_ticket with your leg results, the stake, the stake_kind, and the ticket price and printed payout if the ticket gives them.</pre>
+</details>
+</section>
+<section class="sec panel">
+<h2>Set 1</h2>
+<p>rule_adherence is the delta to read with most care.</p>
+<p class="ab-judge ab-fail" data-set1="needs_human_correctness">needs_human_correctness. meets_bar: no. Agreement 80.0% (0.8000). Kappa 0.3191. False passes read: 6 of 6.</p>
+<p class="ab-judge ab-fail" data-set1="rule_adherence">rule_adherence. meets_bar: no. Agreement 65.0% (0.6500). Kappa 0.0000. False passes read: no false passes.</p>
+<p class="ab-judge" data-set1="tool_call_accuracy">tool_call_accuracy. meets_bar: yes. Agreement 92.5% (0.9250). Kappa 0.8500. False passes read: no false passes.</p>
+<div class="prov">
+<h3>Written by hand, not computed</h3>
+<p class="set1-statement" data-input="statement">Written by Claude, in the PM seat, at the owner&#x27;s request on 1 Nov 2026; amended by Codex during review, and by Claude after the runs, on reading them. In sample. The change was chosen by reading these 32 tickets, and the code checks were built against traces/v1, which holds them, so these figures show what the change did to these tickets and not what it would do to tickets it has not seen. The judges&#x27; rubrics are frozen from set 1, and their agreement with the owner&#x27;s labels, in sample too, is the only reason to read their deltas at all; rule_adherence answered FAIL on all 40 rows of set 1, so its delta says least. Two runs in one session with the same recorded setup reduce known setup differences but do not rule out unrecorded differences or chance: each delta has its interval beside it. Read the traces beside these figures: on none of the 29 tickets where variant B called settle_ticket did it write the requested comparison beside that call, and it settled in the same message as a lookup on 8 tickets against A&#x27;s 3. So these figures show what this wording did to these tickets, not whether a comparison made before the grade would help.
+</p>
+</div>
+</section>
+<section class="sec panel">
+<h2>Metrics</h2>
+<p class="ab-sign">Delta is A minus B. For a code, a plus means fewer tickets with the code in B. For a judge, the tickets counted are FAIL and UNPARSED, so a plus means more PASS in B. Each interval is the paired interval on that delta, z 1.96.</p>
+<table class="ledger ab-metrics" data-metrics="judge">
+<caption>Judges — 32 tickets per run. Non-PASS includes UNPARSED; the UNPARSED columns are subsets. FAIL in the transition columns includes UNPARSED.</caption>
+<thead><tr><th scope="col">Judge</th><th scope="col">PASS A (%)</th><th scope="col">PASS B (%)</th><th scope="col">Non-PASS A (tickets)</th><th scope="col">Non-PASS B (tickets)</th><th scope="col">Delta (tickets)</th><th scope="col">Delta (points)</th><th scope="col">Paired interval (points)</th><th scope="col">FAIL to PASS (tickets)</th><th scope="col">PASS to FAIL (tickets)</th><th scope="col">UNPARSED A (subset)</th><th scope="col">UNPARSED B (subset)</th></tr></thead>
+<tbody>
+<tr data-metric="needs_human_correctness" data-source="judge"><td data-label="Judge"><span class="break" aria-hidden="true">needs_<wbr>human_<wbr>correctness</span><span class="metric-full">needs_human_correctness</span></td><td data-label="PASS A (%)"><span class="mono">90.6%</span></td><td data-label="PASS B (%)"><span class="mono">96.9%</span></td><td data-label="Non-PASS A (tickets)"><span class="mono">3</span></td><td data-label="Non-PASS B (tickets)"><span class="mono">1</span></td><td data-label="Delta (tickets)"><span class="mono">+2</span></td><td data-label="Delta (points)"><span class="mono">+6.3</span></td><td data-label="Paired interval (points)"><span class="mono">-6.3 to 20.7</span></td><td data-label="FAIL to PASS (tickets)"><span class="mono">2</span></td><td data-label="PASS to FAIL (tickets)"><span class="mono">0</span></td><td data-label="UNPARSED A (subset)"><span class="mono">0</span></td><td data-label="UNPARSED B (subset)"><span class="mono">0</span></td></tr>
+<tr data-metric="rule_adherence" data-source="judge"><td data-label="Judge"><span class="break" aria-hidden="true">rule_<wbr>adherence</span><span class="metric-full">rule_adherence</span></td><td data-label="PASS A (%)"><span class="mono">0.0%</span></td><td data-label="PASS B (%)"><span class="mono">0.0%</span></td><td data-label="Non-PASS A (tickets)"><span class="mono">32</span></td><td data-label="Non-PASS B (tickets)"><span class="mono">32</span></td><td data-label="Delta (tickets)"><span class="mono">+0</span></td><td data-label="Delta (points)"><span class="mono">+0.0</span></td><td data-label="Paired interval (points)"><span class="mono">-10.7 to 10.7</span></td><td data-label="FAIL to PASS (tickets)"><span class="mono">0</span></td><td data-label="PASS to FAIL (tickets)"><span class="mono">0</span></td><td data-label="UNPARSED A (subset)"><span class="mono">0</span></td><td data-label="UNPARSED B (subset)"><span class="mono">0</span></td></tr>
+<tr data-metric="tool_call_accuracy" data-source="judge"><td data-label="Judge"><span class="break" aria-hidden="true">tool_<wbr>call_<wbr>accuracy</span><span class="metric-full">tool_call_accuracy</span></td><td data-label="PASS A (%)"><span class="mono">43.8%</span></td><td data-label="PASS B (%)"><span class="mono">34.4%</span></td><td data-label="Non-PASS A (tickets)"><span class="mono">18</span></td><td data-label="Non-PASS B (tickets)"><span class="mono">21</span></td><td data-label="Delta (tickets)"><span class="mono">-3</span></td><td data-label="Delta (points)"><span class="mono">-9.4</span></td><td data-label="Paired interval (points)"><span class="mono">-25.2 to 7.3</span></td><td data-label="FAIL to PASS (tickets)"><span class="mono">2</span></td><td data-label="PASS to FAIL (tickets)"><span class="mono">5</span></td><td data-label="UNPARSED A (subset)"><span class="mono">0</span></td><td data-label="UNPARSED B (subset)"><span class="mono">0</span></td></tr>
+</tbody>
+</table>
+<table class="ledger ab-metrics" data-metrics="code">
+<caption>Codes — 32 tickets per run.</caption>
+<thead><tr><th scope="col">Code</th><th scope="col">A (tickets)</th><th scope="col">B (tickets)</th><th scope="col">Delta (tickets)</th><th scope="col">Delta (points)</th><th scope="col">Paired interval (points)</th><th scope="col">Only A (tickets)</th><th scope="col">Only B (tickets)</th></tr></thead>
+<tbody>
+<tr data-metric="GRADE_CONTRADICTS_FACTS" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">GRADE_<wbr>CONTRADICTS_<wbr>FACTS</span><span class="metric-full">GRADE_CONTRADICTS_FACTS</span></td><td data-label="A (tickets)"><span class="mono">15</span></td><td data-label="B (tickets)"><span class="mono">16</span></td><td data-label="Delta (tickets)"><span class="mono">-1</span></td><td data-label="Delta (points)"><span class="mono">-3.1</span></td><td data-label="Paired interval (points)"><span class="mono">-17.1 to 11.2</span></td><td data-label="Only A (tickets)"><span class="mono">2</span></td><td data-label="Only B (tickets)"><span class="mono">3</span></td></tr>
+<tr data-metric="WIN_LOSS_FLIP" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">WIN_<wbr>LOSS_<wbr>FLIP</span><span class="metric-full">WIN_LOSS_FLIP</span></td><td data-label="A (tickets)"><span class="mono">15</span></td><td data-label="B (tickets)"><span class="mono">11</span></td><td data-label="Delta (tickets)"><span class="mono">+4</span></td><td data-label="Delta (points)"><span class="mono">+12.5</span></td><td data-label="Paired interval (points)"><span class="mono">-0.4 to 24.5</span></td><td data-label="Only A (tickets)"><span class="mono">4</span></td><td data-label="Only B (tickets)"><span class="mono">0</span></td></tr>
+<tr data-metric="SKIPPED_SETTLE_TICKET" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">SKIPPED_<wbr>SETTLE_<wbr>TICKET</span><span class="metric-full">SKIPPED_SETTLE_TICKET</span></td><td data-label="A (tickets)"><span class="mono">8</span></td><td data-label="B (tickets)"><span class="mono">5</span></td><td data-label="Delta (tickets)"><span class="mono">+3</span></td><td data-label="Delta (points)"><span class="mono">+9.4</span></td><td data-label="Paired interval (points)"><span class="mono">-10.1 to 28.2</span></td><td data-label="Only A (tickets)"><span class="mono">6</span></td><td data-label="Only B (tickets)"><span class="mono">3</span></td></tr>
+<tr data-metric="PLACEHOLDER_ECHO" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">PLACEHOLDER_<wbr>ECHO</span><span class="metric-full">PLACEHOLDER_ECHO</span></td><td data-label="A (tickets)"><span class="mono">5</span></td><td data-label="B (tickets)"><span class="mono">3</span></td><td data-label="Delta (tickets)"><span class="mono">+2</span></td><td data-label="Delta (points)"><span class="mono">+6.3</span></td><td data-label="Paired interval (points)"><span class="mono">-10.9 to 23.5</span></td><td data-label="Only A (tickets)"><span class="mono">4</span></td><td data-label="Only B (tickets)"><span class="mono">2</span></td></tr>
+<tr data-metric="GRADED_WITHOUT_LOOKUP" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">GRADED_<wbr>WITHOUT_<wbr>LOOKUP</span><span class="metric-full">GRADED_WITHOUT_LOOKUP</span></td><td data-label="A (tickets)"><span class="mono">5</span></td><td data-label="B (tickets)"><span class="mono">1</span></td><td data-label="Delta (tickets)"><span class="mono">+4</span></td><td data-label="Delta (points)"><span class="mono">+12.5</span></td><td data-label="Paired interval (points)"><span class="mono">-1.6 to 28.4</span></td><td data-label="Only A (tickets)"><span class="mono">4</span></td><td data-label="Only B (tickets)"><span class="mono">0</span></td></tr>
+<tr data-metric="INCOMPLETE_LEG_LIST" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">INCOMPLETE_<wbr>LEG_<wbr>LIST</span><span class="metric-full">INCOMPLETE_LEG_LIST</span></td><td data-label="A (tickets)"><span class="mono">7</span></td><td data-label="B (tickets)"><span class="mono">2</span></td><td data-label="Delta (tickets)"><span class="mono">+5</span></td><td data-label="Delta (points)"><span class="mono">+15.6</span></td><td data-label="Paired interval (points)"><span class="mono">-1.8 to 33.0</span></td><td data-label="Only A (tickets)"><span class="mono">6</span></td><td data-label="Only B (tickets)"><span class="mono">1</span></td></tr>
+<tr data-metric="WRONG_NON_GRADE" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">WRONG_<wbr>NON_<wbr>GRADE</span><span class="metric-full">WRONG_NON_GRADE</span></td><td data-label="A (tickets)"><span class="mono">2</span></td><td data-label="B (tickets)"><span class="mono">1</span></td><td data-label="Delta (tickets)"><span class="mono">+1</span></td><td data-label="Delta (points)"><span class="mono">+3.1</span></td><td data-label="Paired interval (points)"><span class="mono">-8.8 to 16.4</span></td><td data-label="Only A (tickets)"><span class="mono">1</span></td><td data-label="Only B (tickets)"><span class="mono">0</span></td></tr>
+<tr data-metric="NO_FINAL_ANSWER" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">NO_<wbr>FINAL_<wbr>ANSWER</span><span class="metric-full">NO_FINAL_ANSWER</span></td><td data-label="A (tickets)"><span class="mono">1</span></td><td data-label="B (tickets)"><span class="mono">1</span></td><td data-label="Delta (tickets)"><span class="mono">+0</span></td><td data-label="Delta (points)"><span class="mono">+0.0</span></td><td data-label="Paired interval (points)"><span class="mono">-13.0 to 13.0</span></td><td data-label="Only A (tickets)"><span class="mono">1</span></td><td data-label="Only B (tickets)"><span class="mono">1</span></td></tr>
+<tr data-metric="RULE_TOPIC_MISS" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">RULE_<wbr>TOPIC_<wbr>MISS</span><span class="metric-full">RULE_TOPIC_MISS</span></td><td data-label="A (tickets)"><span class="mono">5</span></td><td data-label="B (tickets)"><span class="mono">6</span></td><td data-label="Delta (tickets)"><span class="mono">-1</span></td><td data-label="Delta (points)"><span class="mono">-3.1</span></td><td data-label="Paired interval (points)"><span class="mono">-19.0 to 12.6</span></td><td data-label="Only A (tickets)"><span class="mono">2</span></td><td data-label="Only B (tickets)"><span class="mono">3</span></td></tr>
+<tr data-metric="OUTPUT_LIMIT_SPRAY" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">OUTPUT_<wbr>LIMIT_<wbr>SPRAY</span><span class="metric-full">OUTPUT_LIMIT_SPRAY</span></td><td data-label="A (tickets)"><span class="mono">0</span></td><td data-label="B (tickets)"><span class="mono">1</span></td><td data-label="Delta (tickets)"><span class="mono">-1</span></td><td data-label="Delta (points)"><span class="mono">-3.1</span></td><td data-label="Paired interval (points)"><span class="mono">-15.7 to 7.9</span></td><td data-label="Only A (tickets)"><span class="mono">0</span></td><td data-label="Only B (tickets)"><span class="mono">1</span></td></tr>
+<tr data-metric="FOLLOWED_TICKET_CLAIM" data-source="code"><td data-label="Code"><span class="break" aria-hidden="true">FOLLOWED_<wbr>TICKET_<wbr>CLAIM</span><span class="metric-full">FOLLOWED_TICKET_CLAIM</span></td><td data-label="A (tickets)"><span class="mono">2</span></td><td data-label="B (tickets)"><span class="mono">1</span></td><td data-label="Delta (tickets)"><span class="mono">+1</span></td><td data-label="Delta (points)"><span class="mono">+3.1</span></td><td data-label="Paired interval (points)"><span class="mono">-8.8 to 16.4</span></td><td data-label="Only A (tickets)"><span class="mono">1</span></td><td data-label="Only B (tickets)"><span class="mono">0</span></td></tr>
+</tbody>
+</table>
+</section>
+<section class="sec panel">
+<h2>Thresholds</h2>
+<p class="ab-threshold ab-fail" data-threshold="GRADE_CONTRADICTS_FACTS" data-held="no">GRADE_CONTRADICTS_FACTS. Not held. Minimum fall (A minus B) 5 tickets, lower limit above 0 points required: yes. Observed A minus B -1 ticket, lower limit -17.1 points.</p>
+<p class="ab-threshold" data-threshold="WIN_LOSS_FLIP" data-held="yes">WIN_LOSS_FLIP. Held. Maximum rise (B minus A) 0 tickets. Observed B minus A -4 tickets.</p>
+<p class="ab-threshold" data-threshold="FOLLOWED_TICKET_CLAIM" data-held="yes">FOLLOWED_TICKET_CLAIM. Held. Maximum rise (B minus A) 0 tickets. Observed B minus A -1 ticket.</p>
+<p class="ab-threshold" data-threshold="NO_FINAL_ANSWER" data-held="yes">NO_FINAL_ANSWER. Held. Maximum rise (B minus A) 1 ticket. Observed B minus A +0 tickets.</p>
+<p class="ab-threshold" data-threshold="SKIPPED_SETTLE_TICKET" data-held="yes">SKIPPED_SETTLE_TICKET. Held. Maximum rise (B minus A) 1 ticket. Observed B minus A -3 tickets.</p>
+<p class="ab-threshold" data-threshold="GRADED_WITHOUT_LOOKUP" data-held="yes">GRADED_WITHOUT_LOOKUP. Held. Maximum rise (B minus A) 1 ticket. Observed B minus A -4 tickets.</p>
+<p class="ab-threshold ab-fail" data-threshold="tool_call_accuracy" data-held="no">tool_call_accuracy. Not held. Maximum PASS fall (A minus B) 1 ticket. Observed PASS A minus B +3 tickets.</p>
+<p class="ab-threshold" data-threshold="needs_human_correctness" data-held="yes">needs_human_correctness. Held. Maximum PASS fall (A minus B) 2 tickets. Observed PASS A minus B -2 tickets.</p>
+<p class="ab-threshold" data-threshold="rule_adherence" data-held="report">rule_adherence. Report only. Not counted.</p>
+<p class="ab-held">6 of 8 thresholds held.</p>
+</section>
+<section class="sec panel">
+<h2>Tickets</h2>
+<p>22 of 32 tickets changed a final, a code or a verdict.</p>
+<table class="ledger ab-rows">
+<thead><tr><th>Case</th><th>A final</th><th>B final</th><th>needs_human_correctness</th><th>rule_adherence</th><th>tool_call_accuracy</th><th>A codes</th><th>B codes</th><th>Changed</th><th>Reasons</th></tr></thead>
+<tbody>
+<tr class="row" data-case="A01"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A01</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">none</span></td><td data-label="B codes"><span class="break">none</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="A02"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A02</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">VOID</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">VOID</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">SKIPPED_SETTLE_TICKET, INCOMPLETE_LEG_LIST, WRONG_NON_GRADE</span></td><td data-label="B codes"><span class="break">WRONG_NON_GRADE</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="A03"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A03</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, PLACEHOLDER_ECHO</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row" data-case="A05"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A05</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">none</span></td><td data-label="B codes"><span class="break">none</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="A06"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A06</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, PLACEHOLDER_ECHO</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row" data-case="A08"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A08</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">none</span></td><td data-label="B codes"><span class="break">none</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="A09"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A09</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, PLACEHOLDER_ECHO</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="Changed"><span class="break">Changed: codes, tool_call_accuracy</span></td><td data-label="Reasons"><span class="break" data-input="reason">tool_call_accuracy A: The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave. B: Tool call 2, get_match_facts, returned an error, but the grader continued with a lookup_rule call.</span></td></tr>
+<tr class="row disagree" data-case="A11"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A11</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="Changed"><span class="break">Changed: tool_call_accuracy</span></td><td data-label="Reasons"><span class="break" data-input="reason">tool_call_accuracy A: The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave. B: Tool call 3, lookup_rule, returned an unknown topic, &quot;moneyline_3way&quot;, which was not looked up again.</span></td></tr>
+<tr class="row disagree" data-case="A12"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A12</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">PUSH</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS</span></td><td data-label="Changed"><span class="break">Changed: final, codes, tool_call_accuracy</span></td><td data-label="Reasons"><span class="break" data-input="reason">tool_call_accuracy A: The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave. B: Tool call 2, get_match_facts, returned an error, but the grader continued with a successful settle_ticket call.</span></td></tr>
+<tr class="row" data-case="A13"><td data-label="Case" data-short="1"><span class="mono" data-short="1">A13</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">PUSH</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">PUSH</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">PLACEHOLDER_ECHO</span></td><td data-label="B codes"><span class="break">PLACEHOLDER_ECHO</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row" data-case="B01"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B01</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">none</span></td><td data-label="B codes"><span class="break">none</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="B02"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B02</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, INCOMPLETE_LEG_LIST, RULE_TOPIC_MISS</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, RULE_TOPIC_MISS</span></td><td data-label="Changed"><span class="break">Changed: codes, tool_call_accuracy</span></td><td data-label="Reasons"><span class="break" data-input="reason">tool_call_accuracy A: lookup_rule call 4 returned UNKNOWN_TOPIC and no subsequent lookup_rule call with a listed topic for that market. B: The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.</span></td></tr>
+<tr class="row disagree" data-case="B04"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B04</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">none</span></td><td data-label="B codes"><span class="break">RULE_TOPIC_MISS</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row" data-case="B05"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B05</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, RULE_TOPIC_MISS</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, RULE_TOPIC_MISS</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="B06"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B06</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">WIN_LOSS_FLIP, SKIPPED_SETTLE_TICKET, GRADED_WITHOUT_LOOKUP</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, RULE_TOPIC_MISS</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="B08"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B08</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">none</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">NO_FINAL_ANSWER, RULE_TOPIC_MISS</span></td><td data-label="B codes"><span class="break">RULE_TOPIC_MISS</span></td><td data-label="Changed"><span class="break">Changed: final, codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="B09"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B09</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, INCOMPLETE_LEG_LIST</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="Changed"><span class="break">Changed: codes, tool_call_accuracy</span></td><td data-label="Reasons"><span class="break" data-input="reason">tool_call_accuracy A: Tool call 3: lookup_rule with topic &quot;team_total&quot; returned UNKNOWN_TOPIC, but the grader never looked up &quot;totals&quot; or &quot;double_chance&quot; for that market. B: The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.</span></td></tr>
+<tr class="row disagree" data-case="B10"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B10</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, RULE_TOPIC_MISS</span></td><td data-label="B codes"><span class="break">SKIPPED_SETTLE_TICKET</span></td><td data-label="Changed"><span class="break">Changed: final, codes, tool_call_accuracy</span></td><td data-label="Reasons"><span class="break" data-input="reason">tool_call_accuracy A: The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave. B: The grader called settle_ticket with leg_results that included a result of &quot;L&quot; for a leg that was graded as &quot;L&quot;, but the result was invalid.</span></td></tr>
+<tr class="row" data-case="B12"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B12</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="B13"><td data-label="Case" data-short="1"><span class="mono" data-short="1">B13</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS</span></td><td data-label="B codes"><span class="break">PLACEHOLDER_ECHO</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="C02"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C02</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">WIN_LOSS_FLIP, SKIPPED_SETTLE_TICKET, GRADED_WITHOUT_LOOKUP</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS</span></td><td data-label="Changed"><span class="break">Changed: final, codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="C03"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C03</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">none</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">WIN_LOSS_FLIP, SKIPPED_SETTLE_TICKET, GRADED_WITHOUT_LOOKUP</span></td><td data-label="B codes"><span class="break">NO_FINAL_ANSWER, RULE_TOPIC_MISS, OUTPUT_LIMIT_SPRAY</span></td><td data-label="Changed"><span class="break">Changed: final, codes, needs_human_correctness</span></td><td data-label="Reasons"><span class="break" data-input="reason">needs_human_correctness A: The ticket was decided, but the grader settled it anyway, despite the PREMATURE_FINAL reason. B: The ticket is decided because every leg that matters has a final result.</span></td></tr>
+<tr class="row" data-case="C04"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C04</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row" data-case="C06"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C06</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">SKIPPED_SETTLE_TICKET</span></td><td data-label="B codes"><span class="break">SKIPPED_SETTLE_TICKET</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="C08"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C08</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, INCOMPLETE_LEG_LIST, RULE_TOPIC_MISS</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, SKIPPED_SETTLE_TICKET</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="C09"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C09</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">SKIPPED_SETTLE_TICKET, GRADED_WITHOUT_LOOKUP</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="C10"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C10</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">NEEDS_HUMAN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">SKIPPED_SETTLE_TICKET, INCOMPLETE_LEG_LIST, WRONG_NON_GRADE</span></td><td data-label="B codes"><span class="break">PLACEHOLDER_ECHO, INCOMPLETE_LEG_LIST</span></td><td data-label="Changed"><span class="break">Changed: final, codes, tool_call_accuracy</span></td><td data-label="Reasons"><span class="break" data-input="reason">tool_call_accuracy A: The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave. B: Tool call 4, get_match_facts, returned an error, but the grader continued with other calls.</span></td></tr>
+<tr class="row" data-case="C12"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C12</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="A codes"><span class="break">none</span></td><td data-label="B codes"><span class="break">none</span></td><td data-label="Changed"></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="C13"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C13</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, INCOMPLETE_LEG_LIST</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="C14"><td data-label="Case" data-short="1"><span class="mono" data-short="1">C14</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">none</span></td><td data-label="B codes"><span class="break">INCOMPLETE_LEG_LIST</span></td><td data-label="Changed"><span class="break">Changed: codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="X01"><td data-label="Case" data-short="1"><span class="mono" data-short="1">X01</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">LOSS</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A PASS</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">GRADE_CONTRADICTS_FACTS, WIN_LOSS_FLIP, FOLLOWED_TICKET_CLAIM</span></td><td data-label="B codes"><span class="break">GRADE_CONTRADICTS_FACTS, SKIPPED_SETTLE_TICKET</span></td><td data-label="Changed"><span class="break">Changed: final, codes</span></td><td data-label="Reasons"></td></tr>
+<tr class="row disagree" data-case="X02"><td data-label="Case" data-short="1"><span class="mono" data-short="1">X02</span></td><td data-label="A final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="B final" data-short="1"><span class="mono" data-short="1">WIN</span></td><td data-label="needs_human_correctness" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B PASS</span></span></td><td data-label="rule_adherence" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="tool_call_accuracy" data-short="1"><span class="ab-verdicts"><span class="mono" data-short="1">A FAIL</span> <span class="mono" data-short="1">B FAIL</span></span></td><td data-label="A codes"><span class="break">WIN_LOSS_FLIP, SKIPPED_SETTLE_TICKET, PLACEHOLDER_ECHO, GRADED_WITHOUT_LOOKUP, INCOMPLETE_LEG_LIST, FOLLOWED_TICKET_CLAIM</span></td><td data-label="B codes"><span class="break">WIN_LOSS_FLIP, SKIPPED_SETTLE_TICKET, GRADED_WITHOUT_LOOKUP, FOLLOWED_TICKET_CLAIM</span></td><td data-label="Changed"><span class="break">Changed: codes, needs_human_correctness</span></td><td data-label="Reasons"><span class="break" data-input="reason">needs_human_correctness A: PREMATURE_FINAL B: The ticket is decided, but the grader did not settle it because it was marked as PREMATURE_FINAL.</span></td></tr>
+</tbody>
+</table>
+</section>
+<p class="colophon">Regenerated by <code class="mono" data-input="command">python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds packages/llm-judges/assignment-2/thresholds.json --statement packages/llm-judges/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html</code>. Fonts load from Google Fonts.</p>
+</div>
+</body>
+</html>

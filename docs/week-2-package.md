@@ -41,14 +41,15 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Judge prompts | The three rubrics, frozen in step 4: `needs_human_correctness`, `rule_adherence`, `tool_call_accuracy` | `rubrics/` |
 | Per-rubric labels | The owner's 120 labels on the 40-row plan, frozen in step 5: FAILs 23 (`rule_adherence`), 8 (`needs_human_correctness`), 23 (`tool_call_accuracy`) | `labels/set1.jsonl`, `labels/set1-plan.json`, `labels/set1-meta.json`. Count rows, labels and FAILs: `python3 -c 'from scorer.judge import load_labels; n,r=load_labels("labels/set1.jsonl"); print(len(r),sum(len(x["human"]) for x in r),{k:sum(x["human"][k]=="FAIL" for x in r) for k in n})'` |
 | Judge calls | `llama3.1:8b`, chosen by the spec's procedure: 120 verdicts on the 40-row plan, with its digest and the Ollama version recorded | `judgments/model-choice.json`, `judgments/set1-llama3.1-8b/` |
-| Adjudication | 17 of the 120 labels changed, each with the owner's reason | `labels/set1-final.jsonl`, `submissions/week-02/assignment-1/diagnosis.md` |
+| Adjudication | 17 of the 120 labels changed, each with the owner's reason | `labels/set1-final.jsonl`, `packages/llm-judges/assignment-1/diagnosis.md` |
 | Agreement and the comparison view | On the final labels: agreement 80.0%, 65.0% and 92.5%, kappa 0.3191, 0.0000 and 0.8500 (`needs_human_correctness`, `rule_adherence`, `tool_call_accuracy`); one rubric's numbers meet 85% and 0.6. In sample: the final labels were adjudicated after the verdicts were seen, and the first-pass figures are blind to the judge but still in sample | `reports/judge-set1.md`, `.json`, `.html` |
 | Agreement matrix, agreement, kappa, the bar | Built for the code checks, and used by the judge report: `confusion`, `agreement`, `cohen_kappa`, `wilson`, `false_pass_rate`, `meets_bar` (85% and 0.6) | `scorer/stats.py` |
 | Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified. The per-rubric label counts are above | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks and for the judge on set 1 (41 rows across the three rubrics), in sample | `data/calibration_readings_v1.json`, `labels/set1-readings.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
-| A/B | Run on Sun 1 Nov 2026. 6 of 8 thresholds held and the owner's verdict is no-ship: `GRADE_CONTRADICTS_FACTS` rose from 15 tickets to 16 and `tool_call_accuracy` fell by 3. In sample | `reports/ab.html`, `submissions/week-02/assignment-2/ab_report.md`, `docs/ab-spec.md`, `variants/compare-first.txt` |
+| A/B | Run on Sun 1 Nov 2026. 6 of 8 thresholds held and the owner's verdict is no-ship: `GRADE_CONTRADICTS_FACTS` rose from 15 tickets to 16 and `tool_call_accuracy` fell by 3. In sample | `reports/ab.html`, `packages/llm-judges/assignment-2/ab_report.md`, `docs/ab-spec.md`, `variants/compare-first.txt` |
+| The package | Built on Mon 2 Nov 2026, before step 9, with every course acceptance item mapped to a file | `packages/llm-judges/README.md` |
 
 Reproduce the repository counts in the table, from the repository root:
 
@@ -111,9 +112,11 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    each leg's selection and fact are set side by side before its result, in the same message as the `settle_ticket` call
    (`variants/compare-first.txt`). Step 8 runs before step 9,
    with `rule_adherence` flagged as the delta to trust least and the verdict resting on the plain-code check. He approved the
-   thresholds in `submissions/week-02/assignment-2/ab_report.md`.
+   thresholds in `packages/llm-judges/assignment-2/ab_report.md`.
 8. **The A/B's verdict** (the owner's, Sun 1 Nov 2026). No-ship, with the reason and what would change it in
-   `submissions/week-02/assignment-2/ab_report.md`. The rulings on the page are under "Amendments" in `docs/ab-spec.md`.
+   `packages/llm-judges/assignment-2/ab_report.md`. The rulings on the page are under "Amendments" in `docs/ab-spec.md`.
+9. **The package's order and path** (the owner's, Mon 2 Nov 2026). The package comes before step 9, and it lives in
+   `packages/llm-judges/`, not `submissions/week-02/`. The archived prompts keep the old path as delivered.
 
 ## The order of work
 
@@ -138,7 +141,7 @@ Each step is its own pull request, unless it says otherwise. Who reviews it foll
 | 7. The judge page | The judge comparison page (Assignment 1's comparison view), specified in `docs/judge-page-spec.md`. The A/B page moved to step 8 (the owner's ruling, 31 Oct 2026), because its inputs are step 8's decisions | Builder | The spec's acceptance list and the UI rules in `AGENTS.md` hold |
 | 8. The A/B | One change to the grader as variant B; thresholds written first; both variants through the three judges and the code checks; `ab_report.md`; the A/B page (per-metric deltas), specified in `docs/ab-spec.md` and built after its inputs are fixed | Owner decides; PM runs and drafts; builder (the page) | Assignment 2's acceptance list holds, and the UI rules in `AGENTS.md` for the page |
 | 9. The weakest judge again | Its rubric tightened once, validated on fresh labels (`labels/set2.jsonl`, that one rubric, at least 30 rows) | Owner, PM | Its kappa on labels it was never tuned on is reported |
-| 10. The package | `submissions/week-02/`, below | PM | Every course item maps to a file |
+| 10. The package | `packages/llm-judges/`, below | PM | Every course item maps to a file |
 
 The rubrics are frozen before labelling so the labels judge the rubric as written; the labels are frozen before the judge
 runs so no label is read from a verdict. Git shows the order: each lands in its own merge.
@@ -166,7 +169,7 @@ runs so no label is read from a verdict. Git shows the order: each lands in its 
 ## The package
 
 ```
-submissions/week-02/
+packages/llm-judges/
   README.md                 each course acceptance item, and the file that meets it
   assignment-1/
     rubrics.md              the three rubrics, verbatim, with their hashes
@@ -178,6 +181,8 @@ submissions/week-02/
     ab_report.md            the course template, filled
     diagnosis.md            the ten trace ids and the root cause
     comparison.html         the A/B page
+    thresholds.json         the thresholds as data, an input to the report
+    statement.txt           the statement the report prints, an input to the report
 ```
 
 ## Open
@@ -196,11 +201,8 @@ Small pieces left by the reviews so far, each written to be read cold. The step-
 - **A cases entry whose `expected` is not an object.** With `expected: 5`, `scorer.score` and `scorer.compare` exit 1
   with an `AttributeError` from the checks, not status 2 and one message. Validate it where the cases load, roughly 10
   to 20 lines plus tests. Found in PR #10's review. `ab` has refused it since PR #18.
-- **Small items on the A/B page.** Each was found at PR #18's Pass 2.5 and none changes a figure. All three judge intervals
-  wrap across lines at 761, 1000 and 1100 px. At 1200, 1400 and 1920 px only `rule_adherence` does. Threshold rows
-  print "1 tickets". No test pins the `<wbr>` in a metric name, and Chrome's accessible name reads with spaces there. No test covers `ab`'s check that `log_grade` is an object. With
-  web fonts blocked, `needs_human_correctness` measures wider than its label cell at 761 px. `ab` accepts a wrong type inside
-  a case's `expected`. Re-running `ab` needs no model, so the fix regenerates `reports/ab.*`. Roughly 30 lines plus tests.
+- **The package can drift from the reports.** `results.md` and both `comparison.html` files are copies, and no test compares
+  them with `reports/`. A test comparing the bytes, roughly 10 lines. Found when the package was built.
 - **Set 2's `rule_adherence` wording.** The owner ruled on Sat 31 Oct 2026 that a NEEDS_HUMAN leg counts as graded; the
   rubric leaves that to be inferred. Say it in the words when step 9 tightens the rubric. It changes no label on set 1.
 - **Page test tidiness.** Unclosed files in the markup test; `_strip_inputs` can also remove computed text identical to
