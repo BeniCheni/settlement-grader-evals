@@ -1,0 +1,1710 @@
+{
+  "command": "python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds submissions/week-02/assignment-2/thresholds.json --statement submissions/week-02/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html",
+  "cover_note": "Delta is A minus B: a plus means fewer tickets with the code in B. The interval is the paired interval on that delta, z 1.96.",
+  "metrics": [
+    {
+      "both": 1,
+      "count_a": 3,
+      "count_b": 1,
+      "delta_points": "+6.3",
+      "delta_tickets": "+2",
+      "fail_to_pass": 2,
+      "lower_points": "-6.3",
+      "n": 32,
+      "name": "needs_human_correctness",
+      "neither": 29,
+      "only_a": 2,
+      "only_b": 0,
+      "pass_a": 29,
+      "pass_b": 31,
+      "pass_share_a": "90.6%",
+      "pass_share_b": "96.9%",
+      "pass_to_fail": 0,
+      "source": "judge",
+      "unparsed_a": 0,
+      "unparsed_b": 0,
+      "upper_points": "20.7"
+    },
+    {
+      "both": 32,
+      "count_a": 32,
+      "count_b": 32,
+      "delta_points": "+0.0",
+      "delta_tickets": "+0",
+      "fail_to_pass": 0,
+      "lower_points": "-10.7",
+      "n": 32,
+      "name": "rule_adherence",
+      "neither": 0,
+      "only_a": 0,
+      "only_b": 0,
+      "pass_a": 0,
+      "pass_b": 0,
+      "pass_share_a": "0.0%",
+      "pass_share_b": "0.0%",
+      "pass_to_fail": 0,
+      "source": "judge",
+      "unparsed_a": 0,
+      "unparsed_b": 0,
+      "upper_points": "10.7"
+    },
+    {
+      "both": 16,
+      "count_a": 18,
+      "count_b": 21,
+      "delta_points": "-9.4",
+      "delta_tickets": "-3",
+      "fail_to_pass": 2,
+      "lower_points": "-25.2",
+      "n": 32,
+      "name": "tool_call_accuracy",
+      "neither": 9,
+      "only_a": 2,
+      "only_b": 5,
+      "pass_a": 14,
+      "pass_b": 11,
+      "pass_share_a": "43.8%",
+      "pass_share_b": "34.4%",
+      "pass_to_fail": 5,
+      "source": "judge",
+      "unparsed_a": 0,
+      "unparsed_b": 0,
+      "upper_points": "7.3"
+    },
+    {
+      "both": 13,
+      "count_a": 15,
+      "count_b": 16,
+      "delta_points": "-3.1",
+      "delta_tickets": "-1",
+      "lower_points": "-17.1",
+      "n": 32,
+      "name": "GRADE_CONTRADICTS_FACTS",
+      "neither": 14,
+      "only_a": 2,
+      "only_b": 3,
+      "source": "code",
+      "upper_points": "11.2"
+    },
+    {
+      "both": 11,
+      "count_a": 15,
+      "count_b": 11,
+      "delta_points": "+12.5",
+      "delta_tickets": "+4",
+      "lower_points": "-0.4",
+      "n": 32,
+      "name": "WIN_LOSS_FLIP",
+      "neither": 17,
+      "only_a": 4,
+      "only_b": 0,
+      "source": "code",
+      "upper_points": "24.5"
+    },
+    {
+      "both": 2,
+      "count_a": 8,
+      "count_b": 5,
+      "delta_points": "+9.4",
+      "delta_tickets": "+3",
+      "lower_points": "-10.1",
+      "n": 32,
+      "name": "SKIPPED_SETTLE_TICKET",
+      "neither": 21,
+      "only_a": 6,
+      "only_b": 3,
+      "source": "code",
+      "upper_points": "28.2"
+    },
+    {
+      "both": 1,
+      "count_a": 5,
+      "count_b": 3,
+      "delta_points": "+6.3",
+      "delta_tickets": "+2",
+      "lower_points": "-10.9",
+      "n": 32,
+      "name": "PLACEHOLDER_ECHO",
+      "neither": 25,
+      "only_a": 4,
+      "only_b": 2,
+      "source": "code",
+      "upper_points": "23.5"
+    },
+    {
+      "both": 1,
+      "count_a": 5,
+      "count_b": 1,
+      "delta_points": "+12.5",
+      "delta_tickets": "+4",
+      "lower_points": "-1.6",
+      "n": 32,
+      "name": "GRADED_WITHOUT_LOOKUP",
+      "neither": 27,
+      "only_a": 4,
+      "only_b": 0,
+      "source": "code",
+      "upper_points": "28.4"
+    },
+    {
+      "both": 1,
+      "count_a": 7,
+      "count_b": 2,
+      "delta_points": "+15.6",
+      "delta_tickets": "+5",
+      "lower_points": "-1.8",
+      "n": 32,
+      "name": "INCOMPLETE_LEG_LIST",
+      "neither": 24,
+      "only_a": 6,
+      "only_b": 1,
+      "source": "code",
+      "upper_points": "33.0"
+    },
+    {
+      "both": 1,
+      "count_a": 2,
+      "count_b": 1,
+      "delta_points": "+3.1",
+      "delta_tickets": "+1",
+      "lower_points": "-8.8",
+      "n": 32,
+      "name": "WRONG_NON_GRADE",
+      "neither": 30,
+      "only_a": 1,
+      "only_b": 0,
+      "source": "code",
+      "upper_points": "16.4"
+    },
+    {
+      "both": 0,
+      "count_a": 1,
+      "count_b": 1,
+      "delta_points": "+0.0",
+      "delta_tickets": "+0",
+      "lower_points": "-13.0",
+      "n": 32,
+      "name": "NO_FINAL_ANSWER",
+      "neither": 30,
+      "only_a": 1,
+      "only_b": 1,
+      "source": "code",
+      "upper_points": "13.0"
+    },
+    {
+      "both": 3,
+      "count_a": 5,
+      "count_b": 6,
+      "delta_points": "-3.1",
+      "delta_tickets": "-1",
+      "lower_points": "-19.0",
+      "n": 32,
+      "name": "RULE_TOPIC_MISS",
+      "neither": 24,
+      "only_a": 2,
+      "only_b": 3,
+      "source": "code",
+      "upper_points": "12.6"
+    },
+    {
+      "both": 0,
+      "count_a": 0,
+      "count_b": 1,
+      "delta_points": "-3.1",
+      "delta_tickets": "-1",
+      "lower_points": "-15.7",
+      "n": 32,
+      "name": "OUTPUT_LIMIT_SPRAY",
+      "neither": 31,
+      "only_a": 0,
+      "only_b": 1,
+      "source": "code",
+      "upper_points": "7.9"
+    },
+    {
+      "both": 1,
+      "count_a": 2,
+      "count_b": 1,
+      "delta_points": "+3.1",
+      "delta_tickets": "+1",
+      "lower_points": "-8.8",
+      "n": 32,
+      "name": "FOLLOWED_TICKET_CLAIM",
+      "neither": 30,
+      "only_a": 1,
+      "only_b": 0,
+      "source": "code",
+      "upper_points": "16.4"
+    }
+  ],
+  "primary": {
+    "code": "GRADE_CONTRADICTS_FACTS",
+    "count_a": 15,
+    "count_b": 16,
+    "delta_points": "-3.1",
+    "delta_tickets": "-1",
+    "lower_points": "-17.1",
+    "upper_points": "11.2"
+  },
+  "prompt_diff": [
+    "--- A",
+    "+++ B",
+    "@@ -5,3 +5,3 @@",
+    " 2. Call lookup_rule for each kind of market you grade.",
+    "-3. Grade each leg: W (won), L (lost), P (push), VOID, MOOT (not needed: another leg already lost), OPEN (match not final) or NEEDS_HUMAN (a fact you need is missing or a rule says so).",
+    "+3. Grade each leg by comparing it with the facts. In the same message as your settle_ticket call, first write one line per leg: the selection, the score or stat from get_match_facts with home and away named, and what that means for the selection. Then give its result: W (won), L (lost), P (push), VOID, MOOT (not needed: another leg already lost), OPEN (match not final) or NEEDS_HUMAN (a fact you need is missing or a rule says so).",
+    " 4. Call settle_ticket with your leg results, the stake, the stake_kind, and the ticket price and printed payout if the ticket gives them."
+  ],
+  "set1": [
+    {
+      "agreement": "80.0%",
+      "agreement_exact": "0.8000",
+      "false_passes_read": "6 of 6",
+      "kappa": "0.3191",
+      "meets_bar": false,
+      "rubric": "needs_human_correctness"
+    },
+    {
+      "agreement": "65.0%",
+      "agreement_exact": "0.6500",
+      "false_passes_read": "no false passes",
+      "kappa": "0.0000",
+      "meets_bar": false,
+      "rubric": "rule_adherence"
+    },
+    {
+      "agreement": "92.5%",
+      "agreement_exact": "0.9250",
+      "false_passes_read": "no false passes",
+      "kappa": "0.8500",
+      "meets_bar": true,
+      "rubric": "tool_call_accuracy"
+    }
+  ],
+  "setup": {
+    "a": "traces/ab-a",
+    "b": "traces/ab-b",
+    "grader_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+    "grader_model": "qwen3:8b",
+    "interval_method": "newcombe-1998-method-10",
+    "judge_adapter": "ollama",
+    "judge_digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+    "judge_model": "llama3.1:8b",
+    "ollama_version": "0.34.0",
+    "z": "1.96"
+  },
+  "sign_note": "Delta is A minus B. For a code, a plus means fewer tickets with the code in B. For a judge, the tickets counted are FAIL and UNPARSED, so a plus means more PASS in B. Each interval is the paired interval on that delta, z 1.96.",
+  "statement": "Written by Claude, in the PM seat, at the owner's request on 1 Nov 2026; amended by Codex during review, and by Claude after the runs, on reading them. In sample. The change was chosen by reading these 32 tickets, and the code checks were built against traces/v1, which holds them, so these figures show what the change did to these tickets and not what it would do to tickets it has not seen. The judges' rubrics are frozen from set 1, and their agreement with the owner's labels, in sample too, is the only reason to read their deltas at all; rule_adherence answered FAIL on all 40 rows of set 1, so its delta says least. Two runs in one session with the same recorded setup reduce known setup differences but do not rule out unrecorded differences or chance: each delta has its interval beside it. Read the traces beside these figures: on none of the 29 tickets where variant B called settle_ticket did it write the requested comparison beside that call, and it settled in the same message as a lookup on 8 tickets against A's 3. So these figures show what this wording did to these tickets, not whether a comparison made before the grade would help.\n",
+  "threshold_rows": [
+    {
+      "fall": -1,
+      "held": false,
+      "interval_excludes_zero": true,
+      "kind": "must_fall",
+      "lower_points": "-17.1",
+      "min_net_fall": 5,
+      "name": "GRADE_CONTRADICTS_FACTS",
+      "report_only": false,
+      "source": "code"
+    },
+    {
+      "held": true,
+      "kind": "max_rise",
+      "max_rise": 0,
+      "name": "WIN_LOSS_FLIP",
+      "report_only": false,
+      "rise": -4,
+      "source": "code"
+    },
+    {
+      "held": true,
+      "kind": "max_rise",
+      "max_rise": 0,
+      "name": "FOLLOWED_TICKET_CLAIM",
+      "report_only": false,
+      "rise": -1,
+      "source": "code"
+    },
+    {
+      "held": true,
+      "kind": "max_rise",
+      "max_rise": 1,
+      "name": "NO_FINAL_ANSWER",
+      "report_only": false,
+      "rise": 0,
+      "source": "code"
+    },
+    {
+      "held": true,
+      "kind": "max_rise",
+      "max_rise": 1,
+      "name": "SKIPPED_SETTLE_TICKET",
+      "report_only": false,
+      "rise": -3,
+      "source": "code"
+    },
+    {
+      "held": true,
+      "kind": "max_rise",
+      "max_rise": 1,
+      "name": "GRADED_WITHOUT_LOOKUP",
+      "report_only": false,
+      "rise": -4,
+      "source": "code"
+    },
+    {
+      "held": false,
+      "kind": "max_pass_fall",
+      "max_pass_fall": 1,
+      "name": "tool_call_accuracy",
+      "pass_fall": 3,
+      "report_only": false,
+      "source": "judge"
+    },
+    {
+      "held": true,
+      "kind": "max_pass_fall",
+      "max_pass_fall": 2,
+      "name": "needs_human_correctness",
+      "pass_fall": -2,
+      "report_only": false,
+      "source": "judge"
+    },
+    {
+      "held": null,
+      "kind": "report_only",
+      "name": "rule_adherence",
+      "report_only": true,
+      "source": "judge"
+    }
+  ],
+  "thresholds_held": "6 of 8",
+  "ticket_columns": [
+    "Case",
+    "A final",
+    "B final",
+    "needs_human_correctness",
+    "rule_adherence",
+    "tool_call_accuracy",
+    "A codes",
+    "B codes",
+    "Changed",
+    "Reasons"
+  ],
+  "tickets": [
+    {
+      "case_id": "A01",
+      "changed": [],
+      "codes_a": [],
+      "codes_b": [],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Portugal won 2-4 in regulation, but the grader should have used the exact score 2-4, not just that Portugal won.",
+          "reason_b": "Leg 1, Portugal won 2-4 in regulation time, but the rule says the Draw selection wins on a regulation draw.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A02",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "SKIPPED_SETTLE_TICKET",
+        "INCOMPLETE_LEG_LIST",
+        "WRONG_NON_GRADE"
+      ],
+      "codes_b": [
+        "WRONG_NON_GRADE"
+      ],
+      "final_a": "VOID",
+      "final_b": "VOID",
+      "verdicts": [
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "No match found for the given date and teams.",
+          "reason_b": "no match found on or around that date",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, no match found for the given date and teams.",
+          "reason_b": "Leg 1, no match found on or around that date contradicts lookup_rule's rule for void_postponed.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "find_match call failed to find a match, but the final answer is VOID, not an error.",
+          "reason_b": "lookup_rule call returned UNKNOWN_TOPIC and the grader never called lookup_rule again with a listed topic for that market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A03",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "PLACEHOLDER_ECHO"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Austria selection, regulation score 2-2, rule says Draw selection wins on a draw.",
+          "reason_b": "Leg 1, selection \"Austria\" lost because the match ended in a regulation draw, but the grader graded it W.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A05",
+      "changed": [],
+      "codes_a": [],
+      "codes_b": [],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket was decided by the facts, and the grader settled it correctly with a WIN result.",
+          "reason_b": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, USA selection, regulation score 3-0, rule \"Money Line 3-Way / Match Result settles on the 90-minute regulation result...\"",
+          "reason_b": "Leg 1, selection \"USA\" in a Money Line 3-Way market, but the score_regulation_90 is 3-0, which means USA did not win.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A06",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "PLACEHOLDER_ECHO"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result, and the facts needed for the market are in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, selection \"Republic of Ireland\" should lose on a 1-1 draw.",
+          "reason_b": "Leg 1, selection \"Republic of Ireland\" lost on a draw, but the grader graded it W.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A08",
+      "changed": [],
+      "codes_a": [],
+      "codes_b": [],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs (the 90-minute regulation result) is in the results.",
+          "reason_b": "The facts decided the ticket, and the grader settled it correctly with a WIN result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Slovenia selection, regulation score 1-2, Draw selection wins on a regulation draw.",
+          "reason_b": "Leg 1, Slovenia selection, score_regulation_90 is 1-2, Draw selection wins on a regulation draw.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A09",
+      "changed": [
+        "codes",
+        "tool_call_accuracy"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "PLACEHOLDER_ECHO"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket was decided by the facts, and the grader settled it correctly.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Draw selection, score_regulation_90 is 3-1, Draw selection loses.",
+          "reason_b": "Leg 1, the score 3-1 for Chicago Fire contradicts the Draw No Bet rule that requires a draw to be a push.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "FAIL",
+          "differs": true,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "Tool call 2, get_match_facts, returned an error, but the grader continued with a lookup_rule call.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A11",
+      "changed": [
+        "tool_call_accuracy"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, selection NYCFC, regulation result 2-1, Draw selection wins on a draw.",
+          "reason_b": "Leg 1, selection NYCFC, score_regulation_90 is 2-1, but the rule says the Draw selection wins on a regulation draw.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "FAIL",
+          "differs": true,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "Tool call 3, lookup_rule, returned an unknown topic, \"moneyline_3way\", which was not looked up again.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A12",
+      "changed": [
+        "final",
+        "codes",
+        "tool_call_accuracy"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS"
+      ],
+      "final_a": "WIN",
+      "final_b": "PUSH",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided, and the facts show a regulation score of 0-3, which settles the Draw selection as a loss.",
+          "reason_b": "The ticket was decided by the facts, and the grader settled it correctly with a PUSH result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Draw selection, regulation score 0-3, Draw selection loses on a draw.",
+          "reason_b": "Leg 1, Draw selection, regulation draw, but the rule says the Draw selection wins on a regulation draw.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "FAIL",
+          "differs": true,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "Tool call 2, get_match_facts, returned an error, but the grader continued with a successful settle_ticket call.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "A13",
+      "changed": [],
+      "codes_a": [
+        "PLACEHOLDER_ECHO"
+      ],
+      "codes_b": [
+        "PLACEHOLDER_ECHO"
+      ],
+      "final_a": "PUSH",
+      "final_b": "PUSH",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Draw No Bet, Rayo Vallecano selection, score 1-1.",
+          "reason_b": "Leg 1, Draw No Bet, Rayo Vallecano selection, score 1-1.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B01",
+      "changed": [],
+      "codes_a": [],
+      "codes_b": [],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Sehrou Guirassy did not score in regulation time, but the grader's rule was \"Anytime goalscorer wins if the player scores in regulation time. Own goals do not count for the player.\"",
+          "reason_b": "Leg 1, Sehrou Guirassy did not score in regulation time, but the grader's rule did not account for own goals.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B02",
+      "changed": [
+        "codes",
+        "tool_call_accuracy"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "INCOMPLETE_LEG_LIST",
+        "RULE_TOPIC_MISS"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "RULE_TOPIC_MISS"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 2, selection Lamine Yamal, tool results show no goals scored by Lamine Yamal.",
+          "reason_b": "Leg 1, Barcelona selection in a Match Result market, but the grader did not apply the moneyline 3-way rule.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "PASS",
+          "differs": true,
+          "reason_a": "lookup_rule call 4 returned UNKNOWN_TOPIC and no subsequent lookup_rule call with a listed topic for that market.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B04",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [],
+      "codes_b": [
+        "RULE_TOPIC_MISS"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided and settled with a WIN result, which is the correct outcome given the facts.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result, and the facts decided the ticket.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 3, Total goals: the tool results show 4 goals, but the rule says a whole line pushes on exactly that number.",
+          "reason_b": "Leg 3, market \"Total goals\", selection \"Over\" 3.5, tool result score_final \"3-1\"",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Tool call 3, lookup_rule, returned UNKNOWN_TOPIC for \"btts\" and no subsequent lookup_rule call with a listed topic for that market.",
+          "reason_b": "Tool call #3: lookup_rule returned UNKNOWN_TOPIC for \"match_result\" topic, but no other lookup_rule call was made with a listed topic for that market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B05",
+      "changed": [],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "RULE_TOPIC_MISS"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "RULE_TOPIC_MISS"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, selection \"Newcastle\" won, but the grader graded it L.",
+          "reason_b": "Leg 1 graded W, but the rule for Money Line 3-Way / Match Result requires a team selection to win only if that team wins the match.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "lookup_rule call 6 returned UNKNOWN_TOPIC and no other lookup_rule call was made with a listed topic for the \"both_teams_to_score\" market.",
+          "reason_b": "Tool call 5, lookup_rule with topic \"both_teams_to_score\", returned UNKNOWN_TOPIC and no subsequent lookup_rule call with a listed topic for that market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B06",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "WIN_LOSS_FLIP",
+        "SKIPPED_SETTLE_TICKET",
+        "GRADED_WITHOUT_LOOKUP"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "RULE_TOPIC_MISS"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided, but the grader's premature finalization of the ticket is a separate issue.",
+          "reason_b": "The ticket is decided and settled with a LOSS result, which is a valid outcome given the leg results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 4, Match Result market, Spain lost by 1 goal, not covering the market.",
+          "reason_b": "Leg 2, market \"Total Goals\", selection \"Over\" 1.5; the grader graded it L, but the rule for \"Total Goals\" is not in the tool results.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "The grader gave a final grade with no tool calls at all.",
+          "reason_b": "Tool call 7: lookup_rule returned UNKNOWN_TOPIC for market \"2-way_handicap\" and no other lookup_rule call was made with a listed topic for that market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B08",
+      "changed": [
+        "final",
+        "codes"
+      ],
+      "codes_a": [
+        "NO_FINAL_ANSWER",
+        "RULE_TOPIC_MISS"
+      ],
+      "codes_b": [
+        "RULE_TOPIC_MISS"
+      ],
+      "final_a": null,
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result, but the grader did not settle it because it ran out of turns.",
+          "reason_b": "The ticket is decided, and the grader settled it with a LOSS result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, market \"90 Minutes (to win, regulation)\" graded W, but rule \"Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time. Extra time and penalties are ignored. Use score_regulation_90. The Draw selection wins on a regulation draw; both team selections lose on a draw.\" should have used score_regulation_90, which is 1-0, not a win.",
+          "reason_b": "Leg 1, market \"90 Minutes (to win, regulation)\" graded W, but the tool results show a 1-0 score, which should lose a team selection.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "lookup_rule call 4 returned UNKNOWN_TOPIC and no subsequent lookup_rule call with a listed topic for that market.",
+          "reason_b": "lookup_rule call 3 returned UNKNOWN_TOPIC and the grader never called lookup_rule again with a listed topic for that market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B09",
+      "changed": [
+        "codes",
+        "tool_call_accuracy"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "INCOMPLETE_LEG_LIST"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result.",
+          "reason_b": "The ticket is decided, and the grader settled it with a correct final answer.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 2, market \"Total Goals (match)\" has a rule \"Over/Under total goals, regulation time, both teams combined unless the market names a team or a half.\" but the grader's grade \"W\" is not consistent with the facts that the match score is 2-1.",
+          "reason_b": "Leg 1, Manchester City scored 2 goals, which is over 0.5 goals, but the tool results show only 2 goals, not 1 or more.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "PASS",
+          "differs": true,
+          "reason_a": "Tool call 3: lookup_rule with topic \"team_total\" returned UNKNOWN_TOPIC, but the grader never looked up \"totals\" or \"double_chance\" for that market.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B10",
+      "changed": [
+        "final",
+        "codes",
+        "tool_call_accuracy"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "RULE_TOPIC_MISS"
+      ],
+      "codes_b": [
+        "SKIPPED_SETTLE_TICKET"
+      ],
+      "final_a": "WIN",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, market \"Odds Boost goalscorer combo (both players to score)\" did not apply the rule for combo markets, which was not found.",
+          "reason_b": "Leg 1, Ousmane Dembele & Ollie Watkins each score in 90 min, graded as L, but should have been graded as P (push) because the rule is \"Anytime goalscorer wins if the player scores in regulation time. Own goals do not count for the player.\" and Ollie Watkins did not score in 90 min.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "FAIL",
+          "differs": true,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called settle_ticket with leg_results that included a result of \"L\" for a leg that was graded as \"L\", but the result was invalid.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B12",
+      "changed": [],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the facts show the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket was decided by the facts, and the grader settled it correctly.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Bukayo Saka did not score in regulation time.",
+          "reason_b": "Leg 1, Bukayo Saka did not score in regulation time, but the rule only requires the player to score in regulation time.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "B13",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS"
+      ],
+      "codes_b": [
+        "PLACEHOLDER_ECHO"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided, and the grader settled it with a LOSS result, which is a valid outcome given the facts.",
+          "reason_b": "The ticket is decided because all legs that matter are final and the facts needed for each market are in the results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Moneyline 3-Way / Match Result, selection was Columbus Crew, which lost on penalties, but the regulation result was a draw.",
+          "reason_b": "Leg 1, the grader graded it L, but the rule is Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time, and the tool results show a 1-1 draw.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "lookup_rule call with topic \"moneyline_3way\" returned a rule that was not used to grade leg 1.",
+          "reason_b": "Tool call 2, get_match_facts, returned an error, but the grader continued with other calls.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C02",
+      "changed": [
+        "final",
+        "codes"
+      ],
+      "codes_a": [
+        "WIN_LOSS_FLIP",
+        "SKIPPED_SETTLE_TICKET",
+        "GRADED_WITHOUT_LOOKUP"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS"
+      ],
+      "final_a": "WIN",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket was decided, but the grader did not settle it because it was premature to do so.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, \"Netherlands won the match\" is not evidence for a Money Line 3-Way leg.",
+          "reason_b": "Leg 3, the grader graded Germany 0-0 Greece as a push, but the rule for Money Line 3-Way / Match Result says the Draw selection wins on a regulation draw.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "The grader gave a final grade with no tool calls at all.",
+          "reason_b": "Tool call 5: lookup_rule returned UNKNOWN_TOPIC, but the grader never looked up \"moneyline_3way\" again.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C03",
+      "changed": [
+        "final",
+        "codes",
+        "needs_human_correctness"
+      ],
+      "codes_a": [
+        "WIN_LOSS_FLIP",
+        "SKIPPED_SETTLE_TICKET",
+        "GRADED_WITHOUT_LOOKUP"
+      ],
+      "codes_b": [
+        "NO_FINAL_ANSWER",
+        "RULE_TOPIC_MISS",
+        "OUTPUT_LIMIT_SPRAY"
+      ],
+      "final_a": "WIN",
+      "final_b": null,
+      "verdicts": [
+        {
+          "a": "FAIL",
+          "b": "PASS",
+          "differs": true,
+          "reason_a": "The ticket was decided, but the grader settled it anyway, despite the PREMATURE_FINAL reason.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 4, market \"ML 3-Way\", selection \"USA\" should be graded on score_regulation_90, not just that USA won the match.",
+          "reason_b": "Leg 1, Spain selection in Spread market, score 1-2, rule \"grade on the market's own wording and check the exact number the leg needs, not only who won\"",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "The grader gave a final grade with no tool calls at all.",
+          "reason_b": "lookup_rule call 6 returned UNKNOWN_TOPIC and no subsequent lookup_rule call with a listed topic for the \"spread\" market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C04",
+      "changed": [],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result.",
+          "reason_b": "The ticket is decided, and the grader settled it with a LOSS, which is a settled result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, the grader graded W, but the rule for totals is \"Over/Under total goals, regulation time, both teams combined unless the market names a team or a half. Half-goal lines (2.5) cannot push. A whole line (2.0) pushes on exactly that number.\" and the facts are that the match was 2-2, which is not over 3.5.",
+          "reason_b": "Leg 1, market \"Total Goals\", selection \"Over\" should have pushed, not lost, because the score was 2-2, which is exactly 4 goals.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Tool call 7: lookup_rule returned \"totals\" but the grader never looked up \"totals\" again.",
+          "reason_b": "Tool call 4, get_match_facts, returned an error, but the grader never called it with the correct event_id for the ticket's fixture.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C06",
+      "changed": [],
+      "codes_a": [
+        "SKIPPED_SETTLE_TICKET"
+      ],
+      "codes_b": [
+        "SKIPPED_SETTLE_TICKET"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket was decided by the facts, and the grader settled it with a WIN result.",
+          "reason_b": "The ticket was decided by the facts, and the grader escalated correctly to NEEDS_HUMAN.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, selection Brighton, score_regulation_90 is 0-2, but the rule says the Draw selection wins on a regulation draw.",
+          "reason_b": "Leg 1, score_regulation_90 is 0-2, Brighton won, but the rule says the Draw selection wins on a regulation draw.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "lookup_rule call returned \"moneyline_3way\" topic, but the grader never called it again with a listed topic for the \"Moneyline\" market.",
+          "reason_b": "lookup_rule call returned \"moneyline_3way\" topic, but the grader never called it again with a listed topic for the \"Moneyline\" market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C08",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "INCOMPLETE_LEG_LIST",
+        "RULE_TOPIC_MISS"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "SKIPPED_SETTLE_TICKET"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result, and the grader settled it correctly.",
+          "reason_b": "The ticket is decided, and the final answer is a settled result: LOSS.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 2, market \"Goals (match total)\" selection \"Over\" with score_regulation_90 \"0-3\"",
+          "reason_b": "Leg 1, the grader graded Man City as the winner, but the rule for Money Line 3-Way / Match Result requires checking the exact number, not just who won.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Tool call 4, lookup_rule with topic \"goals\", returned UNKNOWN_TOPIC but the grader never looked up \"btts\" for that market.",
+          "reason_b": "The grader called lookup_rule with the topic \"btts\" but got UNKNOWN_TOPIC, and never looked up \"btts\" again.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C09",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "SKIPPED_SETTLE_TICKET",
+        "GRADED_WITHOUT_LOOKUP"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided, and the final answer is a settled result: LOSS.",
+          "reason_b": "The ticket is decided, and the grader settled it with a LOSS, which is a settled result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 2, market \"Money Line 3-Way (regulation time only)\" selection \"Juventus\" should lose on a 2-2 final score.",
+          "reason_b": "Leg 2, selection \"Juventus\" lost 1-1, but the grader graded it \"L\" instead of \"P\" (push) according to the rule \"Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time. Extra time and penalties are ignored. Use score_regulation_90. The Draw selection wins on a regulation draw; both team selections lose on a draw.\"",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "The grader gave a final grade with no tool calls at all.",
+          "reason_b": "Tool call 5, lookup_rule, returned UNKNOWN_TOPIC for \"moneyline_3way\" and no other lookup_rule call was made with a listed topic for that market.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C10",
+      "changed": [
+        "final",
+        "codes",
+        "tool_call_accuracy"
+      ],
+      "codes_a": [
+        "SKIPPED_SETTLE_TICKET",
+        "INCOMPLETE_LEG_LIST",
+        "WRONG_NON_GRADE"
+      ],
+      "codes_b": [
+        "PLACEHOLDER_ECHO",
+        "INCOMPLETE_LEG_LIST"
+      ],
+      "final_a": "NEEDS_HUMAN",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result, and the grader settled the ticket with NEEDS_HUMAN only when a needed fact was missing.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, the grader graded it NEEDS_HUMAN, but the tool results show the match is final at 2-2.",
+          "reason_b": "Leg 1, VfB Stuttgart selection in a Match Result (regulation time) market, but get_match_facts failed for the match.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "FAIL",
+          "differs": true,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "Tool call 4, get_match_facts, returned an error, but the grader continued with other calls.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C12",
+      "changed": [],
+      "codes_a": [],
+      "codes_b": [],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because the match was found, its status is final, and the fact the market needs is in the results.",
+          "reason_b": "The ticket was decided by the facts, and the grader settled it correctly with a WIN result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Manchester City selection, regulation score 2-1, Money Line 3-Way rule.",
+          "reason_b": "Leg 1, score_regulation_90 is 2-1, Manchester City won, but the ticket's final answer and settle_ticket call both grade it W.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "reason_b": "The grader called the right tools with the right arguments, and its settle_ticket call matches the leg grades it gave.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C13",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "INCOMPLETE_LEG_LIST"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, selection \"Bayern Munich\" in Moneyline 3-Way market, score_regulation_90 is 0-0, which is a draw, and the selection should win.",
+          "reason_b": "Leg 1, the score 0-0 means Bayern Munich lost, but the rule for Money Line 3-Way / Match Result requires checking the exact number, not just who won.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Tool call 3 with args {\"topic\": \"moneyline_3way\"} returned {\"rule\": \"Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time. Extra time and penalties are ignored. Use score_regulation_90. The Draw selection wins on a regulation draw; both team selections lose on a draw.\", \"topic\": \"moneyline_3way\"} but the grader never called lookup_rule again with a listed topic for that market.",
+          "reason_b": "Tool call 2, get_match_facts, returned an error, but the grader continued with other calls.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "C14",
+      "changed": [
+        "codes"
+      ],
+      "codes_a": [],
+      "codes_b": [
+        "INCOMPLETE_LEG_LIST"
+      ],
+      "final_a": "LOSS",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "The ticket is decided because every leg that matters has a final result.",
+          "reason_b": "The ticket is decided because every leg that matters has a final result.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, Total Corners market, the grader graded it as Under 8.5, but the rule is to use the exact number, not just who won.",
+          "reason_b": "Leg 3, market \"Total Goals\" has a selection \"Over\" but the tool results do not include the match facts needed to apply the rule for totals.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Tool call 2 failed with a RuntimeError, but the grader continued to make calls.",
+          "reason_b": "Tool call 3, get_match_facts, returned an error, but the grader did not handle it correctly.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "X01",
+      "changed": [
+        "final",
+        "codes"
+      ],
+      "codes_a": [
+        "GRADE_CONTRADICTS_FACTS",
+        "WIN_LOSS_FLIP",
+        "FOLLOWED_TICKET_CLAIM"
+      ],
+      "codes_b": [
+        "GRADE_CONTRADICTS_FACTS",
+        "SKIPPED_SETTLE_TICKET"
+      ],
+      "final_a": "WIN",
+      "final_b": "LOSS",
+      "verdicts": [
+        {
+          "a": "PASS",
+          "b": "PASS",
+          "differs": false,
+          "reason_a": "All legs matter, and the facts decided them all.",
+          "reason_b": "The ticket is decided and settled with a LOSS result, which is a valid outcome given the leg results.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 4, Racing Santander selection in a Money Line 3-Way market, but the grader's evidence says \"drew\" and the rule says \"both team selections lose on a draw\".",
+          "reason_b": "Leg 2, selection \"Juventus\" lost 1-1, but the grader graded it W.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Tool call 9, get_match_facts, returned an error, but the grader never called it with the correct event_id for the ticket's fixture.",
+          "reason_b": "Tool call 5, get_match_facts, returned an error, but the grader did not handle it correctly.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    },
+    {
+      "case_id": "X02",
+      "changed": [
+        "codes",
+        "needs_human_correctness"
+      ],
+      "codes_a": [
+        "WIN_LOSS_FLIP",
+        "SKIPPED_SETTLE_TICKET",
+        "PLACEHOLDER_ECHO",
+        "GRADED_WITHOUT_LOOKUP",
+        "INCOMPLETE_LEG_LIST",
+        "FOLLOWED_TICKET_CLAIM"
+      ],
+      "codes_b": [
+        "WIN_LOSS_FLIP",
+        "SKIPPED_SETTLE_TICKET",
+        "GRADED_WITHOUT_LOOKUP",
+        "FOLLOWED_TICKET_CLAIM"
+      ],
+      "final_a": "WIN",
+      "final_b": "WIN",
+      "verdicts": [
+        {
+          "a": "FAIL",
+          "b": "PASS",
+          "differs": true,
+          "reason_a": "PREMATURE_FINAL",
+          "reason_b": "The ticket is decided, but the grader did not settle it because it was marked as PREMATURE_FINAL.",
+          "rubric": "needs_human_correctness"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "Leg 1, selection \"Columbus Crew\" won, but the tool results show a draw (2-2), not a win.",
+          "reason_b": "Leg 4, Total Corners market, selection Under 8.5, tool result Total corners 10.",
+          "rubric": "rule_adherence"
+        },
+        {
+          "a": "FAIL",
+          "b": "FAIL",
+          "differs": false,
+          "reason_a": "The grader gave a final grade with no tool calls at all.",
+          "reason_b": "The grader gave a final grade with no tool calls at all.",
+          "rubric": "tool_call_accuracy"
+        }
+      ]
+    }
+  ],
+  "weakest_judge": "rule_adherence",
+  "weakest_sentence": "rule_adherence is the delta to read with most care."
+}
