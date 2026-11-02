@@ -42,8 +42,9 @@ any output:
 
 1. Every record of `traces/ab-b`, then every record of `traces/aa-1`, each run in `case_id` order, stopping at 32 rows.
 2. Skip a record whose `case_id` is A01, C09 or X01, because those tickets share a bet with a boundary example: A01 is the PASS
-   example above, and C09 and X01 share three of their four fixtures with the FAIL example's `SMOKE3`. No other case in
-   `data/gold.json` shares a fixture with either example.
+   example above, and C09 and X01 are the same four-leg parlay as the FAIL example's `SMOKE3`, with one fixture worded differently
+   ("Osasuna v Betis (as written in the log)"). No other case in `data/gold.json` shares a match with either example: C14 names
+   Osasuna and C02 names Portugal, each in a different match.
 3. Skip a record whose `tools`, `final` and `status`, as `scorer.traces.load_run` returns them, equal those of a set 1 row for
    the same `case_id`. Compare them as values, not as text, so a `net` of 10 equals a `net` of 10.0.
 4. Skip a `traces/aa-1` record whose `tools`, `final` and `status` equal the `traces/ab-b` record's for the same `case_id`,
@@ -53,7 +54,8 @@ That gives 27 rows from `traces/ab-b` (all but A01, A13, B01, C09 and X01; A13 a
 from `traces/aa-1` (A03, A06, B05, B06 and B10).
 
 **What these rows can show.** They are outputs no label or tuning has touched, so the result can show how the judge agrees with
-the owner on outputs it was not tuned on. They are not new tickets: the owner and the rubric's tightening have both seen these
+the owner on outputs it was not tuned on. The 32 rows are 27 tickets, because A03, A06, B05, B06 and B10 each appear twice, and 27
+of the rows come from a variant the owner ruled no-ship, so they say little about other outputs. They are not new tickets: the owner and the rubric's tightening have both seen these
 bets, and the owner has seen parts of some of these outputs in the A/B's reading. The judge's earlier `rule_adherence` verdicts
 on `traces/ab-b` are in `judgments/ab/`, under the old rubric. The hand-written statement beside the result must say all of
 this. New tickets would be a cleaner test, and they need new bets and frozen match facts, so they are out of scope here.
@@ -84,7 +86,8 @@ Each step is its own PR, and Git shows the order.
 4. **The package.** `packages/llm-judges/README.md` gains the result and its statement. The plan and `README.md` catch up.
 
 **First-pass labels only.** The reported figure uses the labels as imported, with no `--final`. A label changed after seeing a
-verdict is no longer blind to the judge, so any correction the owner wants is recorded and reported apart, as in sample.
+verdict is no longer blind to the judge, so any correction the owner wants is recorded and reported apart, as in sample. The owner's
+readings come after the verdicts and do not change the figure.
 
 ## Done when
 
@@ -94,10 +97,13 @@ this step.
 
 **Calling it held out.** The plan's four conditions decide, and the statement says how each stands: the rubric merged before the
 labels (the merge order), it has not changed since (the report's "same text as when the labels were made"), its boundary examples
-come from outside the set (rule 2 above), and it was not otherwise tuned on the set (nothing here reads these rows before the
-labels merge). The statement also names the shared tickets, and says what a kappa on 32 rows cannot settle.
+come from outside the set (rule 2 above), and it was not otherwise tuned on the set. Git cannot show that last one. The two changes
+come from set 1's diagnosis and the owner's ruling, and the selection rule compares these records for equality, but the statement
+must say what the owner had already seen of them and that no judge ran on them under this rubric before step 3. The statement also
+names the shared tickets, and says what a kappa on 32 rows cannot settle.
 
 ## Out of scope
 
 The other two rubrics, a fourth judge, new tickets, any retuning after set 2, and re-running the A/B under the new rubric. No code
-changes: a dry run with fake replies took these commands from the sheet to the report on the current `main`.
+changes: a dry run with fake replies took these commands from the sheet to the report on the current `main`. The report will name a
+"worst judge" among the one rubric, which reads oddly and changes nothing.
