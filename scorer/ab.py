@@ -626,8 +626,12 @@ def _metric_table(rows, source):
         for label, key in columns:
             value = esc(_metric_value(row, key))
             if key == "name":
-                # The label names the span, so a break opportunity does not split the accessible name.
-                inner = '<span class="break" aria-label="%s">%s</span>' % (value, value.replace("_", "_<wbr>"))
+                # The visible name is aria-hidden, so a break does not split the cell's accessible name.
+                shown = value.replace("_", "_<wbr>")
+                inner = (
+                    '<span class="break" aria-hidden="true">%s</span>'
+                    '<span class="metric-full">%s</span>'
+                ) % (shown, value)
             else:
                 inner = '<span class="mono">%s</span>' % value
             cells.append(_td(label, inner))

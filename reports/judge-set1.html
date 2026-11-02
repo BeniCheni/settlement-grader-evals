@@ -401,6 +401,8 @@ body{
 .ab-metrics .mono{font-size:12px; overflow-wrap:normal}
 /* Keep "lower to upper" on one line. A normal wrap breaks on the spaces, and the column holds the value. */
 .ab-metrics td[data-label="Paired interval (points)"] .mono{white-space:nowrap}
+/* The cell's accessible name. The visible name is aria-hidden, so a break does not split it. */
+.ab-metrics .metric-full{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; user-select:none}
 @media (max-width: 760px){
   .ledger.ab-rows td:empty{display:none}
   .ledger.ab-metrics,.ledger.ab-metrics tbody{display:block; width:100%}

@@ -404,10 +404,17 @@ def read_metric_tables(test, html, markdown):
             test.assertEqual(row_source, source)
             cells = re.findall(r'<td data-label="([^"]+)"[^>]*>(.*?)</td>', row, re.S)
             test.assertEqual([text(label) for label, _value in cells], heads)
-            values = [text(value) for _label, value in cells]
-            test.assertEqual(values[0], name)
-            test.assertNotIn(name, found_html)
-            found_html[name] = dict(zip(heads, values))
+            visible = re.search(r'<span class="break" aria-hidden="true">(.*?)</span>', cells[0][1])
+            hidden = re.search(r'<span class="metric-full">(.*?)</span>', cells[0][1])
+            test.assertIsNotNone(visible, name)
+            test.assertIsNotNone(hidden, name)
+            shown = text(visible.group(1))
+            spoken = text(hidden.group(1))
+            test.assertEqual(spoken, shown)
+            test.assertEqual(shown, unescape(name))
+            values = [shown] + [text(value) for _label, value in cells[1:]]
+            test.assertNotIn(unescape(name), found_html)
+            found_html[unescape(name)] = dict(zip(heads, values))
         block = section.split("### %s\n" % title, 1)[1].split("\n### ", 1)[0]
         lines = [line for line in block.splitlines() if line.startswith("| ")]
         split = lambda line: [cell.strip() for cell in line.strip("|").split("|")]
@@ -1575,6 +1582,7 @@ class AbCommandTests(unittest.TestCase):
             '.ledger.ab-metrics th:first-child,.ledger.ab-metrics td:first-child{width:20%}',
             '.ab-metrics .mono{font-size:12px; overflow-wrap:normal}',
             '.ab-metrics td[data-label="Paired interval (points)"] .mono{white-space:nowrap}',
+            '.ab-metrics .metric-full{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; user-select:none}',
         ):
             self.assertIn(rule, css)
         phone = brace_block(css, '@media (max-width: 760px){\n  .ledger.ab-rows')
@@ -1689,9 +1697,11 @@ class AbCommandTests(unittest.TestCase):
         }
         html = _metric_table([judge], "judge")
         self.assertIn(
-            '<span class="break" aria-label="needs_human_correctness">needs_<wbr>human_<wbr>correctness</span>',
+            '<span class="break" aria-hidden="true">needs_<wbr>human_<wbr>correctness</span>'
+            '<span class="metric-full">needs_human_correctness</span>',
             html,
         )
+        self.assertNotIn("aria-label", html)
         code = {
             "name": "NO_FINAL_ANSWER", "n": 1, "count_a": 1, "count_b": 0,
             "delta_tickets": "+1", "delta_points": "+100.0",
@@ -1699,12 +1709,19 @@ class AbCommandTests(unittest.TestCase):
         }
         code_html = _metric_table([code], "code")
         self.assertIn(
-            '<span class="break" aria-label="NO_FINAL_ANSWER">NO_<wbr>FINAL_<wbr>ANSWER</span>',
+            '<span class="break" aria-hidden="true">NO_<wbr>FINAL_<wbr>ANSWER</span>'
+            '<span class="metric-full">NO_FINAL_ANSWER</span>',
             code_html,
         )
+        self.assertNotIn("aria-label", code_html)
         plain = dict(judge, name="PLAIN")
-        self.assertIn('<span class="break" aria-label="PLAIN">PLAIN</span>', _metric_table([plain], "judge"))
-        self.assertNotIn("<wbr>", _metric_table([plain], "judge"))
+        plain_html = _metric_table([plain], "judge")
+        self.assertIn(
+            '<span class="break" aria-hidden="true">PLAIN</span><span class="metric-full">PLAIN</span>',
+            plain_html,
+        )
+        self.assertNotIn("<wbr>", plain_html)
+        self.assertNotIn("aria-label", plain_html)
 
     def test_a_bad_inner_type_is_refused_before_scoring_and_a_missing_key_stays_allowed(self):
         from scorer.ab import _score
