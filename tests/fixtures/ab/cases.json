@@ -1,0 +1,30 @@
+[
+  {
+    "case_id": "T1",
+    "expected": {
+      "net": 1.0,
+      "ticket_result": "WIN"
+    }
+  },
+  {
+    "case_id": "T2",
+    "expected": {
+      "net": 1.0,
+      "ticket_result": "WIN"
+    }
+  },
+  {
+    "case_id": "T3",
+    "expected": {
+      "net": 1.0,
+      "ticket_result": "WIN"
+    }
+  },
+  {
+    "case_id": "T4",
+    "expected": {
+      "net": 1.0,
+      "ticket_result": "WIN"
+    }
+  }
+]

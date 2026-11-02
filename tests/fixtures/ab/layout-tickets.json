@@ -1,0 +1,28 @@
+[
+  {
+    "case_id": "EDGE1",
+    "final_a": "NEEDS_HUMAN",
+    "final_b": "NEEDS_HUMAN",
+    "codes_a": ["GRADE_CONTRADICTS_FACTS", "SKIPPED_SETTLE_TICKET", "GRADED_WITHOUT_LOOKUP", "INCOMPLETE_LEG_LIST", "FOLLOWED_TICKET_CLAIM", "OUTPUT_LIMIT_SPRAY"],
+    "codes_b": ["GRADE_CONTRADICTS_FACTS", "SKIPPED_SETTLE_TICKET", "GRADED_WITHOUT_LOOKUP", "INCOMPLETE_LEG_LIST", "FOLLOWED_TICKET_CLAIM", "OUTPUT_LIMIT_SPRAY"],
+    "changed": [],
+    "verdicts": [
+      {"rubric": "needs_human_correctness", "a": "UNPARSED", "b": "UNPARSED", "reason_a": "", "reason_b": "", "differs": false},
+      {"rubric": "rule_adherence", "a": "UNPARSED", "b": "UNPARSED", "reason_a": "", "reason_b": "", "differs": false},
+      {"rubric": "tool_call_accuracy", "a": "UNPARSED", "b": "UNPARSED", "reason_a": "", "reason_b": "", "differs": false}
+    ]
+  },
+  {
+    "case_id": "EDGE2",
+    "final_a": null,
+    "final_b": null,
+    "codes_a": ["GRADE_CONTRADICTS_FACTS", "SKIPPED_SETTLE_TICKET", "GRADED_WITHOUT_LOOKUP", "INCOMPLETE_LEG_LIST", "FOLLOWED_TICKET_CLAIM", "OUTPUT_LIMIT_SPRAY"],
+    "codes_b": ["GRADE_CONTRADICTS_FACTS", "SKIPPED_SETTLE_TICKET", "GRADED_WITHOUT_LOOKUP", "INCOMPLETE_LEG_LIST", "FOLLOWED_TICKET_CLAIM", "OUTPUT_LIMIT_SPRAY"],
+    "changed": [],
+    "verdicts": [
+      {"rubric": "needs_human_correctness", "a": "UNPARSED", "b": "UNPARSED", "reason_a": "", "reason_b": "", "differs": false},
+      {"rubric": "rule_adherence", "a": "UNPARSED", "b": "UNPARSED", "reason_a": "", "reason_b": "", "differs": false},
+      {"rubric": "tool_call_accuracy", "a": "UNPARSED", "b": "UNPARSED", "reason_a": "", "reason_b": "", "differs": false}
+    ]
+  }
+]

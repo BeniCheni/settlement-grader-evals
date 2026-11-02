@@ -896,6 +896,17 @@ class PageTests(unittest.TestCase):
             calibration = handle.read()
         _check_font_links(self, page, calibration)
 
+    def test_prose_measure_stops_at_80ch(self):
+        # The 1200 px rule is what keeps a reason from running the full width of a
+        # large window. Removing it survived the suite until this pin.
+        with open("ui/ledger.css", encoding="utf-8") as handle:
+            css = handle.read()
+        wide = brace_block(css, "@media (min-width: 1200px)")
+        self.assertIn("max-width:80ch", wide)
+        self.assertIn('.judge-rows td[data-label="Reason"] > span', wide)
+        self.assertIn(".judge-rows .change", wide)
+        self.assertIn(".judge-rows .reading", wide)
+
     def test_wide_rows_have_two_tiers_without_a_spare_final_track(self):
         # This pins the rule, not its rendered geometry: the browser measures that.
         with open("ui/ledger.css", encoding="utf-8") as handle:

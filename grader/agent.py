@@ -67,11 +67,12 @@ def _parse_final(text):
         return None
 
 
-def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, root_attrs=None, think=False):
+def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, root_attrs=None, think=False,
+                 system_prompt=SYSTEM_PROMPT):
     budgets = {**DEFAULT_BUDGETS, **(budgets or {})}
     options = {"temperature": 0, "num_ctx": 8192, "num_predict": 1024, **(options or {})}
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": "Grade this ticket:\n" + json.dumps(ticket, indent=1, ensure_ascii=False)},
     ]
     title = (root_attrs or {}).get("ticket.summary")

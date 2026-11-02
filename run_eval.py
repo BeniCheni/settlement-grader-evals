@@ -9,6 +9,7 @@ Writes, under traces/<run_id>/:
 
 Usage:
   python3 run_eval.py data/gold.json [--only A01,C03] [--show-expected] [--think] [--model qwen3:8b]
+                       [--prompt-file FILE]
 """
 import argparse
 import csv
@@ -49,6 +50,34 @@ def summary(c):
 
 class SetupReadError(Exception):
     """The Ollama version or the model digest could not be read."""
+
+
+class PromptFileError(Exception):
+    """The prompt file cannot be used. main exits with status 2 and writes nothing."""
+
+
+def _read_prompt_file(text):
+    """The file's bytes, decoded as UTF-8 and not stripped.
+
+    Imported here, and only when --prompt-file is given: scorer.judge reaches
+    scorer.checks, which imports this module.
+    """
+    from scorer.judge import JudgeError, relative_path
+
+    try:
+        path = relative_path(text, "prompt file")
+    except JudgeError as error:
+        raise PromptFileError(str(error)) from None
+    try:
+        with open(path, "r", encoding="utf-8", newline="") as handle:
+            raw = handle.read()
+    except OSError:
+        raise PromptFileError("prompt file is unreadable") from None
+    except UnicodeDecodeError:
+        raise PromptFileError("prompt file is unreadable") from None
+    if raw.strip() == "":
+        raise PromptFileError("prompt file is empty")
+    return raw
 
 
 _SETUP_TIMEOUT_S = 30
@@ -141,7 +170,16 @@ def main(argv=None, opener=None):
     ap.add_argument("--show-expected", action="store_true",
                     help="put the expected result on each root span (annotators see it)")
     ap.add_argument("--run-id", default=datetime.now().strftime("%Y%m%d-%H%M%S"))
+    ap.add_argument("--prompt-file", default=None,
+                    help="system prompt for every ticket, read once and not stripped")
     args = ap.parse_args(argv)
+    system_prompt = SYSTEM_PROMPT
+    if args.prompt_file is not None:
+        try:
+            system_prompt = _read_prompt_file(args.prompt_file)
+        except PromptFileError as error:
+            sys.stderr.write("%s\n" % error)
+            return 2
     if opener is None:
         opener = urllib.request.urlopen
     try:
@@ -166,7 +204,10 @@ def main(argv=None, opener=None):
         exp_result, exp_net = expected_of(c)
         root_attrs = {"case.id": c["case_id"], "case.category": c.get("category"), "ticket.summary": summary(c)}
         print(f"[{i}/{len(cases)}] {summary(c)} …", flush=True)
-        r = grade_ticket(ticket_from_case(c), tracer, model=args.model, think=args.think, root_attrs=root_attrs)
+        ticket_kwargs = {"model": args.model, "think": args.think, "root_attrs": root_attrs}
+        if args.prompt_file is not None:
+            ticket_kwargs["system_prompt"] = system_prompt
+        r = grade_ticket(ticket_from_case(c), tracer, **ticket_kwargs)
         match = outcome_match(r["final"], exp_result, exp_net,
                               (c.get("expected") or {}).get("accept_needs_human", False))
         if args.show_expected:
@@ -205,7 +246,7 @@ def main(argv=None, opener=None):
             "model_digest": model_digest,
             "think": args.think,
             "budgets": DEFAULT_BUDGETS,
-            "system_prompt": SYSTEM_PROMPT,
+            "system_prompt": system_prompt,
             "n_cases": len(rows),
             "outcome_matches": sum(r["outcome_match"] for r in rows),
         }, f, indent=1)
