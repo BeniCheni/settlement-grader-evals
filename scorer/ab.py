@@ -541,6 +541,27 @@ def _marked(kind, text):
     return "<!-- input:%s -->\n%s\n<!-- /input:%s -->" % (kind, text, kind)
 
 
+def _changed(ticket):
+    """Name differences without judging them. Code order and duplicate flags do not matter."""
+    changed = []
+    if ticket["final_a"] != ticket["final_b"]:
+        changed.append("final")
+    if set(ticket["codes_a"]) != set(ticket["codes_b"]):
+        changed.append("codes")
+    changed.extend(verdict["rubric"] for verdict in ticket["verdicts"] if verdict["a"] != verdict["b"])
+    return changed
+
+
+def _changed_line(ticket):
+    return "Changed: " + ", ".join(ticket["changed"]) if ticket["changed"] else ""
+
+
+def _changed_count(document):
+    return "%s of %s tickets changed a final, a code or a verdict." % (
+        sum(bool(ticket["changed"]) for ticket in document["tickets"]), len(document["tickets"]),
+    )
+
+
 def render_markdown(document):
     primary = document["primary"]
     lines = [
@@ -616,10 +637,12 @@ def render_markdown(document):
     lines.extend(["## Thresholds", ""])
     for row in document["threshold_rows"]:
         lines.append(threshold_text(row))
-    lines.extend(["", "%s thresholds held." % document["thresholds_held"], "", "## Tickets", ""])
+    lines.extend(["", "%s thresholds held." % document["thresholds_held"], "", "## Tickets", "", _changed_count(document), ""])
     for ticket in document["tickets"]:
         lines.append("### %s" % ticket["case_id"])
         lines.append("")
+        if ticket["changed"]:
+            lines.extend([_changed_line(ticket), ""])
         lines.append("A final %s. B final %s." % (
             "none" if ticket["final_a"] is None else ticket["final_a"],
             "none" if ticket["final_b"] is None else ticket["final_b"],
@@ -666,8 +689,11 @@ def _ticket_row(ticket):
     for verdict in ticket["verdicts"]:
         cells.append(_td("A " + verdict["rubric"], _span(verdict["a"], short=True), short=True))
         cells.append(_td("B " + verdict["rubric"], _span(verdict["b"], short=True), short=True))
+    cells.append(_td("Changed", _span(_changed_line(ticket)) if ticket["changed"] else ""))
     cells.append(_td("Reasons", "".join(reasons)))
-    return '<tr class="row" data-case="%s">%s</tr>' % (esc(ticket["case_id"]), "".join(cells))
+    return '<tr class="row%s" data-case="%s">%s</tr>' % (
+        " disagree" if ticket["changed"] else "", esc(ticket["case_id"]), "".join(cells),
+    )
 
 
 def render_ab_html(document, css):
@@ -797,6 +823,7 @@ def render_ab_html(document, css):
         "</section>",
         '<section class="sec panel">',
         "<h2>Tickets</h2>",
+        "<p>%s</p>" % esc(_changed_count(document)),
         '<table class="ledger ab-rows">',
         "<thead><tr>%s</tr></thead>" % "".join("<th>%s</th>" % esc(name) for name in document["ticket_columns"]),
         "<tbody>",
@@ -945,14 +972,16 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
                 "reason_b": right["reason"],
                 "differs": left["verdict"] != right["verdict"],
             })
-        tickets.append({
+        ticket = {
             "case_id": case_id,
             "final_a": _result(by_a[case_id]),
             "final_b": _result(by_b[case_id]),
             "codes_a": list(flags_a[case_id]),
             "codes_b": list(flags_b[case_id]),
             "verdicts": verdicts,
-        })
+        }
+        ticket["changed"] = _changed(ticket)
+        tickets.append(ticket)
     z_text = repr(z)
     return {
         "command": command,
@@ -971,7 +1000,7 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
         "ticket_columns": (
             ["Case", "A final", "B final", "A codes", "B codes"]
             + [side + " " + rubric for rubric in rubric_names for side in ("A", "B")]
-            + ["Reasons"]
+            + ["Changed", "Reasons"]
         ),
         "primary": {
             "code": primary["name"],

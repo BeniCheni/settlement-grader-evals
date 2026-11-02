@@ -386,6 +386,9 @@ body{
 .ab-held{margin:8px 0 0; color:inherit}
 .ab-fail{color:var(--blood)}
 .ab-primary{margin:0 0 8px; font-family:var(--f-shout); letter-spacing:.04em; text-transform:uppercase}
+.ledger.ab-rows tr.disagree{box-shadow:inset 3px 0 0 var(--blood)}
+.ledger.ab-rows tr.disagree td:first-child{box-shadow:none}
+.ledger.ab-rows td[data-label="Changed"]::before{content:none}
 @media (max-width: 760px){
   .ledger.ab-rows td:empty{display:none}
 }
@@ -419,6 +422,7 @@ body{
   .ledger.ab-rows td[data-label="Case"],
   .ledger.ab-rows td[data-label="A codes"],
   .ledger.ab-rows td[data-label="B codes"],
+  .ledger.ab-rows td[data-label="Changed"],
   .ledger.ab-rows td[data-label="Reasons"]{grid-column:1 / -1}
   .ledger.ab-rows td:empty{display:none}
   .ledger.ab-rows td[data-short] > span{white-space:nowrap}

@@ -1147,10 +1147,10 @@ class AbCommandTests(unittest.TestCase):
         self.assertIn('Adapter <span class="mono">http-fixture</span>. Interval method <span class="mono">newcombe-1998-method-10</span>, z <span class="mono">1.96</span>.', html)
         # Every column has a head: the th texts equal the first row's data-labels, in order.
         heads = re.findall(r"<th>(.*?)</th>", html.split('<table class="ledger ab-rows">', 1)[1].split("</thead>", 1)[0])
-        first_row = re.search(r'<tr class="row" data-case="T1">(.*?)</tr>', html, re.S).group(1)
+        first_row = re.search(r'<tr class="row(?: disagree)?" data-case="T1">(.*?)</tr>', html, re.S).group(1)
         labels = re.findall(r'<td data-label="([^"]+)"', first_row)
         self.assertEqual([unescape(head) for head in heads], [unescape(label) for label in labels])
-        self.assertEqual(len(heads), 12)
+        self.assertEqual(len(heads), 13)
         # Another z prints as given.
         other = self._thresholds_variant(lambda d: d["interval"].__setitem__("z", 2.5758))
         made = judge_cli(self._ab(verdicts, thresholds=other) + ["--md", self.work + "/z.md"])
@@ -1159,7 +1159,7 @@ class AbCommandTests(unittest.TestCase):
             self.assertIn("z 2.5758.", handle.read())
         # An empty reason prints as none, on the page and in the document.
         row = _ticket_row({
-            "case_id": "X", "final_a": None, "final_b": "WIN", "codes_a": [], "codes_b": [],
+            "case_id": "X", "changed": ["final", "r"], "final_a": None, "final_b": "WIN", "codes_a": [], "codes_b": [],
             "verdicts": [{"rubric": "r", "a": "UNPARSED", "b": "PASS", "reason_a": "", "reason_b": "ok", "differs": True}],
         })
         self.assertIn(">r A: none B: ok</span>", row)
@@ -1334,7 +1334,7 @@ class AbCommandTests(unittest.TestCase):
         self.assertIn(diff, markdown)
 
         # Every ticket: finals, codes, each verdict and the reasons where verdicts differ.
-        rows = re.findall(r'<tr class="row" data-case="([^"]+)">(.*?)</tr>', html, re.S)
+        rows = re.findall(r'<tr class="row(?: disagree)?" data-case="([^"]+)">(.*?)</tr>', html, re.S)
         self.assertEqual([case for case, _row in rows], case_ids)
         md_tickets = markdown.split("## Tickets\n", 1)[1]
         for case, row in rows:
@@ -1404,6 +1404,65 @@ class AbCommandTests(unittest.TestCase):
             self.assertEqual((by_name[name]["lower_points"], by_name[name]["upper_points"]), (want["lower_points"], want["upper_points"]), name)
             differing += (want["lower_points"], want["upper_points"]) != (narrow[name]["lower_points"], narrow[name]["upper_points"])
         self.assertGreater(differing, 10)
+
+    def test_changes_are_counted_and_named_from_finals_flags_and_replies(self):
+        from html import unescape
+        from scorer.ab import _changed, render_ab_html, render_markdown
+        verdicts = self._judged()
+        out = self.work + "/changed.json"
+        result = judge_cli(self._ab(verdicts) + ["--json", out])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with open(out, encoding="utf-8") as handle:
+            document = json.load(handle)
+        with open(ROOT + "/http.json", encoding="utf-8") as handle:
+            replies = json.load(handle)["replies"]
+        cases, rubrics, parsed, _metrics = self._expected_figures(replies)
+        expected = {}
+        for case in cases:
+            names = []
+            if FINALS[case][0] != FINALS[case][1]:
+                names.append("final")
+            if FLAGS[case]["alpha"] != FLAGS[case]["beta"]:
+                names.append("codes")
+            names += [r for r in rubrics if parsed[(ALPHA, case, r)][0] != parsed[(BETA, case, r)][0]]
+            expected[case] = names
+        page = render_ab_html(document, "")
+        markdown = render_markdown(document)
+        count = "%s of %s tickets changed a final, a code or a verdict." % (sum(bool(v) for v in expected.values()), len(cases))
+        self.assertIn(count, page)
+        self.assertIn(count, markdown)
+        for ticket in document["tickets"]:
+            case = ticket["case_id"]
+            self.assertEqual(ticket["changed"], expected[case])
+            line = "Changed: " + ", ".join(expected[case])
+            row = re.search(r'<tr class="row([^"]*)" data-case="%s">(.*?)</tr>' % case, page, re.S)
+            self.assertEqual("disagree" in row.group(1).split(), bool(expected[case]))
+            self.assertIn(line, unescape(re.sub(r"<[^>]+>", "", row.group(2))))
+            self.assertIn("### %s\n\n%s\n" % (case, line), markdown)
+        # Reasons are not a changed verdict; code order and duplicates are not new codes.
+        probe = {"final_a": "WIN", "final_b": "WIN", "codes_a": ["X", "Y", "X"], "codes_b": ["Y", "X"],
+                 "verdicts": [{"rubric": "r", "a": "UNPARSED", "b": "UNPARSED", "reason_a": "one", "reason_b": "two"}]}
+        self.assertEqual(_changed(probe), [])
+        # Both ends of the display's range, with no colour or words attached to an unchanged row.
+        for k in (0, len(cases)):
+            for ticket in document["tickets"]:
+                ticket["changed"] = ["final"] if k else []
+            page = render_ab_html(document, "")
+            markdown = render_markdown(document)
+            self.assertIn("%s of %s tickets changed a final, a code or a verdict." % (k, len(cases)), page)
+            self.assertIn("%s of %s tickets changed a final, a code or a verdict." % (k, len(cases)), markdown)
+            self.assertEqual(page.count('class="row disagree"'), k)
+            self.assertEqual(page.count("Changed: "), k)
+            self.assertEqual(markdown.count("Changed: "), k)
+
+    def test_the_changed_bar_covers_the_row_at_every_width(self):
+        with open("ui/ledger.css", encoding="utf-8") as handle:
+            css = handle.read()
+        self.assertIn(".ledger.ab-rows tr.disagree{box-shadow:inset 3px 0 0 var(--blood)}", css)
+        self.assertIn(".ledger.ab-rows tr.disagree td:first-child{box-shadow:none}", css)
+        self.assertIn('.ledger.ab-rows td[data-label="Changed"]::before{content:none}', css)
+        wide = brace_block(css, "@media (min-width: 761px){\n  .ledger.ab-rows")
+        self.assertIn('td[data-label="Changed"]', wide)
 
     def test_a_verdict_whose_rubric_hash_is_not_judge_metas_is_refused(self):
         verdicts_dir = self._judged()
