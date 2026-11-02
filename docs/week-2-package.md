@@ -197,8 +197,8 @@ Small pieces left by the reviews so far, each written to be read cold. The step-
   with an `AttributeError` from the checks, not status 2 and one message. Validate it where the cases load, roughly 10
   to 20 lines plus tests. Found in PR #10's review. `ab` has refused it since PR #18.
 - **Small items on the A/B page.** Each was found at PR #18's Pass 2.5 and none changes a figure. All three judge intervals
-  wrap across lines at every width from 761 px. Threshold rows print "1 tickets". No test pins the `<wbr>` in a metric
-  name, and Chrome's accessible name reads with spaces there. No test covers `ab`'s check that `log_grade` is an object. With
+  wrap across lines at 761, 1000 and 1100 px. At 1200, 1400 and 1920 px only `rule_adherence` does. Threshold rows
+  print "1 tickets". No test pins the `<wbr>` in a metric name, and Chrome's accessible name reads with spaces there. No test covers `ab`'s check that `log_grade` is an object. With
   web fonts blocked, `needs_human_correctness` measures wider than its label cell at 761 px. `ab` accepts a wrong type inside
   a case's `expected`. Re-running `ab` needs no model, so the fix regenerates `reports/ab.*`. Roughly 30 lines plus tests.
 - **Set 2's `rule_adherence` wording.** The owner ruled on Sat 31 Oct 2026 that a NEEDS_HUMAN leg counts as graded; the
