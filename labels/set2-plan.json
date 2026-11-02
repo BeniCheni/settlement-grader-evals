@@ -40,11 +40,6 @@
     "trace_id": "bc69365e83eb2dff512b0d01a2da16f5"
   },
   {
-    "case_id": "B01",
-    "run": "traces/ab-b",
-    "trace_id": "a2b5b436b9010bbf8e69b0f9f7eb34ed"
-  },
-  {
     "case_id": "B02",
     "run": "traces/ab-b",
     "trace_id": "40810374f5ab7b29f04a4c27d74d26a1"
@@ -158,5 +153,10 @@
     "case_id": "B06",
     "run": "traces/aa-1",
     "trace_id": "a9ca4f3abbbe0098d8fd5e916a41d1fd"
+  },
+  {
+    "case_id": "B10",
+    "run": "traces/aa-1",
+    "trace_id": "d8dc5df31e17376406838fa64725c9e2"
   }
 ]

@@ -45,11 +45,12 @@ any output:
    example above, and C09 and X01 share three of their four fixtures with the FAIL example's `SMOKE3`. No other case in
    `data/gold.json` shares a fixture with either example.
 3. Skip a record whose `tools`, `final` and `status`, as `scorer.traces.load_run` returns them, equal those of a set 1 row for
-   the same `case_id`.
-4. Skip a `traces/aa-1` record whose `tools`, `final` and `status` equal the `traces/ab-b` record's for the same `case_id`.
+   the same `case_id`. Compare them as values, not as text, so a `net` of 10 equals a `net` of 10.0.
+4. Skip a `traces/aa-1` record whose `tools`, `final` and `status` equal the `traces/ab-b` record's for the same `case_id`,
+   compared the same way.
 
-That gives 28 rows from `traces/ab-b` (all but A01, A13, C09 and X01; A13 is identical to its set 1 row) and 4 from
-`traces/aa-1` (A03, A06, B05 and B06).
+That gives 27 rows from `traces/ab-b` (all but A01, A13, B01, C09 and X01; A13 and B01 are the same output as a set 1 row) and 5
+from `traces/aa-1` (A03, A06, B05, B06 and B10).
 
 **What these rows can show.** They are outputs no label or tuning has touched, so the result can show how the judge agrees with
 the owner on outputs it was not tuned on. They are not new tickets: the owner and the rubric's tightening have both seen these
