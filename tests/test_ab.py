@@ -165,6 +165,56 @@ class PromptFileTests(unittest.TestCase):
             "budgets", "system_prompt", "n_cases", "outcome_matches",
         })
 
+    def test_prompt_file_success_through_the_script_entry_point(self):
+        # A new process has no pre-imported run_eval to hide an import cycle. runpy takes
+        # the actual __main__ path; both setup and chat have fake transports, no server.
+        script = os.path.join(self.work_rel, "run_eval.py")
+        shutil.copyfile("run_eval.py", script)
+        prompt = "Grade it.\nSecond line.\n"
+        path = os.path.join(self.work_rel, "script-prompt.txt")
+        with open(path, "w", encoding="utf-8", newline="") as handle:
+            handle.write(prompt)
+        probe = '''import json,runpy,sys
+from unittest.mock import patch
+script,cases,prompt,seen_path=sys.argv[1:]
+seen=[]
+class Body:
+ def __init__(self, data): self.data=data
+ def __enter__(self): return self
+ def __exit__(self,*args): return False
+ def read(self): return json.dumps(self.data).encode()
+def transport(request,timeout=None):
+ if request.full_url.endswith('/api/version'): return Body({'version':'fixture'})
+ if request.full_url.endswith('/api/tags'): return Body({'models':[{'name':'qwen3:8b','digest':'fixture'}]})
+ raise AssertionError('unexpected request')
+def chat(payload,timeout):
+ seen.append(payload)
+ return {'message':{'role':'assistant','content':'{"ticket_result":"WIN","net":0}'},'done_reason':'stop'}
+sys.argv=[script,cases,'--run-id','script-'+('flag' if prompt else 'default')]
+if prompt: sys.argv+=['--prompt-file',prompt]
+with patch('urllib.request.urlopen',transport),patch('grader.agent._chat',chat):
+ try: runpy.run_path(script,run_name='__main__')
+ except SystemExit as error:
+  if error.code: raise
+with open(seen_path,'w',encoding='utf-8') as handle: json.dump(seen,handle)
+'''
+        payloads = []
+        for flag in ("", path):
+            seen = os.path.join(self.work_rel, "script-seen.json")
+            result = subprocess.run([sys.executable, "-c", probe, script, self.cases, flag, seen], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            with open(seen, encoding="utf-8") as handle:
+                payload = json.load(handle)
+            self.assertEqual(len(payload), 1)
+            text = prompt if flag else SYSTEM_PROMPT
+            self.assertEqual(payload[0]["messages"][0], {"role": "system", "content": text})
+            run_id = "script-flag" if flag else "script-default"
+            with open(os.path.join(self.work_rel, "traces", run_id, "run_meta.json"), encoding="utf-8") as handle:
+                self.assertEqual(json.load(handle)["system_prompt"], text)
+            payload[0]["messages"][0]["content"] = None
+            payloads.append(payload)
+        self.assertEqual(payloads[0], payloads[1])
+
     def _refused(self, argument, fragment):
         seen = []
         opener_seen = []
@@ -924,22 +974,56 @@ class AbCommandTests(unittest.TestCase):
     def test_a_cases_file_of_the_wrong_shape_is_refused(self):
         # [1] raised TypeError and {"expected": 5} raised AttributeError, each a traceback with status 1.
         verdicts = self._judged()
-        for label, payload in (
-            ("a list of integers", [1]),
-            ("expected not an object", [{"case_id": case, "expected": 5} for case in ("T1", "T2", "T3", "T4")]),
-            ("an object, not a list", {}),
-            ("a case missing", [{"case_id": case, "expected": {"ticket_result": "WIN", "net": 1.0}} for case in ("T1", "T2", "T3")]),
+        for label, payload, message in (
+            ("a list of integers", [1], "unreadable cases file"),
+            ("expected not an object", [{"case_id": case, "expected": 5} for case in ("T1", "T2", "T3", "T4")], "expected is not an object"),
+            ("an object, not a list", {}, "case T1 is not in"),
+            ("a case missing", [{"case_id": case, "expected": {"ticket_result": "WIN", "net": 1.0}} for case in ("T1", "T2", "T3")], "case T4 is not in"),
         ):
-            path = self.work + "/cases-%s.json" % len(os.listdir(self.work))
+            path = self.work + "/input-%s.json" % len(os.listdir(self.work))
             with open(path, "w", encoding="utf-8") as handle:
                 json.dump(payload, handle)
             with self.subTest(label=label):
-                self._assert_ab_refused(self._ab(verdicts, cases=path), "cases")
+                self._assert_ab_refused(self._ab(verdicts, cases=path), message)
         binary = self.work + "/cases-binary.json"
         with open(binary, "wb") as handle:
             handle.write(b"\xff")
         self._assert_ab_refused(self._ab(verdicts, cases=binary), "unreadable cases file")
         self._assert_ab_refused(self._ab(verdicts, cases=self.work + "/no-cases.json"), "unreadable cases file")
+
+    def test_scoring_errors_do_not_blame_a_readable_cases_file(self):
+        from scorer.ab import _score
+        from scorer.judge import JudgeError
+        tree = self.work + "/bad-trace"
+        shutil.copytree(BETA, tree)
+        path = tree + "/settlement-traces.json"
+        with open(path, encoding="utf-8") as handle:
+            payload = json.load(handle)
+        for span in payload["resourceSpans"][0]["scopeSpans"][0]["spans"]:
+            if not span.get("parentSpanId"):
+                for attr in span["attributes"]:
+                    if attr["key"] == "input.ticket":
+                        attr["value"]["stringValue"] = json.dumps({"legs": [{"fixture": 5}]})
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+        with self.assertRaisesRegex(JudgeError, "could not score run"):
+            _score(tree, ROOT + "/cases.json")
+        # A check bug belongs to the scoring operation too, not to cases validation.
+        with mock.patch("scorer.ab.score_run", side_effect=KeyError("check bug")):
+            with self.assertRaisesRegex(JudgeError, "could not score run"):
+                _score(ALPHA, ROOT + "/cases.json")
+
+    def test_the_printed_z_round_trips_to_the_value_used(self):
+        verdicts = self._judged()
+        for z in (1.959964, 1.2345678901234567, 1e-5):
+            path = self._thresholds_variant(lambda d: d["interval"].__setitem__("z", z))
+            out = self.work + "/exact-z.json"
+            result = judge_cli(self._ab(verdicts, thresholds=path) + ["--json", out])
+            self.assertEqual(result.returncode, 0, result.stderr)
+            with open(out, encoding="utf-8") as handle:
+                document = json.load(handle)
+            self.assertEqual(float(document["setup"]["z"]), z)
+            self.assertIn("z %s." % repr(z), result.stdout)
 
     def test_threshold_rows_carry_their_limits_and_the_observed_value(self):
         # The spec: "Each row of thresholds.json with its numbers and whether it held." Before this,

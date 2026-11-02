@@ -12,7 +12,7 @@ import sys
 from decimal import Decimal, ROUND_HALF_UP
 
 from scorer.checks import CHECKS
-from scorer.compare import CompareError, _canon, _check_cases, _load_meta, _load_records
+from scorer.compare import CompareError, _canon, _load_meta, _load_records
 from scorer.judge import (
     PROVENANCE_HEADING,
     FakeAdapter,
@@ -33,7 +33,7 @@ from scorer.judge import (
 from scorer.report import FONT_LINKS, _css_text, esc
 from scorer.score import score_run
 from scorer.stats import canonical_json, paired_difference
-from scorer.calibrate import MissingCaseError
+from scorer.calibrate import MissingCaseError, load_cases
 
 
 _ALLOWED_META = frozenset(("run_id", "outcome_matches", "system_prompt"))
@@ -422,14 +422,21 @@ def _metric(name, source, case_ids, left, right, z, extra):
 
 
 def _score(name, cases):
-    """The checks' flags for one run. A cases file that cannot be read is a refusal, never a traceback."""
+    """Refuse bad cases before scoring; do not blame a check or trace error on that file."""
     try:
-        _check_cases(cases)
-        return score_run(name, cases_path=cases)
-    except (MissingCaseError, CompareError) as error:
-        raise JudgeError(str(error)) from None
+        loaded = load_cases(cases)
     except (OSError, ValueError, TypeError, AttributeError, KeyError):
         raise JudgeError("unreadable cases file %s" % cases) from None
+    for case_id, case in loaded.items():
+        for field in ("expected", "log_grade"):
+            if case.get(field) is not None and not isinstance(case[field], dict):
+                raise JudgeError("cases entry %s %s is not an object" % (case_id, field))
+    try:
+        return score_run(name, cases_path=cases)
+    except MissingCaseError as error:
+        raise JudgeError(str(error)) from None
+    except (OSError, ValueError, TypeError, AttributeError, KeyError):
+        raise JudgeError("could not score run %s with cases %s" % (name, cases)) from None
 
 
 def _verdict_map(rows, pair, recorded):
@@ -946,7 +953,7 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
             "codes_b": list(flags_b[case_id]),
             "verdicts": verdicts,
         })
-    z_text = "%g" % z
+    z_text = repr(z)
     return {
         "command": command,
         "statement": statement,
