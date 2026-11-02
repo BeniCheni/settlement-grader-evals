@@ -48,7 +48,7 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks and for the judge on set 1 (41 rows across the three rubrics), in sample | `data/calibration_readings_v1.json`, `labels/set1-readings.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
-| A/B | Specified, with the diagnosis, the one change and the thresholds written; not run | `docs/ab-spec.md`, `submissions/week-02/assignment-2/`, `variants/compare-first.txt` |
+| A/B | Run on Sun 1 Nov 2026. 6 of 8 thresholds held and the owner's verdict is no-ship: `GRADE_CONTRADICTS_FACTS` rose from 15 tickets to 16 and `tool_call_accuracy` fell by 3. In sample | `reports/ab.html`, `submissions/week-02/assignment-2/ab_report.md`, `docs/ab-spec.md`, `variants/compare-first.txt` |
 
 Reproduce the repository counts in the table, from the repository root:
 
@@ -112,6 +112,8 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    (`variants/compare-first.txt`). Step 8 runs before step 9,
    with `rule_adherence` flagged as the delta to trust least and the verdict resting on the plain-code check. He approved the
    thresholds in `submissions/week-02/assignment-2/ab_report.md`.
+8. **The A/B's verdict** (the owner's, Sun 1 Nov 2026). No-ship, with the reason and what would change it in
+   `submissions/week-02/assignment-2/ab_report.md`. The rulings on the page are under "Amendments" in `docs/ab-spec.md`.
 
 ## The order of work
 
@@ -193,9 +195,12 @@ Small pieces left by the reviews so far, each written to be read cold. The step-
   lines plus tests. Found in PR #15's review; `--md` and `--json` already behaved this way.
 - **A cases entry whose `expected` is not an object.** With `expected: 5`, `scorer.score` and `scorer.compare` exit 1
   with an `AttributeError` from the checks, not status 2 and one message. Validate it where the cases load, roughly 10
-  to 20 lines plus tests. Found in PR #10's review.
-- **The 80ch prose measure has no test.** Removing it survived the suite at PR #15's Pass 2.5. One line, in step 8's
-  page PR, which also touches the stylesheet.
+  to 20 lines plus tests. Found in PR #10's review. `ab` has refused it since PR #18.
+- **Small items on the A/B page.** Each was found at PR #18's Pass 2.5 and none changes a figure. All three judge intervals
+  wrap across lines at 761, 1000 and 1100 px. At 1200, 1400 and 1920 px only `rule_adherence` does. Threshold rows
+  print "1 tickets". No test pins the `<wbr>` in a metric name, and Chrome's accessible name reads with spaces there. No test covers `ab`'s check that `log_grade` is an object. With
+  web fonts blocked, `needs_human_correctness` measures wider than its label cell at 761 px. `ab` accepts a wrong type inside
+  a case's `expected`. Re-running `ab` needs no model, so the fix regenerates `reports/ab.*`. Roughly 30 lines plus tests.
 - **Set 2's `rule_adherence` wording.** The owner ruled on Sat 31 Oct 2026 that a NEEDS_HUMAN leg counts as graded; the
   rubric leaves that to be inferred. Say it in the words when step 9 tightens the rubric. It changes no label on set 1.
 - **Page test tidiness.** Unclosed files in the markup test; `_strip_inputs` can also remove computed text identical to

@@ -133,9 +133,10 @@ doesn't get to ship until it agrees with human labels.
 | `data/codes_v1.json` | The 12 failure codes, with the traces and the dollars each one misbooked |
 | `data/espn_frozen.json` | The match facts the eval runs against |
 | `traces/` | Run receipts; `v1` is the first full run |
-| `scorer/` | The eleven plain-code checks, the agreement statistics, the calibration report and the judge harness |
-| `rubrics/`, `labels/`, `judgments/`, `submissions/` | Three judge rubrics, my 120 labels on 40 rows and adjudication, the judge's verdicts and the course diagnosis |
-| `reports/` | The generated reports, including the calibration page and the judge page (open either in a browser) |
+| `scorer/` | The eleven plain-code checks, the agreement statistics, the calibration report, the judge harness and the A/B report |
+| `rubrics/`, `labels/`, `judgments/`, `submissions/` | Three judge rubrics, my 120 labels on 40 rows and adjudication, the judge's verdicts, the course diagnosis and the A/B report |
+| `variants/compare-first.txt` | The one prompt change the A/B tested |
+| `reports/` | The generated reports, including the calibration page, the judge page and the A/B page (open any of them in a browser) |
 | `docs/` | The specs, the Week 2 plan and its follow-ups, and the build and review prompts that made this |
 | `viewer/` | A trace viewer for annotating `settlement-traces.json` |
 | `share/settlement-taxonomy.html` | The failure taxonomy |
@@ -156,7 +157,14 @@ how closely the judge reproduces my labels on these rows, not how it would do on
 seen. Every row, the matrices and a written reading of every disagreement are on
 [one page](reports/judge-set1.html) (open it in a browser).
 
-**Next**: one change to the grader, A/B-tested against thresholds written first; tighten the weakest
+One change to the grader has been A/B-tested on those 32 tickets against thresholds written before it ran, and my verdict
+is no-ship. The change asked the grader to compare each leg with the facts before grading it. The primary check,
+`GRADE_CONTRADICTS_FACTS`, rose from 15 tickets to 16 where I required at least 5 fewer, and `tool_call_accuracy` fell by 3
+tickets against a limit of 1. No comparison was written beside any `settle_ticket` call, so this tested the wording and not
+the idea. Every figure is in sample and every interval includes zero: see [the page](reports/ab.html) (open it in a browser)
+and [the report](submissions/week-02/assignment-2/ab_report.md).
+
+**Next**: tighten the weakest
 judge's rubric and check it on fresh labels; red-team the slip-text injection and report both how
 many attacks it catches and how many honest tickets it wrongly blocks; verify the 28 remaining
 answer keys; and grow the set well past 32 so the confidence interval stops being the headline.
@@ -167,11 +175,13 @@ answer keys; and grow the set well past 32 so the confidence interval stops bein
 ollama pull qwen3:8b
 python3 run_eval.py data/gold.json                  # all 32 cases
 python3 run_eval.py data/gold.json --only A01,C03   # a few
+python3 run_eval.py data/gold.json --run-id my-b --prompt-file variants/compare-first.txt   # a prompt variant
 python3 check_gold.py data/candidates.json /tmp/review.md   # the independent code check
 python3 -m scorer.calibrate traces/v1               # agreement with the human labels, in sample
 python3 -m scorer.score traces/v1                   # which codes each ticket shows
 python3 -m scorer.report traces/v1 --out reports/calibration-v1.html --json reports/calibration-v1.json
 python3 -m scorer.judge report --labels labels/set1.jsonl --final labels/set1-final.jsonl --readings labels/set1-readings.json --provenance labels/set1-provenance.txt --verdicts judgments/set1-llama3.1-8b --md reports/judge-set1.md --json reports/judge-set1.json --html reports/judge-set1.html --rubric-provenance labels/set1-rubric-provenance.json   # the judge page; calls no model
+python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds submissions/week-02/assignment-2/thresholds.json --statement submissions/week-02/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html
 ```
 
 Tested on Python 3.9 and 3.14, standard library only. In the first run, a ticket took a median of about 18 seconds;

@@ -1,6 +1,7 @@
 # The A/B: the spec for step 8
 
-Written Sun 1 Nov 2026 by the PM seat. It is the spec of record for step 8's build prompt and for the PM's run. Precedence:
+Written Sun 1 Nov 2026 by the PM seat. It is the spec of record for step 8's build prompt, archived as
+`docs/cursor-prompts/ab-build.md`, and for the PM's run; what review and the run changed is under "Amendments". Precedence:
 the owner's rulings, then `docs/judge-spec.md` where this spec reuses its contracts, then this spec, then the build prompt,
 then `docs/week-2-package.md`. `AGENTS.md` outranks all of them on process, and nothing here loosens it. Where this spec says
 "contract" the name or behaviour is fixed; elsewhere the builder decides and says why in the PR.
@@ -183,6 +184,46 @@ from the repository root. The package copies it to `submissions/week-02/assignme
     row, and reading a threshold's sign backwards. A survivor is a finding.
 13. The suite and `compileall` on Python 3.9 and 3.14, standard library only, every commit green on its own, and the privacy sweep.
 14. The 80ch prose measure gains its missing test (`docs/week-2-package.md`, "Follow-ups"), since this PR touches the stylesheet.
+
+## Amendments
+
+What review and the run changed, so a cold reader does not take the contract above for the whole page.
+
+**At review (PR #18, Sun 1 Nov 2026).**
+
+- **One line of short facts (the owner's ruling).** At 761 px and wider a ticket's case, two finals and one cell per judge
+  sit on one line, each under its own label, and each judge's cell holds both runs' verdicts. Each run's verdict is one
+  unbreakable span, so a cell wraps only between A and B. A codes and B codes sit beneath, side by side, and the Changed
+  line and Reasons span the row. This replaces the two-tier sentence under "The page". The first build laid a ticket out in
+  two equal columns of seven or eight tiers.
+- **The changed mark (the owner's ruling).** A ticket whose final, codes (compared as sets) or any verdict differs carries
+  the judge page's blood bar for the row's whole height at every width, and a computed line naming what changed, in a fixed
+  order, that never judges it. The Tickets section opens with a computed count, the Markdown prints the same count and
+  line, and the JSON's ticket gains `changed`.
+- **What "final" means in that mark (the owner's ruling).** The ticket's result, as the A final and B final cells print it.
+  A changed `net` or leg grade alone earns no mark. `scorer.compare` counts any difference in the final answer, so its
+  count is wider, and it is read beside the page at the run.
+- **Metric rows (the owner's ruling).** One table for the judges and one for the codes, on the page and in the Markdown, one
+  row per metric and every column under a real head. A judge's count is named Non-PASS and its UNPARSED columns are
+  subsets of it. A judge row drops Only A and Only B, which repeat its transition columns. The tables stack at 760 px and
+  narrower with each value under its label.
+- **The statement twice (the owner's ruling).** The hand-written statement prints on the cover and beside the Set 1 numbers,
+  so every calibration number has it beside it.
+- **More refusals (Pass 1 and Pass 2).** A `z` that is not finite and above zero, a negative limit, a `min_net_fall` of
+  zero, a `kind` that is not a string and a cases file of the wrong shape each exit with status 2. A scoring error names the
+  scoring, not the cases file. There is no floor on `z`, because this spec gives no number: a tiny positive `z` collapses the
+  interval, the page prints `z`, and `thresholds.json` holds 1.96.
+- **Threshold rows and the printed `z` (Pass 1 and Pass 2).** Each row prints its limits and its observed value in words and
+  names the subtraction. `z` prints as used.
+- **A measured bar (added in the Pass 2 brief).** On one rehearsal at 1000 px, Tickets no more than 55% of its height before
+  these rulings and Metrics no more than 40%. At the merge they measured 48.6% and 34.1% on the PM's rehearsal replies.
+
+**At the run (PR #19, Sun 1 Nov 2026).**
+
+- **The statement.** Amended under step 3 of "The run": on none of the 29 tickets where variant B called `settle_ticket` did
+  it write the requested comparison beside that call, and it settled in the same message as a lookup on 8 tickets against
+  A's 3. So the figures show what this wording did, not whether a comparison made before the grade would help.
+- **The result.** 6 of 8 thresholds held. The verdict is the owner's, in `submissions/week-02/assignment-2/ab_report.md`.
 
 ## Out of scope
 

@@ -1,6 +1,6 @@
 # Diagnose-and-fix report
 
-The course's template, filled as far as it can be before the runs. Everything down to "A/B results" is written and merged before variant B runs, so
+The course's template. Everything down to "A/B results" was written and merged before variant B ran, so
 Git shows the thresholds came first. Drafted by Claude, in the PM seat, on 1 Nov 2026; the failure mode's reading is in `diagnosis.md`, and the one change, the order of
 the steps and the verdict are the owner's.
 
@@ -42,14 +42,14 @@ So the primary metric is the plain-code check, which re-grades legs from the fac
 
 ## A/B results
 
-Not run. Filled in from `reports/ab.md` after both runs are committed.
+Filled in from `reports/ab.md`, where every other metric has its own row. For a judge, A and B are the PASS share; for the code check, they are ticket counts. Delta is A minus B: for a judge a plus means more PASS in B, and for the code a plus means fewer tickets with the code in B. Every interval here includes zero, so none of these deltas has been shown to do anything.
 
 | Metric | A (baseline) | B (fix) | Delta (pp) | Paired 95% interval |
 |--------|--------------|---------|------------|---------------------|
-| policy adherence (`rule_adherence`) | | | | |
-| escalation correctness (`needs_human_correctness`) | | | | |
-| tool-call accuracy (`tool_call_accuracy`) | | | | |
-| `GRADE_CONTRADICTS_FACTS` (code check) | | | | |
+| policy adherence (`rule_adherence`) | 0.0% | 0.0% | +0.0 | -10.7 to 10.7 |
+| escalation correctness (`needs_human_correctness`) | 90.6% | 96.9% | +6.3 | -6.3 to 20.7 |
+| tool-call accuracy (`tool_call_accuracy`) | 43.8% | 34.4% | -9.4 | -25.2 to 7.3 |
+| `GRADE_CONTRADICTS_FACTS` (code check) | 15 | 16 | -3.1 | -17.1 to 11.2 |
 
 Sample size: n = 32 per variant.
 
@@ -74,8 +74,8 @@ rule asks for more: a net fall of 5 with 1 ticket made worse still includes zero
 
 **Which regression is acceptable, and why:** at most one ticket on `tool_call_accuracy`, and at most two on `needs_human_correctness`, in exchange for the primary fall. A wrong WIN can overstate a settlement, and an unnecessary escalation requires a manual look; failing to escalate when a fact is missing can also lead to a wrong settlement. The guard allows a small regression in exchange for a real fall in wrong grades. `needs_human_correctness` gets the wider margin because its kappa of 0.3191 on set 1, in sample, means a move of one or two tickets may be the judge as much as the grader. Anything larger stops the ship even if the primary falls.
 
-**Verdict:** not yet. The owner writes it after the results.
+**Verdict:** No-ship. The primary rose from 15 tickets to 16 where I required at least 5 fewer, and tool_call_accuracy fell by 3 tickets against a limit of 1.
 
-**Why:** not yet.
+**Why:** The variant never produced the thing it was meant to test: no comparison was written beside any settle_ticket call, and asking for it "in the same message" led the grader to settle in the same message as a lookup more often, 8 tickets against 3. Tickets answered with no tool call fell from 5 to 1, which is worth following up, but its interval includes zero and it does not outweigh two failed conditions.
 
-**What would change my mind:** not yet.
+**What would change my mind:** A new variant, with thresholds written before it runs, that makes the comparison a required argument of settle_ticket and drops the "same message" wording. The comparison must be present on every settled ticket, and every condition must hold on these tickets. That would still be in sample, so I would also want it to hold on tickets it has not seen before shipping.
