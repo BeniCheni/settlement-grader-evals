@@ -380,12 +380,12 @@ CODE_HEADS = ["Code", "A (tickets)", "B (tickets)", "Delta (tickets)", "Delta (p
               "Paired interval (points)", "Only A (tickets)", "Only B (tickets)"]
 
 
-def count_noun(number):
-    """This test's own plural. Exactly one is singular. Zero stays plural. The sign is ignored."""
-    text = str(number)
-    if text[:1] in "+-":
-        text = text[1:]
-    return "ticket" if text == "1" else "tickets"
+def expected_noun(count):
+    """ticket at 1 and at -1, tickets otherwise. Compared as an integer, not by stripping a sign."""
+    number = int(count)
+    if number == 1 or number == -1:
+        return "ticket"
+    return "tickets"
 
 
 def read_metric_tables(test, html, markdown):
@@ -1134,16 +1134,16 @@ class AbCommandTests(unittest.TestCase):
                 held = (count_a - count_b) >= row["min_net_fall"] and (not row["interval_excludes_zero"] or lower > 0)
                 fall = count_a - count_b
                 text = "%s. %s. Minimum fall (A minus B) %s %s, lower limit above 0 points required: %s. Observed A minus B %+d %s%s." % (
-                    row["code"], "Held" if held else "Not held", row["min_net_fall"], count_noun(row["min_net_fall"]),
-                    "yes" if row["interval_excludes_zero"] else "no", fall, count_noun(fall),
+                    row["code"], "Held" if held else "Not held", row["min_net_fall"], expected_noun(row["min_net_fall"]),
+                    "yes" if row["interval_excludes_zero"] else "no", fall, expected_noun(fall),
                     ", lower limit %s points" % own_limit(lower) if row["interval_excludes_zero"] else "",
                 )
             else:
                 held = (count_b - count_a) <= row["max_rise"]
                 rise = count_b - count_a
                 text = "%s. %s. Maximum rise (B minus A) %s %s. Observed B minus A %+d %s." % (
-                    row["code"], "Held" if held else "Not held", row["max_rise"], count_noun(row["max_rise"]),
-                    rise, count_noun(rise),
+                    row["code"], "Held" if held else "Not held", row["max_rise"], expected_noun(row["max_rise"]),
+                    rise, expected_noun(rise),
                 )
             expected.append((row["code"], text))
         for row in thresholds["judge"]:
@@ -1153,7 +1153,7 @@ class AbCommandTests(unittest.TestCase):
             fall = passes(ALPHA, row["rubric"]) - passes(BETA, row["rubric"])
             expected.append((row["rubric"], "%s. %s. Maximum PASS fall (A minus B) %s %s. Observed PASS A minus B %+d %s." % (
                 row["rubric"], "Held" if fall <= row["max_pass_fall"] else "Not held",
-                row["max_pass_fall"], count_noun(row["max_pass_fall"]), fall, count_noun(fall),
+                row["max_pass_fall"], expected_noun(row["max_pass_fall"]), fall, expected_noun(fall),
             )))
         self.assertEqual(len(expected), 9)
         held_values = {next(part.rstrip(".") for part in text.split(". ")
@@ -1332,7 +1332,7 @@ class AbCommandTests(unittest.TestCase):
         for want in (
             "A %s. B %s." % (primary["count_a"], primary["count_b"]),
             "Delta %s %s, %s points." % (
-                primary["delta_tickets"], count_noun(primary["delta_tickets"]), primary["delta_points"],
+                primary["delta_tickets"], expected_noun(primary["delta_tickets"]), primary["delta_points"],
             ),
             "Interval %s to %s points." % (primary["lower_points"], primary["upper_points"]),
         ):
@@ -1360,8 +1360,8 @@ class AbCommandTests(unittest.TestCase):
                     self.assertEqual(table[name], dict(zip(heads, values)))
         run_n = len(case_ids)
         for title in ("Judges", "Codes"):
-            self.assertIn("%s — %s %s per run." % (title, run_n, count_noun(run_n)), text(html))
-            self.assertIn("%s — %s %s per run." % (title, run_n, count_noun(run_n)), markdown)
+            self.assertIn("%s — %s %s per run." % (title, run_n, expected_noun(run_n)), text(html))
+            self.assertIn("%s — %s %s per run." % (title, run_n, expected_noun(run_n)), markdown)
 
         # Set 1, from the fixture report's cells and figures.
         with open(ROOT + "/set1.json", encoding="utf-8") as handle:
@@ -1502,7 +1502,7 @@ class AbCommandTests(unittest.TestCase):
         page = render_ab_html(document, "")
         markdown = render_markdown(document)
         count = "%s of %s %s changed a final, a code or a verdict." % (
-            sum(bool(v) for v in expected.values()), len(cases), count_noun(len(cases)),
+            sum(bool(v) for v in expected.values()), len(cases), expected_noun(len(cases)),
         )
         self.assertIn(count, page)
         self.assertIn(count, markdown)
@@ -1524,8 +1524,8 @@ class AbCommandTests(unittest.TestCase):
                 ticket["changed"] = ["final"] if k else []
             page = render_ab_html(document, "")
             markdown = render_markdown(document)
-            self.assertIn("%s of %s %s changed a final, a code or a verdict." % (k, len(cases), count_noun(len(cases))), page)
-            self.assertIn("%s of %s %s changed a final, a code or a verdict." % (k, len(cases), count_noun(len(cases))), markdown)
+            self.assertIn("%s of %s %s changed a final, a code or a verdict." % (k, len(cases), expected_noun(len(cases))), page)
+            self.assertIn("%s of %s %s changed a final, a code or a verdict." % (k, len(cases), expected_noun(len(cases))), markdown)
             self.assertEqual(page.count('class="row disagree"'), k)
             self.assertEqual(page.count("Changed: "), k)
             self.assertEqual(markdown.count("Changed: "), k)
@@ -1618,7 +1618,7 @@ class AbCommandTests(unittest.TestCase):
                            limit: limit_value, field: value}
                     text = threshold_text(row)
                     expected = "X. Held. %s %s %s. Observed %s %+d %s." % (
-                        label, limit_value, count_noun(limit_value), direction, value, count_noun(value),
+                        label, limit_value, expected_noun(limit_value), direction, value, expected_noun(value),
                     )
                     self.assertEqual(text, expected)
                     self.assertNotIn("Observed rise", text)
@@ -1663,25 +1663,53 @@ class AbCommandTests(unittest.TestCase):
 
     def test_a_count_of_one_is_singular_and_every_other_count_stays_plural(self):
         from scorer.ab import _changed_count, _json_document, _metric_caption, render_ab_html, render_markdown
-        for n in (0, 1, 2):
-            self.assertTrue(_metric_caption("judge", n).startswith("Judges — %s %s per run." % (n, count_noun(n))))
-            self.assertEqual(_metric_caption("code", n), "Codes — %s %s per run." % (n, count_noun(n)))
-        for n, changed in ((0, 0), (1, 0), (1, 1), (2, 1), (2, 2)):
-            document = self._count_document("+0", n, changed)
-            phrase = "%s of %s %s changed a final, a code or a verdict." % (changed, n, count_noun(n))
-            self.assertEqual(_changed_count(document), phrase)
-        for delta in ("+0", "+1", "-1", "+2", "-2"):
+        self.assertTrue(_metric_caption("judge", 0).startswith("Judges — 0 tickets per run."))
+        self.assertEqual(_metric_caption("code", 0), "Codes — 0 tickets per run.")
+        self.assertTrue(_metric_caption("judge", 1).startswith("Judges — 1 ticket per run."))
+        self.assertEqual(_metric_caption("code", 1), "Codes — 1 ticket per run.")
+        self.assertTrue(_metric_caption("judge", 2).startswith("Judges — 2 tickets per run."))
+        self.assertEqual(_metric_caption("code", 2), "Codes — 2 tickets per run.")
+        self.assertEqual(
+            _changed_count(self._count_document("+0", 0, 0)),
+            "0 of 0 tickets changed a final, a code or a verdict.",
+        )
+        self.assertEqual(
+            _changed_count(self._count_document("+0", 1, 0)),
+            "0 of 1 ticket changed a final, a code or a verdict.",
+        )
+        self.assertEqual(
+            _changed_count(self._count_document("+0", 1, 1)),
+            "1 of 1 ticket changed a final, a code or a verdict.",
+        )
+        self.assertEqual(
+            _changed_count(self._count_document("+0", 2, 1)),
+            "1 of 2 tickets changed a final, a code or a verdict.",
+        )
+        self.assertEqual(
+            _changed_count(self._count_document("+0", 2, 2)),
+            "2 of 2 tickets changed a final, a code or a verdict.",
+        )
+        for delta, sentence, html_sentence in (
+            ("+0", "Delta +0 tickets, +0.0 points.",
+             '<span class="mono">+0</span> tickets, <span class="mono">+0.0</span> points.'),
+            ("+1", "Delta +1 ticket, +0.0 points.",
+             '<span class="mono">+1</span> ticket, <span class="mono">+0.0</span> points.'),
+            ("-1", "Delta -1 ticket, +0.0 points.",
+             '<span class="mono">-1</span> ticket, <span class="mono">+0.0</span> points.'),
+            ("+2", "Delta +2 tickets, +0.0 points.",
+             '<span class="mono">+2</span> tickets, <span class="mono">+0.0</span> points.'),
+            ("-2", "Delta -2 tickets, +0.0 points.",
+             '<span class="mono">-2</span> tickets, <span class="mono">+0.0</span> points.'),
+        ):
             document = self._count_document(delta, 1, 1)
             markdown = render_markdown(document)
             html = render_ab_html(document, "")
-            noun = count_noun(delta)
-            sentence = "Delta %s %s, +0.0 points." % (delta, noun)
             self.assertIn(sentence, markdown)
-            self.assertIn('<span class="mono">%s</span> %s, <span class="mono">+0.0</span> points.' % (delta, noun), html)
-            self.assertIn("1 of 1 %s changed a final, a code or a verdict." % count_noun(1), markdown)
-            self.assertIn("1 of 1 %s changed a final, a code or a verdict." % count_noun(1), html)
-            self.assertIn("Judges — 1 %s per run." % count_noun(1), markdown)
-            self.assertIn("Codes — 1 %s per run." % count_noun(1), html)
+            self.assertIn(html_sentence, html)
+            self.assertIn("1 of 1 ticket changed a final, a code or a verdict.", markdown)
+            self.assertIn("1 of 1 ticket changed a final, a code or a verdict.", html)
+            self.assertIn("Judges — 1 ticket per run.", markdown)
+            self.assertIn("Codes — 1 ticket per run.", html)
             self.assertIn("(tickets)", html)
             self.assertNotIn("(ticket)", html)
             self.assertEqual(_json_document(document)["primary"]["delta_tickets"], delta)
