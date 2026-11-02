@@ -50,6 +50,7 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
 | A/B | Run on Sun 1 Nov 2026. 6 of 8 thresholds held and the owner's verdict is no-ship: `GRADE_CONTRADICTS_FACTS` rose from 15 tickets to 16 and `tool_call_accuracy` fell by 3. In sample | `reports/ab.html`, `packages/llm-judges/assignment-2/ab_report.md`, `docs/ab-spec.md`, `variants/compare-first.txt` |
 | The package | Built on Mon 2 Nov 2026, before step 9, with every course acceptance item mapped to a file | `packages/llm-judges/README.md` |
+| Step 9 | Specified, with its rubric and rows frozen; not labelled and not run | `docs/set2-spec.md`, `rubrics-set2/`, `labels/set2-plan.json` |
 
 Reproduce the repository counts in the table, from the repository root:
 
@@ -117,6 +118,8 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    `packages/llm-judges/assignment-2/ab_report.md`. The rulings on the page are under "Amendments" in `docs/ab-spec.md`.
 9. **The package's order and path** (the owner's, Mon 2 Nov 2026). The package comes before step 9, and it lives in
    `packages/llm-judges/`, not `submissions/week-02/`. The archived prompts keep the old path as delivered.
+10. **Step 9's one change** (the owner's, Mon 2 Nov 2026). `rule_adherence` gains a PASS boundary example beside its FAIL one,
+   with the NEEDS_HUMAN wording, in `rubrics-set2/`. The rows and the order of work are in `docs/set2-spec.md`.
 
 ## The order of work
 
@@ -140,7 +143,7 @@ Each step is its own pull request, unless it says otherwise. Who reviews it foll
 | 6. The judges run | The model chosen, the verdicts committed, the report, every disagreement read, adjudication into `labels/set1-final.jsonl`, `diagnosis.md` | PM runs; owner reads and adjudicates | Assignment 1's acceptance list holds |
 | 7. The judge page | The judge comparison page (Assignment 1's comparison view), specified in `docs/judge-page-spec.md`. The A/B page moved to step 8 (the owner's ruling, 31 Oct 2026), because its inputs are step 8's decisions | Builder | The spec's acceptance list and the UI rules in `AGENTS.md` hold |
 | 8. The A/B | One change to the grader as variant B; thresholds written first; both variants through the three judges and the code checks; `ab_report.md`; the A/B page (per-metric deltas), specified in `docs/ab-spec.md` and built after its inputs are fixed | Owner decides; PM runs and drafts; builder (the page) | Assignment 2's acceptance list holds, and the UI rules in `AGENTS.md` for the page |
-| 9. The weakest judge again | Its rubric tightened once, validated on fresh labels (`labels/set2.jsonl`, that one rubric, at least 30 rows) | Owner, PM | Its kappa on labels it was never tuned on is reported |
+| 9. The weakest judge again | Its rubric tightened once, validated on fresh labels (`labels/set2.jsonl`, that one rubric, at least 30 rows), specified in `docs/set2-spec.md` | Owner, PM | Its kappa on labels it was never tuned on is reported |
 | 10. The package | `packages/llm-judges/`, below | PM | Every course item maps to a file |
 
 The rubrics are frozen before labelling so the labels judge the rubric as written; the labels are frozen before the judge
@@ -203,8 +206,6 @@ Small pieces left by the reviews so far, each written to be read cold. The step-
   to 20 lines plus tests. Found in PR #10's review. `ab` has refused it since PR #18.
 - **The package can drift from the reports.** `results.md` and both `comparison.html` files are copies, and no test compares
   them with `reports/`. A test comparing the bytes, roughly 10 lines. Found when the package was built.
-- **Set 2's `rule_adherence` wording.** The owner ruled on Sat 31 Oct 2026 that a NEEDS_HUMAN leg counts as graded; the
-  rubric leaves that to be inferred. Say it in the words when step 9 tightens the rubric. It changes no label on set 1.
 - **Page test tidiness.** Unclosed files in the markup test; `_strip_inputs` can also remove computed text identical to
   an input, masking a banned word even when the input is as long as or longer than the word. A shorter input could split
   a banned word; set 1's inputs are not that short, but the test fixture has shorter ones. The discovery test needs the
