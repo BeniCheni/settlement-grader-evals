@@ -40,6 +40,9 @@ What a step-9 tightening could change, for the owner to choose one: an answer fo
 Y" before the verdict, or a PASS boundary example alongside the FAIL one. Either is a set-2 rubric change and is
 measured on set 2, never on these labels.
 
+The owner chose the PASS boundary example on Mon 2 Nov 2026. On set 2 the judge still answered FAIL on every row: see
+"Step 9" in `../README.md`.
+
 ## The other two judges
 
 **tool_call_accuracy** meets the bar on the final labels (92.5%, kappa 0.85; first pass 65.0%, kappa 0.28), but it is

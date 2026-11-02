@@ -102,6 +102,23 @@ come from set 1's diagnosis and the owner's ruling, and the selection rule compa
 must say what the owner had already seen of them and that no judge ran on them under this rubric before step 3. The statement also
 names the shared tickets, and says what a kappa on 32 rows cannot settle.
 
+## What happened, Mon 2 Nov 2026
+
+Added by the PM seat after the step finished. Nothing above was changed.
+
+- **The labels, PR #25.** The owner asked to answer question by question in the PM's session rather than type the sheet, so
+  the PM seat wrote the sheet from those answers and the owner confirmed a read-back. That is the owner's ruling on "The
+  owner fills the sheet" in step 2. They came to 15 PASS and 17 FAIL.
+- **The judge and the report, PR #26.** On Ollama 0.34.0 and the digest set 1 recorded, the judge answered FAIL on all 32
+  rows: agreement 53.1%, kappa 0, no false pass and 15 false fails. `labels/set2-readings.json` is empty because there is
+  no false pass to read. Pass 1 re-ran the judge and matched all 32 verdicts and reply texts.
+- **Two labels.** After the verdicts the PM seat told the owner that, on its reading, two PASS labels conflict with the
+  rubric. The owner left both as labelled, and the statement names them. No figure changed.
+- **The stop rule.** Both PRs stopped in review on `AGENTS.md`'s rule about claims that cannot be re-run, and the owner
+  answered directly. The PM's first brief had said those claims did not block landing, which a prompt may not do.
+
+The result and its statement are in `packages/llm-judges/README.md`, "Step 9".
+
 ## Out of scope
 
 The other two rubrics, a fourth judge, new tickets, any retuning after set 2, and re-running the A/B under the new rubric. No code

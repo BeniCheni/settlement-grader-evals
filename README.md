@@ -134,11 +134,11 @@ doesn't get to ship until it agrees with human labels.
 | `data/espn_frozen.json` | The match facts the eval runs against |
 | `traces/` | Run receipts; `v1` is the first full run |
 | `scorer/` | The eleven plain-code checks, the agreement statistics, the calibration report, the judge harness and the A/B report |
-| `rubrics/`, `labels/`, `judgments/` | Three judge rubrics, my 120 labels on 40 rows and adjudication, and the judge's verdicts |
+| `rubrics/`, `labels/`, `judgments/` | Three judge rubrics, my 120 labels on 40 rows and adjudication, and the judge's verdicts, with my 32 labels and its verdicts for step 9 |
 | `rubrics-set2/` | The tightened `rule_adherence`, for step 9's fresh labels |
-| `packages/llm-judges/` | The Week 2 course package: each assignment's deliverables, the A/B report, and a table mapping every acceptance item to its file |
+| `packages/llm-judges/` | The Week 2 course package: each assignment's deliverables, the A/B report, a table mapping every acceptance item to its file, and step 9's result |
 | `variants/compare-first.txt` | The one prompt change the A/B tested |
-| `reports/` | The generated reports, including the calibration page, the judge page and the A/B page (open any of them in a browser) |
+| `reports/` | The generated reports, including the calibration page, both judge pages and the A/B page (open any of them in a browser) |
 | `docs/` | The specs, the Week 2 plan and its follow-ups, and the build and review prompts that made this |
 | `viewer/` | A trace viewer for annotating `settlement-traces.json` |
 | `share/settlement-taxonomy.html` | The failure taxonomy |
@@ -166,8 +166,13 @@ tickets against a limit of 1. No comparison was written beside any `settle_ticke
 the idea. Every figure is in sample and every interval includes zero: see [the page](reports/ab.html) (open it in a browser)
 and [the report](packages/llm-judges/assignment-2/ab_report.md).
 
-**Next**: tighten the weakest
-judge's rubric and check it on fresh labels; red-team the slip-text injection and report both how
+I then tightened the weakest judge's rubric once and checked it on 32 labels made afterwards, and it did not work.
+`llama3.1:8b` answered FAIL on all 32 rows of `rule_adherence`, for 53.1% agreement and a kappa of 0, so it misses the bar
+and its FAILs still say nothing. These are fresh outputs on tickets I had already labelled, so the result is held out only
+in a narrow sense: see [the page](reports/judge-set2.html) (open it in a browser) and
+[the statement](packages/llm-judges/README.md#step-9-the-weakest-judge-again).
+
+**Next**: red-team the slip-text injection and report both how
 many attacks it catches and how many honest tickets it wrongly blocks; verify the 28 remaining
 answer keys; and grow the set well past 32 so the confidence interval stops being the headline.
 
@@ -183,6 +188,7 @@ python3 -m scorer.calibrate traces/v1               # agreement with the human l
 python3 -m scorer.score traces/v1                   # which codes each ticket shows
 python3 -m scorer.report traces/v1 --out reports/calibration-v1.html --json reports/calibration-v1.json
 python3 -m scorer.judge report --labels labels/set1.jsonl --final labels/set1-final.jsonl --readings labels/set1-readings.json --provenance labels/set1-provenance.txt --verdicts judgments/set1-llama3.1-8b --md reports/judge-set1.md --json reports/judge-set1.json --html reports/judge-set1.html --rubric-provenance labels/set1-rubric-provenance.json   # the judge page; calls no model
+python3 -m scorer.judge report --labels labels/set2.jsonl --readings labels/set2-readings.json --provenance labels/set2-provenance.txt --rubric-provenance labels/set2-rubric-provenance.json --verdicts judgments/set2-llama3.1-8b --md reports/judge-set2.md --json reports/judge-set2.json --html reports/judge-set2.html
 python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts judgments/ab --thresholds packages/llm-judges/assignment-2/thresholds.json --statement packages/llm-judges/assignment-2/statement.txt --set1 reports/judge-set1.json --cases data/gold.json --html reports/ab.html
 ```
 
