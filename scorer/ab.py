@@ -226,6 +226,10 @@ def _thresholds(path, codes, rubrics):
         raise JudgeError("interval.z is not a number")
     # NaN, zero and a negative z each collapse or mirror the interval, so any positive fall
     # would satisfy interval_excludes_zero. JSON accepts NaN; the method needs z above zero.
+    try:
+        z = float(z)
+    except OverflowError:
+        raise JudgeError("interval.z is not a finite number above zero") from None
     if not math.isfinite(z) or z <= 0:
         raise JudgeError("interval.z is not a finite number above zero")
     if not isinstance(data["code"], list) or not isinstance(data["judge"], list):
@@ -236,7 +240,7 @@ def _thresholds(path, codes, rubrics):
         if not isinstance(raw, dict):
             raise JudgeError("thresholds.json row has the wrong keys")
         kind = raw.get("kind")
-        if kind not in _CODE_KEYS or set(raw) != _CODE_KEYS[kind]:
+        if not isinstance(kind, str) or kind not in _CODE_KEYS or set(raw) != _CODE_KEYS[kind]:
             raise JudgeError("thresholds.json row has the wrong keys")
         code = raw.get("code")
         if not isinstance(code, str) or code not in codes:
@@ -262,7 +266,7 @@ def _thresholds(path, codes, rubrics):
         if not isinstance(raw, dict):
             raise JudgeError("thresholds.json row has the wrong keys")
         kind = raw.get("kind")
-        if kind not in _JUDGE_KEYS or set(raw) != _JUDGE_KEYS[kind]:
+        if not isinstance(kind, str) or kind not in _JUDGE_KEYS or set(raw) != _JUDGE_KEYS[kind]:
             raise JudgeError("thresholds.json row has the wrong keys")
         rubric = raw.get("rubric")
         if not isinstance(rubric, str) or rubric not in rubrics:
@@ -511,24 +515,26 @@ def ab_command(paths):
 def threshold_text(row):
     """One threshold row: its rule and whether it held, its limits, and the observed value."""
     if row["report_only"]:
-        head = "%s report_only. Not counted" % row["name"]
+        head = "%s. Report only. Not counted" % row["name"]
     else:
-        head = "%s %s. %s" % (row["name"], row["kind"], "Held" if row["held"] else "Not held")
+        head = "%s. %s" % (row["name"], "Held" if row["held"] else "Not held")
     limits = []
-    for key in ("min_net_fall", "max_rise", "max_pass_fall"):
+    for key, label in (("min_net_fall", "Minimum fall (A minus B)"),
+                       ("max_rise", "Maximum rise (B minus A)"),
+                       ("max_pass_fall", "Maximum PASS fall (A minus B)")):
         if key in row:
-            limits.append("%s %s" % (key, row[key]))
+            limits.append("%s %s tickets" % (label, row[key]))
     if "interval_excludes_zero" in row:
-        limits.append("interval_excludes_zero %s" % ("yes" if row["interval_excludes_zero"] else "no"))
+        limits.append("lower limit above 0 points required: %s" % ("yes" if row["interval_excludes_zero"] else "no"))
     observed = []
     if "fall" in row:
-        observed.append("fall %+d tickets" % row["fall"])
+        observed.append("A minus B %+d tickets" % row["fall"])
         if row.get("interval_excludes_zero"):
             observed.append("lower limit %s points" % row["lower_points"])
     if "rise" in row:
-        observed.append("rise %+d tickets" % row["rise"])
+        observed.append("B minus A %+d tickets" % row["rise"])
     if "pass_fall" in row:
-        observed.append("PASS fall %+d tickets" % row["pass_fall"])
+        observed.append("PASS A minus B %+d tickets" % row["pass_fall"])
     parts = [head]
     if limits:
         parts.append(", ".join(limits))

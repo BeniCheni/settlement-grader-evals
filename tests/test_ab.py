@@ -1066,6 +1066,15 @@ class AbCommandTests(unittest.TestCase):
             self.assertEqual(float(document["setup"]["z"]), z)
             self.assertIn("z %s." % repr(z), result.stdout)
 
+    def test_threshold_shapes_and_an_overflowing_integer_z_are_refusals(self):
+        verdicts = self._judged()
+        for group in ("code", "judge"):
+            for value in ([], {}, ["must_fall"]):
+                path = self._thresholds_variant(lambda d: d[group][0].__setitem__("kind", value))
+                self._assert_ab_refused(self._ab(verdicts, thresholds=path), "row has the wrong keys")
+        path = self._thresholds_variant(lambda d: d["interval"].__setitem__("z", 10 ** 400))
+        self._assert_ab_refused(self._ab(verdicts, thresholds=path), "interval.z is not a finite number above zero")
+
     def test_threshold_rows_carry_their_limits_and_the_observed_value(self):
         # The spec: "Each row of thresholds.json with its numbers and whether it held." Before this,
         # the Markdown row was "NAME kind. Held." and the page row had the limit but not the value
@@ -1102,27 +1111,28 @@ class AbCommandTests(unittest.TestCase):
             if row["kind"] == "must_fall":
                 _fall, lower, _upper = own_paired(both, only_a, only_b, neither)
                 held = (count_a - count_b) >= row["min_net_fall"] and (not row["interval_excludes_zero"] or lower > 0)
-                text = "%s must_fall. %s. min_net_fall %s, interval_excludes_zero %s. Observed fall %+d tickets%s." % (
+                text = "%s. %s. Minimum fall (A minus B) %s tickets, lower limit above 0 points required: %s. Observed A minus B %+d tickets%s." % (
                     row["code"], "Held" if held else "Not held", row["min_net_fall"],
                     "yes" if row["interval_excludes_zero"] else "no", count_a - count_b,
                     ", lower limit %s points" % own_limit(lower) if row["interval_excludes_zero"] else "",
                 )
             else:
                 held = (count_b - count_a) <= row["max_rise"]
-                text = "%s max_rise. %s. max_rise %s. Observed rise %+d tickets." % (
+                text = "%s. %s. Maximum rise (B minus A) %s tickets. Observed B minus A %+d tickets." % (
                     row["code"], "Held" if held else "Not held", row["max_rise"], count_b - count_a,
                 )
             expected.append((row["code"], text))
         for row in thresholds["judge"]:
             if row["kind"] == "report_only":
-                expected.append((row["rubric"], "%s report_only. Not counted." % row["rubric"]))
+                expected.append((row["rubric"], "%s. Report only. Not counted." % row["rubric"]))
                 continue
             fall = passes(ALPHA, row["rubric"]) - passes(BETA, row["rubric"])
-            expected.append((row["rubric"], "%s max_pass_fall. %s. max_pass_fall %s. Observed PASS fall %+d tickets." % (
+            expected.append((row["rubric"], "%s. %s. Maximum PASS fall (A minus B) %s tickets. Observed PASS A minus B %+d tickets." % (
                 row["rubric"], "Held" if fall <= row["max_pass_fall"] else "Not held", row["max_pass_fall"], fall,
             )))
         self.assertEqual(len(expected), 9)
-        held_values = {text.split(". ")[1].rstrip(".") for _name, text in expected}
+        held_values = {next(part.rstrip(".") for part in text.split(". ")
+                            if part.rstrip(".") in ("Held", "Not held", "Not counted")) for _name, text in expected}
         self.assertEqual(held_values, {"Held", "Not held", "Not counted"})
         section = markdown.split("## Thresholds\n", 1)[1].split("\n## Tickets", 1)[0]
         for name, text in expected:
@@ -1504,7 +1514,14 @@ class AbCommandTests(unittest.TestCase):
             css = handle.read()
         wide = brace_block(css, "@media (min-width: 761px){\n  .ledger.ab-rows")
         row = brace_block(wide, ".ledger.ab-rows tr{")
-        self.assertIn("display:grid", row)
+        for declaration in ("display:grid", "border:2px solid var(--rule)", "margin:0 0 10px", "padding:6px 10px"):
+            self.assertIn(declaration, row)
+        cell = brace_block(wide, ".ledger.ab-rows td:nth-child(n){")
+        for declaration in ("display:grid", "align-content:start", "grid-template-columns:minmax(0, 1fr)", "gap:2px",
+                            "border:0", "padding:4px 2px", "width:auto", "min-width:0"):
+            self.assertIn(declaration, cell)
+        self.assertIn('.ledger.ab-rows,.ledger.ab-rows tbody{display:block; width:100%}', wide)
+        self.assertIn('.ledger.ab-rows thead{display:none}', wide)
         self.assertIn("grid-template-columns:minmax(36px, .55fr) minmax(94px, 1fr) minmax(94px, 1fr) repeat(3, minmax(126px, 1.35fr))", row)
         for rule in (
             '.ledger.ab-rows td[data-label="A codes"]{grid-column:1 / 4}',
@@ -1514,7 +1531,8 @@ class AbCommandTests(unittest.TestCase):
         ):
             self.assertIn(rule, wide)
         label = brace_block(wide, ".ledger.ab-rows td::before{")
-        for declaration in ('content:attr(data-label)', 'font-size:12px', 'letter-spacing:0'):
+        for declaration in ('content:attr(data-label)', 'font-size:12px', 'letter-spacing:0',
+                            'font-family:var(--f-shout)', 'text-transform:uppercase', 'color:var(--ink-2)'):
             self.assertIn(declaration, label)
         self.assertIn(".ab-verdicts{display:flex; flex-wrap:wrap; gap:0 6px; min-width:0}", css)
         self.assertIn(".ab-verdicts > span{white-space:nowrap}", css)
@@ -1553,6 +1571,18 @@ class AbCommandTests(unittest.TestCase):
             self.assertEqual(row.count('data-short="1">B UNPARSED</span>'), 3)
             self.assertEqual(len(ticket["codes_a"]), 6)
             self.assertEqual(len(ticket["codes_b"]), 6)
+
+    def test_threshold_observations_name_the_subtraction_in_both_directions(self):
+        from scorer.ab import threshold_text
+        for value in (-3, 0, 3):
+            for field, kind, limit, direction in (("rise", "max_rise", "max_rise", "B minus A"),
+                                                   ("pass_fall", "max_pass_fall", "max_pass_fall", "PASS A minus B")):
+                text = threshold_text({"name": "X", "report_only": False, "kind": kind, "held": True,
+                                       limit: 1, field: value})
+                self.assertIn("Observed %s %+d tickets." % (direction, value), text)
+                self.assertNotIn("Observed rise", text)
+                self.assertNotIn("Observed PASS fall", text)
+                self.assertNotIn(limit, text)
 
     def test_a_verdict_whose_rubric_hash_is_not_judge_metas_is_refused(self):
         verdicts_dir = self._judged()
