@@ -1791,11 +1791,20 @@ class AbCommandTests(unittest.TestCase):
         bad_net[0]["expected"]["net"] = True
         bad_text = json.loads(json.dumps(base))
         bad_text[3]["expected"]["net"] = "1"
+        bad_nan = json.loads(json.dumps(base))
+        bad_nan[0]["expected"]["net"] = float("nan")
+        bad_inf = json.loads(json.dumps(base))
+        bad_inf[1]["expected"]["net"] = float("inf")
+        bad_neginf = json.loads(json.dumps(base))
+        bad_neginf[2]["expected"]["net"] = float("-inf")
         for label, rows, message in (
             ("ticket_result boolean", bad_result, "cases entry T3 expected.ticket_result is not a string"),
             ("ticket_result number", bad_number, "cases entry T2 expected.ticket_result is not a string"),
             ("net boolean", bad_net, "cases entry T1 expected.net is not a number"),
             ("net string", bad_text, "cases entry T4 expected.net is not a number"),
+            ("net nan", bad_nan, "cases entry T1 expected.net is not a number"),
+            ("net infinity", bad_inf, "cases entry T2 expected.net is not a number"),
+            ("net negative infinity", bad_neginf, "cases entry T3 expected.net is not a number"),
         ):
             with self.subTest(label=label):
                 self._assert_ab_refused(self._ab(verdicts, cases=cases(rows)), message)

@@ -449,7 +449,8 @@ def _score(name, cases):
         if "ticket_result" in expected and not isinstance(expected["ticket_result"], str):
             raise JudgeError("cases entry %s expected.ticket_result is not a string" % case_id)
         net = expected.get("net")
-        if "net" in expected and net is not None and (isinstance(net, bool) or not isinstance(net, (int, float))):
+        # NaN and Infinity are floats, so isinstance does not refuse them.
+        if "net" in expected and net is not None and (isinstance(net, bool) or not isinstance(net, (int, float)) or not math.isfinite(net)):
             raise JudgeError("cases entry %s expected.net is not a number" % case_id)
     try:
         return score_run(name, cases_path=cases)
