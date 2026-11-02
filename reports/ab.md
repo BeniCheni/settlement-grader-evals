@@ -5,7 +5,7 @@ Command: `python3 -m scorer.judge ab --a traces/ab-a --b traces/ab-b --verdicts 
 ## GRADE_CONTRADICTS_FACTS
 
 A 15. B 16.
-Delta -1 tickets, -3.1 points.
+Delta -1 ticket, -3.1 points.
 Interval -17.1 to 11.2 points.
 Delta is A minus B: a plus means fewer tickets with the code in B. The interval is the paired interval on that delta, z 1.96.
 
@@ -96,13 +96,13 @@ Codes — 32 tickets per run.
 
 ## Thresholds
 
-GRADE_CONTRADICTS_FACTS. Not held. Minimum fall (A minus B) 5 tickets, lower limit above 0 points required: yes. Observed A minus B -1 tickets, lower limit -17.1 points.
+GRADE_CONTRADICTS_FACTS. Not held. Minimum fall (A minus B) 5 tickets, lower limit above 0 points required: yes. Observed A minus B -1 ticket, lower limit -17.1 points.
 WIN_LOSS_FLIP. Held. Maximum rise (B minus A) 0 tickets. Observed B minus A -4 tickets.
-FOLLOWED_TICKET_CLAIM. Held. Maximum rise (B minus A) 0 tickets. Observed B minus A -1 tickets.
-NO_FINAL_ANSWER. Held. Maximum rise (B minus A) 1 tickets. Observed B minus A +0 tickets.
-SKIPPED_SETTLE_TICKET. Held. Maximum rise (B minus A) 1 tickets. Observed B minus A -3 tickets.
-GRADED_WITHOUT_LOOKUP. Held. Maximum rise (B minus A) 1 tickets. Observed B minus A -4 tickets.
-tool_call_accuracy. Not held. Maximum PASS fall (A minus B) 1 tickets. Observed PASS A minus B +3 tickets.
+FOLLOWED_TICKET_CLAIM. Held. Maximum rise (B minus A) 0 tickets. Observed B minus A -1 ticket.
+NO_FINAL_ANSWER. Held. Maximum rise (B minus A) 1 ticket. Observed B minus A +0 tickets.
+SKIPPED_SETTLE_TICKET. Held. Maximum rise (B minus A) 1 ticket. Observed B minus A -3 tickets.
+GRADED_WITHOUT_LOOKUP. Held. Maximum rise (B minus A) 1 ticket. Observed B minus A -4 tickets.
+tool_call_accuracy. Not held. Maximum PASS fall (A minus B) 1 ticket. Observed PASS A minus B +3 tickets.
 needs_human_correctness. Held. Maximum PASS fall (A minus B) 2 tickets. Observed PASS A minus B -2 tickets.
 rule_adherence. Report only. Not counted.
 

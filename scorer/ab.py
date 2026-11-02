@@ -65,6 +65,14 @@ def signed_tickets(numerator):
     return "%+d" % numerator
 
 
+def ticket_noun(number):
+    """Plural for every count except exactly one. Zero stays plural. The sign is ignored."""
+    text = str(number)
+    if text[:1] in "+-":
+        text = text[1:]
+    return "ticket" if text == "1" else "tickets"
+
+
 def format_limit(proportion):
     """One decimal point from the float. -0.0 prints as 0.0. A half rounds away from zero."""
     if proportion == 0.0:
@@ -435,6 +443,15 @@ def _score(name, cases):
         for field in ("expected", "log_grade"):
             if case.get(field) is not None and not isinstance(case[field], dict):
                 raise JudgeError("cases entry %s %s is not an object" % (case_id, field))
+        expected = case.get("expected")
+        if not isinstance(expected, dict):
+            continue
+        if "ticket_result" in expected and not isinstance(expected["ticket_result"], str):
+            raise JudgeError("cases entry %s expected.ticket_result is not a string" % case_id)
+        net = expected.get("net")
+        # NaN and Infinity are floats, so isinstance does not refuse them.
+        if "net" in expected and net is not None and (isinstance(net, bool) or not isinstance(net, (int, float)) or not math.isfinite(net)):
+            raise JudgeError("cases entry %s expected.net is not a number" % case_id)
     try:
         return score_run(name, cases_path=cases)
     except MissingCaseError as error:
@@ -523,18 +540,18 @@ def threshold_text(row):
                        ("max_rise", "Maximum rise (B minus A)"),
                        ("max_pass_fall", "Maximum PASS fall (A minus B)")):
         if key in row:
-            limits.append("%s %s tickets" % (label, row[key]))
+            limits.append("%s %s %s" % (label, row[key], ticket_noun(row[key])))
     if "interval_excludes_zero" in row:
         limits.append("lower limit above 0 points required: %s" % ("yes" if row["interval_excludes_zero"] else "no"))
     observed = []
     if "fall" in row:
-        observed.append("A minus B %+d tickets" % row["fall"])
+        observed.append("A minus B %+d %s" % (row["fall"], ticket_noun(row["fall"])))
         if row.get("interval_excludes_zero"):
             observed.append("lower limit %s points" % row["lower_points"])
     if "rise" in row:
-        observed.append("B minus A %+d tickets" % row["rise"])
+        observed.append("B minus A %+d %s" % (row["rise"], ticket_noun(row["rise"])))
     if "pass_fall" in row:
-        observed.append("PASS A minus B %+d tickets" % row["pass_fall"])
+        observed.append("PASS A minus B %+d %s" % (row["pass_fall"], ticket_noun(row["pass_fall"])))
     parts = [head]
     if limits:
         parts.append(", ".join(limits))
@@ -563,8 +580,9 @@ def _changed_line(ticket):
 
 
 def _changed_count(document):
-    return "%s of %s tickets changed a final, a code or a verdict." % (
-        sum(bool(ticket["changed"]) for ticket in document["tickets"]), len(document["tickets"]),
+    n = len(document["tickets"])
+    return "%s of %s %s changed a final, a code or a verdict." % (
+        sum(bool(ticket["changed"]) for ticket in document["tickets"]), n, ticket_noun(n),
     )
 
 
@@ -592,7 +610,7 @@ def _metric_value(row, key):
 
 
 def _metric_caption(source, n):
-    text = "%s — %s tickets per run." % ("Judges" if source == "judge" else "Codes", n)
+    text = "%s — %s %s per run." % ("Judges" if source == "judge" else "Codes", n, ticket_noun(n))
     if source == "judge":
         text += " Non-PASS includes UNPARSED; the UNPARSED columns are subsets. FAIL in the transition columns includes UNPARSED."
     return text
@@ -609,8 +627,15 @@ def _metric_table(rows, source):
         for label, key in columns:
             value = esc(_metric_value(row, key))
             if key == "name":
-                value = value.replace("_", "_<wbr>")
-            cells.append(_td(label, '<span class="%s">%s</span>' % ("break" if key == "name" else "mono", value)))
+                # The visible name is aria-hidden, so a break does not split the cell's accessible name.
+                shown = value.replace("_", "_<wbr>")
+                inner = (
+                    '<span class="break" aria-hidden="true">%s</span>'
+                    '<span class="metric-full">%s</span>'
+                ) % (shown, value)
+            else:
+                inner = '<span class="mono">%s</span>' % value
+            cells.append(_td(label, inner))
         lines.append('<tr data-metric="%s" data-source="%s">%s</tr>' % (esc(row["name"]), source, "".join(cells)))
     lines.extend(["</tbody>", "</table>"])
     return "\n".join(lines)
@@ -626,7 +651,9 @@ def render_markdown(document):
         "## %s" % primary["code"],
         "",
         "A %s. B %s." % (primary["count_a"], primary["count_b"]),
-        "Delta %s tickets, %s points." % (primary["delta_tickets"], primary["delta_points"]),
+        "Delta %s %s, %s points." % (
+            primary["delta_tickets"], ticket_noun(primary["delta_tickets"]), primary["delta_points"],
+        ),
         "Interval %s to %s points." % (primary["lower_points"], primary["upper_points"]),
         document["cover_note"],
         "",
@@ -781,8 +808,8 @@ def render_ab_html(document, css):
         "<p>A <span class=\"mono\">%s</span>. B <span class=\"mono\">%s</span>.</p>" % (
             esc(primary["count_a"]), esc(primary["count_b"]),
         ),
-        "<p>Delta <span class=\"mono\">%s</span> tickets, <span class=\"mono\">%s</span> points.</p>" % (
-            esc(primary["delta_tickets"]), esc(primary["delta_points"]),
+        "<p>Delta <span class=\"mono\">%s</span> %s, <span class=\"mono\">%s</span> points.</p>" % (
+            esc(primary["delta_tickets"]), ticket_noun(primary["delta_tickets"]), esc(primary["delta_points"]),
         ),
         "<p>Interval <span class=\"mono\">%s</span> to <span class=\"mono\">%s</span> points.</p>" % (
             esc(primary["lower_points"]), esc(primary["upper_points"]),
@@ -1024,7 +1051,7 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
     return {
         "command": command,
         "statement": statement,
-        # Computed sentences that say what a sign means; without them "+1 tickets" on a
+        # Computed sentences that say what a sign means; without them "+1 ticket" on a
         # code row reads as a rise, and the same plus on a judge row means more PASS.
         "sign_note": (
             "Delta is A minus B. For a code, a plus means fewer tickets with the code in B. "
