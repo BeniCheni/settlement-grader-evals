@@ -1557,6 +1557,7 @@ class AbCommandTests(unittest.TestCase):
         self.assertIn('.ledger.ab-metrics,.ledger.ab-metrics tbody{display:block; width:100%}', phone)
         self.assertIn('.ledger.ab-metrics td:first-child{width:auto}', phone)
         self.assertIn('.ledger.ab-metrics td{padding:6px 0}', phone)
+        self.assertIn('.ab-metrics caption{display:block; width:100%}', phone)
 
     def test_layout_edge_rows_keep_each_runs_verdict_unbreakable(self):
         from scorer.ab import _ticket_row
