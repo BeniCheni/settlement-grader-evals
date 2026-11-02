@@ -1723,6 +1723,26 @@ class AbCommandTests(unittest.TestCase):
         self.assertNotIn("<wbr>", plain_html)
         self.assertNotIn("aria-label", plain_html)
 
+    def test_a_hostile_metric_name_is_escaped_everywhere_it_prints(self):
+        from scorer.ab import _metric_table
+        raw = 'x"<y&_z'
+        escaped = "x&quot;&lt;y&amp;_z"
+        shown = "x&quot;&lt;y&amp;_<wbr>z"
+        row = {
+            "name": raw, "n": 1,
+            "pass_share_a": "0.0%", "pass_share_b": "0.0%",
+            "count_a": 0, "count_b": 0, "delta_tickets": "+0", "delta_points": "+0.0",
+            "lower_points": "0.0", "upper_points": "0.0",
+            "fail_to_pass": 0, "pass_to_fail": 0, "unparsed_a": 0, "unparsed_b": 0,
+        }
+        html = _metric_table([row], "judge")
+        self.assertIn('data-metric="%s"' % escaped, html)
+        self.assertIn('<span class="break" aria-hidden="true">%s</span>' % shown, html)
+        self.assertIn('<span class="metric-full">%s</span>' % escaped, html)
+        self.assertEqual(html.count(escaped), 2)
+        self.assertEqual(html.count(shown), 1)
+        self.assertNotIn(raw, html)
+
     def test_a_bad_inner_type_is_refused_before_scoring_and_a_missing_key_stays_allowed(self):
         from scorer.ab import _score
         from scorer.judge import JudgeError
