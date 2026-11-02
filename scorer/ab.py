@@ -683,12 +683,16 @@ def _ticket_row(ticket):
         _td("Case", _span(ticket["case_id"], short=True), short=True),
         _td("A final", _span("none" if ticket["final_a"] is None else ticket["final_a"], short=True), short=True),
         _td("B final", _span("none" if ticket["final_b"] is None else ticket["final_b"], short=True), short=True),
-        _td("A codes", _span(", ".join(ticket["codes_a"]) or "none")),
-        _td("B codes", _span(", ".join(ticket["codes_b"]) or "none")),
     ]
     for verdict in ticket["verdicts"]:
-        cells.append(_td("A " + verdict["rubric"], _span(verdict["a"], short=True), short=True))
-        cells.append(_td("B " + verdict["rubric"], _span(verdict["b"], short=True), short=True))
+        pair = '<span class="ab-verdicts">%s %s</span>' % (
+            _span("A " + verdict["a"], short=True), _span("B " + verdict["b"], short=True),
+        )
+        cells.append(_td(verdict["rubric"], pair, short=True))
+    cells.extend([
+        _td("A codes", _span(", ".join(ticket["codes_a"]) or "none")),
+        _td("B codes", _span(", ".join(ticket["codes_b"]) or "none")),
+    ])
     cells.append(_td("Changed", _span(_changed_line(ticket)) if ticket["changed"] else ""))
     cells.append(_td("Reasons", "".join(reasons)))
     return '<tr class="row%s" data-case="%s">%s</tr>' % (
@@ -786,7 +790,7 @@ def render_ab_html(document, css):
         '<p class="set1-statement" data-input="statement">%s</p>' % esc(document["statement"]),
         "</div>",
     ])
-    lines.extend(["</section>", '<section class="sec panel">', "<h2>Metrics</h2>", "<p>%s</p>" % esc(document["sign_note"])])
+    lines.extend(["</section>", '<section class="sec panel">', "<h2>Metrics</h2>", '<p class="ab-sign">%s</p>' % esc(document["sign_note"])])
     for row in document["metrics"]:
         lines.append('<article class="metric" data-metric="%s" data-source="%s">' % (esc(row["name"]), esc(row["source"])))
         lines.append("<h3>%s</h3>" % esc(row["name"]))
@@ -998,9 +1002,8 @@ def _assemble(pair, verdict_rows, meta, paths, statement, set1, command):
             "The interval is the paired interval on that delta, z %s." % z_text
         ),
         "ticket_columns": (
-            ["Case", "A final", "B final", "A codes", "B codes"]
-            + [side + " " + rubric for rubric in rubric_names for side in ("A", "B")]
-            + ["Changed", "Reasons"]
+            ["Case", "A final", "B final"] + rubric_names
+            + ["A codes", "B codes", "Changed", "Reasons"]
         ),
         "primary": {
             "code": primary["name"],

@@ -1150,7 +1150,7 @@ class AbCommandTests(unittest.TestCase):
         first_row = re.search(r'<tr class="row(?: disagree)?" data-case="T1">(.*?)</tr>', html, re.S).group(1)
         labels = re.findall(r'<td data-label="([^"]+)"', first_row)
         self.assertEqual([unescape(head) for head in heads], [unescape(label) for label in labels])
-        self.assertEqual(len(heads), 13)
+        self.assertEqual(len(heads), 10)
         # Another z prints as given.
         other = self._thresholds_variant(lambda d: d["interval"].__setitem__("z", 2.5758))
         made = judge_cli(self._ab(verdicts, thresholds=other) + ["--md", self.work + "/z.md"])
@@ -1352,7 +1352,7 @@ class AbCommandTests(unittest.TestCase):
                 reasons = ""
                 for rubric in rubrics:
                     (verdict_a, reason_a), (verdict_b, reason_b) = verdicts[(ALPHA, case, rubric)], verdicts[(BETA, case, rubric)]
-                    self.assertEqual((cells["A " + rubric], cells["B " + rubric]), (verdict_a, verdict_b))
+                    self.assertEqual(cells[rubric], "A %s B %s" % (verdict_a, verdict_b))
                     self.assertIn("%s A %s. B %s.\n" % (rubric, verdict_a, verdict_b), md_block)
                     marked = "<!-- input:reason -->\nA: %s\nB: %s\n<!-- /input:reason -->" % (reason_a or "none", reason_b or "none")
                     if verdict_a != verdict_b:
@@ -1463,6 +1463,44 @@ class AbCommandTests(unittest.TestCase):
         self.assertIn('.ledger.ab-rows td[data-label="Changed"]::before{content:none}', css)
         wide = brace_block(css, "@media (min-width: 761px){\n  .ledger.ab-rows")
         self.assertIn('td[data-label="Changed"]', wide)
+
+    def test_the_ticket_fact_tier_and_prose_rules_are_pinned(self):
+        with open("ui/ledger.css", encoding="utf-8") as handle:
+            css = handle.read()
+        wide = brace_block(css, "@media (min-width: 761px){\n  .ledger.ab-rows")
+        row = brace_block(wide, ".ledger.ab-rows tr{")
+        self.assertIn("display:grid", row)
+        self.assertIn("grid-template-columns:minmax(36px, .55fr) minmax(94px, 1fr) minmax(94px, 1fr) repeat(3, minmax(126px, 1.35fr))", row)
+        for rule in (
+            '.ledger.ab-rows td[data-label="A codes"]{grid-column:1 / 4}',
+            '.ledger.ab-rows td[data-label="B codes"]{grid-column:4 / -1}',
+            '.ledger.ab-rows td[data-label="Reasons"]{grid-column:1 / -1}',
+            '.ledger.ab-rows td[data-short] .mono{font-size:13px}',
+        ):
+            self.assertIn(rule, wide)
+        label = brace_block(wide, ".ledger.ab-rows td::before{")
+        for declaration in ('content:attr(data-label)', 'font-size:12px', 'letter-spacing:0'):
+            self.assertIn(declaration, label)
+        self.assertIn(".ab-verdicts{display:flex; flex-wrap:wrap; gap:0 6px; min-width:0}", css)
+        self.assertIn(".ab-verdicts > span{white-space:nowrap}", css)
+        prose = brace_block(css, "@media (min-width: 1200px)")
+        for selector in ('.ab-page .cover-statement', '.ab-page .set1-statement', '.ab-page .ab-sign', '.ab-rows td[data-label="Reasons"] > span'):
+            self.assertIn(selector, prose)
+        self.assertIn("max-width:80ch", prose)
+
+    def test_layout_edge_rows_keep_each_runs_verdict_unbreakable(self):
+        from scorer.ab import _ticket_row
+        with open(ROOT + "/layout-tickets.json", encoding="utf-8") as handle:
+            tickets = json.load(handle)
+        self.assertEqual([t["final_a"] for t in tickets], ["NEEDS_HUMAN", None])
+        for ticket in tickets:
+            row = _ticket_row(ticket)
+            self.assertEqual(len(re.findall(r'<td[^>]+data-short=', row)), 6)
+            self.assertEqual(row.count('class="ab-verdicts"'), 3)
+            self.assertEqual(row.count('data-short="1">A UNPARSED</span>'), 3)
+            self.assertEqual(row.count('data-short="1">B UNPARSED</span>'), 3)
+            self.assertEqual(len(ticket["codes_a"]), 6)
+            self.assertEqual(len(ticket["codes_b"]), 6)
 
     def test_a_verdict_whose_rubric_hash_is_not_judge_metas_is_refused(self):
         verdicts_dir = self._judged()
