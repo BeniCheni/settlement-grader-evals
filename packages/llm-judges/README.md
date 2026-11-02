@@ -1,8 +1,8 @@
 # The LLM judges package
 
 The deliverables for Week 2 of the AI Agent Evals course: three judges validated against human labels, and one A/B
-decision. Assembled by the PM seat (Claude) on Mon 2 Nov 2026, and each file below says who wrote it or which command
-made it. The acceptance items are the course's words, from its repository at commit
+decision. Assembled by the PM seat (Claude) on Mon 2 Nov 2026. The notes below say who wrote each file or that a command generated
+it. The acceptance items are the course's words, from its repository at commit
 `51a59c2f6c9bb55806da764aaf585884b811a747`, under `week-02-designing-reliable-llm-judges/assignments/`.
 
 **In sample, every figure in this package.** Assignment 1's final labels were adjudicated after the owner saw the judge's
@@ -20,7 +20,7 @@ been done.
 | Agreement matrix per judge (4 cells with counts) | `assignment-1/results.md`, `assignment-1/comparison.html` | Generated. The page also shows every row's verdict beside the labels |
 | Cohen's kappa reported per judge; kappa ≥ 0.6 before the judge is "trusted" | `assignment-1/results.md`, `assignment-1/comparison.html` | Generated. Each judge's agreement and kappa sit beside the owner's statement on the page, and the repo's bar also asks for 85% agreement |
 | Written note on the worst judge: its dominant failure mode (false-pass or false-fail?) | `assignment-1/diagnosis.md` | Written by the PM seat from the owner's labels and rulings |
-| At least one label changed on adjudication, with the reason written down | `assignment-1/diagnosis.md`, `assignment-1/comparison.html` | The owner's reasons |
+| At least one label changed on adjudication, with the reason written down (if none did, say so and why — perfect first-pass labels are suspicious) | `assignment-1/diagnosis.md`, `assignment-1/comparison.html` | The owner's reasons |
 
 The course's comparison view is `assignment-1/comparison.html`, in place of a Braintrust screenshot; the course says the
 rubrics and the validation are graded, not the platform. Its optional stretch, a bias-corrected pass rate, has not been
@@ -34,12 +34,13 @@ done.
 | Exactly one change between A and B (documented as a diff) | `assignment-2/ab_report.md`, `variants/compare-first.txt`, `assignment-2/comparison.html` | The page computes the diff from the two runs' recorded prompts |
 | Same input set (n ≥ 30) run through both variants, full suite, no eyeballing | `traces/ab-a`, `traces/ab-b`, `judgments/ab/` | 32 tickets per variant, 192 verdicts |
 | Per-metric deltas reported for all 3 judges (pp deltas, not a blended average) | `assignment-2/ab_report.md`, `assignment-2/comparison.html` | Generated page. The report's table is filled from `reports/ab.md` |
-| Ship/no-ship decision with numeric thresholds stated upfront | `assignment-2/ab_report.md`, `assignment-2/thresholds.json` | The verdict is the owner's. The thresholds merged before variant B ran; see below |
+| Ship/no-ship decision with numeric thresholds stated upfront (e.g. "ship if tool-call accuracy ≥ 90% and no metric regresses > 3pp") | `assignment-2/ab_report.md`, `assignment-2/thresholds.json` | The PM seat drafted the thresholds and the owner approved them. The verdict is the owner's. The thresholds merged before variant B ran; see below |
 | "What would change my mind" section filled in | `assignment-2/ab_report.md` | The owner's words |
 | Any judge below the trust bar is flagged, with which delta you trust least | `assignment-2/ab_report.md`, `assignment-2/comparison.html` | Flagged before the results |
 
 The course's comparison, "or the equivalent from your tool of choice", is `assignment-2/comparison.html`.
-`assignment-2/statement.txt` and `assignment-2/thresholds.json` are inputs to the report.
+`assignment-2/statement.txt` and `assignment-2/thresholds.json` are inputs to the report, and the statement's first line names
+who wrote it.
 
 ## How to check it
 

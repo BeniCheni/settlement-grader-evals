@@ -230,7 +230,7 @@ What review and the run changed, so a cold reader does not take the contract abo
 - **Page fixes (PR #21).** Each paired interval stays on one line from 761 px. A count of one prints "ticket". A metric's
   name is two spans: the visible one wraps at underscores and is `aria-hidden`, and a visually hidden one carries the whole
   name. `ab` also refuses a wrong type or a non-finite `net` inside a case's `expected`. With web fonts blocked, the longest
-  ticket label wraps inside its cell at 761 px, which review accepted. No figure moved.
+  ticket label wraps inside its cell at 761 px and nothing overflows; review measured that and changed nothing. No figure moved.
 - **The path (the owner's ruling).** `submissions/week-02/` moved to `packages/llm-judges/`, so the commands above name the
   new path and the report and page print it. The bytes of the thresholds and the statement did not change, `git log --follow`
   shows their history, and the archived prompts keep the old path as delivered.
