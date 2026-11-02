@@ -1,0 +1,133 @@
+{
+  "command": "python3 -m scorer.judge report --labels labels/set2.jsonl --readings labels/set2-readings.json --provenance labels/set2-provenance.txt --verdicts judgments/set2-llama3.1-8b",
+  "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+  "labels_sha256": "632591559c73d0a28dc7799767fe2e258b2e662e87d3f00305cb9e830cf08eb4",
+  "model": "llama3.1:8b",
+  "provenance": "Written by Claude, in the PM seat, on 2 Nov 2026, from the repository record, the review of PR #25 and the owner's word in the PM's session. The owner made every label.\n\nThe result. Under the tightened rubric, llama3.1:8b answered FAIL on all 32 rows. It gave the same answer on all 40 rows of set 1 under the old rubric, and on the 27 of these rows that come from traces/ab-b. The wording of its replies changed on 26 of those 27 rows, and no verdict changed. The tightening did not do what it was for. This rubric was tightened once, so it is not edited and measured again on these rows.\n\nWhat the figures mean. A judge with one answer has a kappa of 0 on any labels that hold both answers, and its agreement is just the share of rows the owner labelled FAIL. No false pass was read because the judge passed no row, which says nothing about whether it catches failures. On set 1, the same model gave both answers on the other two rubrics.\n\nHeld out, condition by condition. (1) The rubric merged before the labels: PR #24 (5adbfbf) before PR #25 (6dee73d). (2) It has not changed since: the report's \"same text as when the labels were made\", from each verdict's hash. (3) Its boundary examples come from outside the set: rule 2 of docs/set2-spec.md excludes A01, C09 and X01, which share a bet with them. (4) It was not otherwise tuned on this set. Git cannot show that. The two changes came from set 1's diagnosis and the owner's rulings, without either option being tried on any row, and the rule that chose the rows compared records for equality. The PM seat attests that no judge ran on these rows under this rubric before this report's run, and the review of PR #25 lists that as not verified. So these figures are held out only in a narrow sense: the outputs had no label and no tuning before this set, and the fourth condition rests on that attestation. They are not a test on new tickets.\n\nWhat the rows are, and what the owner had already seen. The 32 rows are 27 tickets, because A03, A06, B05, B06 and B10 appear twice, once from traces/ab-b and once from traces/aa-1. The owner labelled every one of those 27 tickets in set 1, and the rubric's tightening came from that set. 27 rows come from a variant the owner ruled no-ship. The owner had seen parts of some of these outputs while reading the A/B, and its page shows the old rubric's FAIL beside each ticket. No verdict under this rubric existed when the owner labelled.\n\nHow the labels were made. At the owner's request, the PM seat showed each case file word for word in its session and asked one question, with no comment on any row. The PM seat wrote the clicks into the sheet, and the owner changed none on a read-back. The owner confirmed the collection directly to the reviewer of PR #25.\n\nFirst-pass labels only. Every figure uses the labels as imported, and they have not been adjudicated. In set 1's adjudication 17 of 120 labels changed, so this set should be expected to hold some first-pass errors too. No correction can raise the kappa here, because the judge has one answer.\n\nTwo labels the PM seat questions. After the verdicts, the PM seat told the owner that, on its own reading, two PASS labels conflict with the rubric: traces/ab-b C13 and traces/aa-1 B05. In each, the final answer and the settle_ticket call give leg 1 different grades, and a leg that won on the score the grader fetched was graded L. The owner left both as labelled. The PM seat has not audited the other rows. Changing both would give 19 of 32, in sample, with a kappa still of 0.\n\nWhat a kappa on 32 rows cannot settle. The rows are few and five tickets repeat, so they are not independent, and 27 of them come from one variant. This run varied the rubric only, so it cannot say whether the cause lies in the rubric, the model or the pairing of the two, and it does not show that no rubric could work with this model. It says nothing about how this rubric would do on outputs of another kind. The report's \"worst judge\" line names the only rubric in the set and means nothing here.\n",
+  "provenance_heading": "Written by hand, not computed",
+  "rubrics": [
+    {
+      "final": null,
+      "first_pass": {
+        "JF_HF": 17,
+        "JF_HP": 15,
+        "JP_HF": 0,
+        "JP_HP": 0,
+        "agreement": 0.5312,
+        "bar": "85% and 0.6",
+        "false_fails": [
+          {
+            "case_id": "B05",
+            "reading": false,
+            "reason": "Leg 1, selection \"Newcastle\" should lose on a 4-1 score.",
+            "run": "traces/aa-1"
+          },
+          {
+            "case_id": "A02",
+            "reading": false,
+            "reason": "Leg 1, no match found on or around that date, but rule for postponed fixture is not applied.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "A05",
+            "reading": false,
+            "reason": "Leg 1, selection \"USA\" in a Money Line 3-Way market, but the grader did not use the regulation score of 3-0.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "A08",
+            "reading": false,
+            "reason": "Leg 1, score_regulation_90 is 1-2, but the grader's evidence says Slovenia won.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "B04",
+            "reading": false,
+            "reason": "Leg 3, market \"Total goals\", selection \"Over\" 3.5, tool result score_final \"3-1\"",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "B05",
+            "reading": false,
+            "reason": "Leg 1 graded W, but rule says Money Line 3-Way / Match Result settles on score_regulation_90, which is 4-1, not a win.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "B06",
+            "reading": false,
+            "reason": "Leg 2, market \"Total Goals\", selection \"Over\"",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "B08",
+            "reading": false,
+            "reason": "Leg 1, USA won 1-0 in 90 minutes vs. lookup_rule UNKNOWN_TOPIC for 90 Minutes (to win, regulation)",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "B13",
+            "reading": false,
+            "reason": "Leg 1, graded L, but tool results show match final at 1-1, and Money Line 3-Way rule requires exact score, not just who won.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "C02",
+            "reading": false,
+            "reason": "Leg 3, the grader graded Germany 0-0 Greece as W, but the rule is Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time, and the regulation score is 0-0.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "C03",
+            "reading": false,
+            "reason": "Leg 1, Spain Spread -1.5, tool result score_home_away \"1-2\"",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "C04",
+            "reading": false,
+            "reason": "Leg 1, Over 3.5 Total Goals selection, graded L, but the tool results show the match final at 2-2, which is exactly 4 goals, so the Over 3.5 Total Goals selection should have pushed.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "C06",
+            "reading": false,
+            "reason": "Leg 1, selection Brighton, score_regulation_90 is 0-2, but the rule says the Draw selection wins on a regulation draw.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "C12",
+            "reading": false,
+            "reason": "Leg 1, score_regulation_90 is 2-1, but the grader's evidence says Manchester City won.",
+            "run": "traces/ab-b"
+          },
+          {
+            "case_id": "C13",
+            "reading": false,
+            "reason": "Leg 1, the score 0-0 means Bayern Munich lost, but the rule for Money Line 3-Way / Match Result settles on the 90-minute regulation result including stoppage time, and the tool results show the match as final at 0-0.",
+            "run": "traces/ab-b"
+          }
+        ],
+        "false_passes": [],
+        "false_passes_read": "0 of 0",
+        "fn": 0,
+        "fp": 15,
+        "kappa": 0.0,
+        "kappa_at_least_0_6": false,
+        "meets_bar": false,
+        "tn": 0,
+        "tp": 17
+      },
+      "rubric": "rule_adherence",
+      "rubric_sha256": "b2cc42386fe468d14a448fada247ff2bc4356a46ead46cf2d18fc0feeeaf83f2",
+      "text": "same text as when the labels were made",
+      "unparsed": 0
+    }
+  ],
+  "worst": {
+    "labels": "first-pass",
+    "rubrics": [
+      "rule_adherence"
+    ],
+    "tied": false
+  }
+}

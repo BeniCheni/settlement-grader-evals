@@ -1,0 +1,16 @@
+{
+  "adapter": "ollama",
+  "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+  "labels_sha256": "632591559c73d0a28dc7799767fe2e258b2e662e87d3f00305cb9e830cf08eb4",
+  "model": "llama3.1:8b",
+  "options": {
+    "num_ctx": 16384,
+    "num_predict": 256,
+    "seed": 0,
+    "temperature": 0
+  },
+  "rubrics": {
+    "rule_adherence": "b2cc42386fe468d14a448fada247ff2bc4356a46ead46cf2d18fc0feeeaf83f2"
+  },
+  "server_version": "0.34.0"
+}
