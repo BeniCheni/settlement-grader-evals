@@ -399,6 +399,8 @@ body{
 .ledger.ab-metrics td{padding:5px 4px}
 .ledger.ab-metrics th:first-child,.ledger.ab-metrics td:first-child{width:20%}
 .ab-metrics .mono{font-size:12px; overflow-wrap:normal}
+/* Keep "lower to upper" on one line. A normal wrap breaks on the spaces, and the column holds the value. */
+.ab-metrics td[data-label="Paired interval (points)"] .mono{white-space:nowrap}
 @media (max-width: 760px){
   .ledger.ab-rows td:empty{display:none}
   .ledger.ab-metrics,.ledger.ab-metrics tbody{display:block; width:100%}

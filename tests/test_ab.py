@@ -380,6 +380,14 @@ CODE_HEADS = ["Code", "A (tickets)", "B (tickets)", "Delta (tickets)", "Delta (p
               "Paired interval (points)", "Only A (tickets)", "Only B (tickets)"]
 
 
+def count_noun(number):
+    """This test's own plural. Exactly one is singular. Zero stays plural. The sign is ignored."""
+    text = str(number)
+    if text[:1] in "+-":
+        text = text[1:]
+    return "ticket" if text == "1" else "tickets"
+
+
 def read_metric_tables(test, html, markdown):
     """Read each value under its actual column head, never as a page-wide count."""
     from html import unescape
@@ -1018,6 +1026,12 @@ class AbCommandTests(unittest.TestCase):
         for label, payload, message in (
             ("a list of integers", [1], "unreadable cases file"),
             ("expected not an object", [{"case_id": case, "expected": 5} for case in ("T1", "T2", "T3", "T4")], "expected is not an object"),
+            ("log_grade not an object", [
+                {"case_id": "T1", "expected": {"ticket_result": "WIN", "net": 1.0}, "log_grade": 5},
+                {"case_id": "T2", "expected": {"ticket_result": "WIN", "net": 1.0}},
+                {"case_id": "T3", "expected": {"ticket_result": "WIN", "net": 1.0}},
+                {"case_id": "T4", "expected": {"ticket_result": "WIN", "net": 1.0}},
+            ], "cases entry T1 log_grade is not an object"),
             ("an object, not a list", {}, "case T1 is not in"),
             ("a case missing", [{"case_id": case, "expected": {"ticket_result": "WIN", "net": 1.0}} for case in ("T1", "T2", "T3")], "case T4 is not in"),
         ):
@@ -1111,15 +1125,18 @@ class AbCommandTests(unittest.TestCase):
             if row["kind"] == "must_fall":
                 _fall, lower, _upper = own_paired(both, only_a, only_b, neither)
                 held = (count_a - count_b) >= row["min_net_fall"] and (not row["interval_excludes_zero"] or lower > 0)
-                text = "%s. %s. Minimum fall (A minus B) %s tickets, lower limit above 0 points required: %s. Observed A minus B %+d tickets%s." % (
-                    row["code"], "Held" if held else "Not held", row["min_net_fall"],
-                    "yes" if row["interval_excludes_zero"] else "no", count_a - count_b,
+                fall = count_a - count_b
+                text = "%s. %s. Minimum fall (A minus B) %s %s, lower limit above 0 points required: %s. Observed A minus B %+d %s%s." % (
+                    row["code"], "Held" if held else "Not held", row["min_net_fall"], count_noun(row["min_net_fall"]),
+                    "yes" if row["interval_excludes_zero"] else "no", fall, count_noun(fall),
                     ", lower limit %s points" % own_limit(lower) if row["interval_excludes_zero"] else "",
                 )
             else:
                 held = (count_b - count_a) <= row["max_rise"]
-                text = "%s. %s. Maximum rise (B minus A) %s tickets. Observed B minus A %+d tickets." % (
-                    row["code"], "Held" if held else "Not held", row["max_rise"], count_b - count_a,
+                rise = count_b - count_a
+                text = "%s. %s. Maximum rise (B minus A) %s %s. Observed B minus A %+d %s." % (
+                    row["code"], "Held" if held else "Not held", row["max_rise"], count_noun(row["max_rise"]),
+                    rise, count_noun(rise),
                 )
             expected.append((row["code"], text))
         for row in thresholds["judge"]:
@@ -1127,8 +1144,9 @@ class AbCommandTests(unittest.TestCase):
                 expected.append((row["rubric"], "%s. Report only. Not counted." % row["rubric"]))
                 continue
             fall = passes(ALPHA, row["rubric"]) - passes(BETA, row["rubric"])
-            expected.append((row["rubric"], "%s. %s. Maximum PASS fall (A minus B) %s tickets. Observed PASS A minus B %+d tickets." % (
-                row["rubric"], "Held" if fall <= row["max_pass_fall"] else "Not held", row["max_pass_fall"], fall,
+            expected.append((row["rubric"], "%s. %s. Maximum PASS fall (A minus B) %s %s. Observed PASS A minus B %+d %s." % (
+                row["rubric"], "Held" if fall <= row["max_pass_fall"] else "Not held",
+                row["max_pass_fall"], count_noun(row["max_pass_fall"]), fall, count_noun(fall),
             )))
         self.assertEqual(len(expected), 9)
         held_values = {next(part.rstrip(".") for part in text.split(". ")
@@ -1306,7 +1324,9 @@ class AbCommandTests(unittest.TestCase):
         md_cover = markdown.split("## NO_FINAL_ANSWER\n", 1)[1].split("\n## ", 1)[0]
         for want in (
             "A %s. B %s." % (primary["count_a"], primary["count_b"]),
-            "Delta %s tickets, %s points." % (primary["delta_tickets"], primary["delta_points"]),
+            "Delta %s %s, %s points." % (
+                primary["delta_tickets"], count_noun(primary["delta_tickets"]), primary["delta_points"],
+            ),
             "Interval %s to %s points." % (primary["lower_points"], primary["upper_points"]),
         ):
             self.assertIn(want, cover)
@@ -1331,9 +1351,10 @@ class AbCommandTests(unittest.TestCase):
                     heads = CODE_HEADS
                 with self.subTest(metric=name):
                     self.assertEqual(table[name], dict(zip(heads, values)))
+        run_n = len(case_ids)
         for title in ("Judges", "Codes"):
-            self.assertIn("%s — 4 tickets per run." % title, text(html))
-            self.assertIn("%s — 4 tickets per run." % title, markdown)
+            self.assertIn("%s — %s %s per run." % (title, run_n, count_noun(run_n)), text(html))
+            self.assertIn("%s — %s %s per run." % (title, run_n, count_noun(run_n)), markdown)
 
         # Set 1, from the fixture report's cells and figures.
         with open(ROOT + "/set1.json", encoding="utf-8") as handle:
@@ -1473,7 +1494,9 @@ class AbCommandTests(unittest.TestCase):
             expected[case] = names
         page = render_ab_html(document, "")
         markdown = render_markdown(document)
-        count = "%s of %s tickets changed a final, a code or a verdict." % (sum(bool(v) for v in expected.values()), len(cases))
+        count = "%s of %s %s changed a final, a code or a verdict." % (
+            sum(bool(v) for v in expected.values()), len(cases), count_noun(len(cases)),
+        )
         self.assertIn(count, page)
         self.assertIn(count, markdown)
         for ticket in document["tickets"]:
@@ -1494,8 +1517,8 @@ class AbCommandTests(unittest.TestCase):
                 ticket["changed"] = ["final"] if k else []
             page = render_ab_html(document, "")
             markdown = render_markdown(document)
-            self.assertIn("%s of %s tickets changed a final, a code or a verdict." % (k, len(cases)), page)
-            self.assertIn("%s of %s tickets changed a final, a code or a verdict." % (k, len(cases)), markdown)
+            self.assertIn("%s of %s %s changed a final, a code or a verdict." % (k, len(cases), count_noun(len(cases))), page)
+            self.assertIn("%s of %s %s changed a final, a code or a verdict." % (k, len(cases), count_noun(len(cases))), markdown)
             self.assertEqual(page.count('class="row disagree"'), k)
             self.assertEqual(page.count("Changed: "), k)
             self.assertEqual(markdown.count("Changed: "), k)
@@ -1551,6 +1574,7 @@ class AbCommandTests(unittest.TestCase):
             '.ledger.ab-metrics td{padding:5px 4px}',
             '.ledger.ab-metrics th:first-child,.ledger.ab-metrics td:first-child{width:20%}',
             '.ab-metrics .mono{font-size:12px; overflow-wrap:normal}',
+            '.ab-metrics td[data-label="Paired interval (points)"] .mono{white-space:nowrap}',
         ):
             self.assertIn(rule, css)
         phone = brace_block(css, '@media (max-width: 760px){\n  .ledger.ab-rows')
@@ -1575,15 +1599,155 @@ class AbCommandTests(unittest.TestCase):
 
     def test_threshold_observations_name_the_subtraction_in_both_directions(self):
         from scorer.ab import threshold_text
-        for value in (-3, 0, 3):
-            for field, kind, limit, direction in (("rise", "max_rise", "max_rise", "B minus A"),
-                                                   ("pass_fall", "max_pass_fall", "max_pass_fall", "PASS A minus B")):
-                text = threshold_text({"name": "X", "report_only": False, "kind": kind, "held": True,
-                                       limit: 1, field: value})
-                self.assertIn("Observed %s %+d tickets." % (direction, value), text)
-                self.assertNotIn("Observed rise", text)
-                self.assertNotIn("Observed PASS fall", text)
-                self.assertNotIn(limit, text)
+        for value in (-3, -2, -1, 0, 1, 2, 3):
+            for limit_value in (0, 1, 2):
+                for field, kind, limit, direction, label in (
+                    ("rise", "max_rise", "max_rise", "B minus A", "Maximum rise (B minus A)"),
+                    ("pass_fall", "max_pass_fall", "max_pass_fall", "PASS A minus B", "Maximum PASS fall (A minus B)"),
+                    ("fall", "must_fall", "min_net_fall", "A minus B", "Minimum fall (A minus B)"),
+                ):
+                    row = {"name": "X", "report_only": False, "kind": kind, "held": True,
+                           limit: limit_value, field: value}
+                    text = threshold_text(row)
+                    expected = "X. Held. %s %s %s. Observed %s %+d %s." % (
+                        label, limit_value, count_noun(limit_value), direction, value, count_noun(value),
+                    )
+                    self.assertEqual(text, expected)
+                    self.assertNotIn("Observed rise", text)
+                    self.assertNotIn("Observed PASS fall", text)
+                    self.assertNotIn(limit, text)
+
+    def _count_document(self, delta, n, changed):
+        def metric(name, source):
+            return {
+                "name": name, "source": source, "n": n,
+                "count_a": 0, "count_b": 0, "delta_tickets": delta, "delta_points": "+0.0",
+                "lower_points": "0.0", "upper_points": "0.0",
+                "pass_share_a": "0.0%", "pass_share_b": "0.0%",
+                "fail_to_pass": 0, "pass_to_fail": 0, "unparsed_a": 0, "unparsed_b": 0,
+                "only_a": 0, "only_b": 0,
+            }
+        tickets = []
+        for index in range(n):
+            tickets.append({
+                "case_id": "C%s" % (index + 1), "final_a": "WIN", "final_b": "WIN",
+                "codes_a": [], "codes_b": [], "verdicts": [],
+                "changed": ["final"] if index < changed else [],
+            })
+        return {
+            "command": "python3 -m scorer.judge ab", "statement": "In sample.",
+            "sign_note": "sign", "cover_note": "cover", "thresholds_held": "0 of 0",
+            "weakest_sentence": "none", "prompt_diff": ["-a", "+b"], "set1": [],
+            "threshold_rows": [], "ticket_columns": ("Case",),
+            "primary": {
+                "code": "NO_FINAL_ANSWER", "count_a": 0, "count_b": 0,
+                "delta_tickets": delta, "delta_points": "+0.0",
+                "lower_points": "0.0", "upper_points": "0.0",
+            },
+            "setup": {
+                "ollama_version": "0", "grader_model": "m", "grader_digest": "d",
+                "judge_model": "j", "judge_digest": "d", "judge_adapter": "a",
+                "interval_method": "newcombe-1998-method-10", "z": "1.96", "a": "a", "b": "b",
+            },
+            "metrics": [metric("rule_adherence", "judge"), metric("NO_FINAL_ANSWER", "code")],
+            "tickets": tickets,
+        }
+
+    def test_a_count_of_one_is_singular_and_every_other_count_stays_plural(self):
+        from scorer.ab import _changed_count, _json_document, _metric_caption, render_ab_html, render_markdown
+        for n in (0, 1, 2):
+            self.assertTrue(_metric_caption("judge", n).startswith("Judges — %s %s per run." % (n, count_noun(n))))
+            self.assertEqual(_metric_caption("code", n), "Codes — %s %s per run." % (n, count_noun(n)))
+        for n, changed in ((0, 0), (1, 0), (1, 1), (2, 1), (2, 2)):
+            document = self._count_document("+0", n, changed)
+            phrase = "%s of %s %s changed a final, a code or a verdict." % (changed, n, count_noun(n))
+            self.assertEqual(_changed_count(document), phrase)
+        for delta in ("+0", "+1", "-1", "+2", "-2"):
+            document = self._count_document(delta, 1, 1)
+            markdown = render_markdown(document)
+            html = render_ab_html(document, "")
+            noun = count_noun(delta)
+            sentence = "Delta %s %s, +0.0 points." % (delta, noun)
+            self.assertIn(sentence, markdown)
+            self.assertIn('<span class="mono">%s</span> %s, <span class="mono">+0.0</span> points.' % (delta, noun), html)
+            self.assertIn("1 of 1 %s changed a final, a code or a verdict." % count_noun(1), markdown)
+            self.assertIn("1 of 1 %s changed a final, a code or a verdict." % count_noun(1), html)
+            self.assertIn("Judges — 1 %s per run." % count_noun(1), markdown)
+            self.assertIn("Codes — 1 %s per run." % count_noun(1), html)
+            self.assertIn("(tickets)", html)
+            self.assertNotIn("(ticket)", html)
+            self.assertEqual(_json_document(document)["primary"]["delta_tickets"], delta)
+
+    def test_a_metric_name_keeps_its_break_and_its_accessible_name(self):
+        from scorer.ab import _metric_table
+        judge = {
+            "name": "needs_human_correctness", "n": 32,
+            "pass_share_a": "0.0%", "pass_share_b": "0.0%",
+            "count_a": 32, "count_b": 32, "delta_tickets": "+0", "delta_points": "+0.0",
+            "lower_points": "-10.7", "upper_points": "10.7",
+            "fail_to_pass": 0, "pass_to_fail": 0, "unparsed_a": 0, "unparsed_b": 0,
+        }
+        html = _metric_table([judge], "judge")
+        self.assertIn(
+            '<span class="break" aria-label="needs_human_correctness">needs_<wbr>human_<wbr>correctness</span>',
+            html,
+        )
+        code = {
+            "name": "NO_FINAL_ANSWER", "n": 1, "count_a": 1, "count_b": 0,
+            "delta_tickets": "+1", "delta_points": "+100.0",
+            "lower_points": "-100.0", "upper_points": "-84.8", "only_a": 1, "only_b": 0,
+        }
+        code_html = _metric_table([code], "code")
+        self.assertIn(
+            '<span class="break" aria-label="NO_FINAL_ANSWER">NO_<wbr>FINAL_<wbr>ANSWER</span>',
+            code_html,
+        )
+        plain = dict(judge, name="PLAIN")
+        self.assertIn('<span class="break" aria-label="PLAIN">PLAIN</span>', _metric_table([plain], "judge"))
+        self.assertNotIn("<wbr>", _metric_table([plain], "judge"))
+
+    def test_a_bad_inner_type_is_refused_before_scoring_and_a_missing_key_stays_allowed(self):
+        from scorer.ab import _score
+        from scorer.judge import JudgeError
+        verdicts = self._judged()
+
+        def cases(rows):
+            path = self.work + "/cases-%s.json" % len(os.listdir(self.work))
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump(rows, handle)
+            return path
+
+        base = [{"case_id": case, "expected": {"ticket_result": "WIN", "net": 1.0}} for case in ("T1", "T2", "T3", "T4")]
+        bad_result = json.loads(json.dumps(base))
+        bad_result[2]["expected"]["ticket_result"] = False
+        bad_number = json.loads(json.dumps(base))
+        bad_number[1]["expected"]["ticket_result"] = 1
+        bad_net = json.loads(json.dumps(base))
+        bad_net[0]["expected"]["net"] = True
+        bad_text = json.loads(json.dumps(base))
+        bad_text[3]["expected"]["net"] = "1"
+        for label, rows, message in (
+            ("ticket_result boolean", bad_result, "cases entry T3 expected.ticket_result is not a string"),
+            ("ticket_result number", bad_number, "cases entry T2 expected.ticket_result is not a string"),
+            ("net boolean", bad_net, "cases entry T1 expected.net is not a number"),
+            ("net string", bad_text, "cases entry T4 expected.net is not a number"),
+        ):
+            with self.subTest(label=label):
+                self._assert_ab_refused(self._ab(verdicts, cases=cases(rows)), message)
+                with mock.patch("scorer.ab.score_run") as score:
+                    with self.assertRaisesRegex(JudgeError, re.escape(message)):
+                        _score("traces/ab-a", cases(rows))
+                    score.assert_not_called()
+        allowed = [
+            {"case_id": "T1", "expected": {"ticket_result": "WIN", "net": 2}},
+            {"case_id": "T2", "expected": {"ticket_result": "WIN", "net": None}},
+            {"case_id": "T3", "expected": {}},
+            {"case_id": "T4", "expected": {"net": 1.5}},
+        ]
+        made = judge_cli(self._ab(verdicts, cases=cases(allowed)) + ["--json", self.work + "/allowed.json"])
+        self.assertEqual(made.returncode, 0, made.stderr)
+        scored = _score("traces/ab-a", "data/gold.json")
+        self.assertEqual(len(scored["tickets"]), 32)
 
     def test_a_verdict_whose_rubric_hash_is_not_judge_metas_is_refused(self):
         verdicts_dir = self._judged()
