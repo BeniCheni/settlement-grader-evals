@@ -135,6 +135,7 @@ doesn't get to ship until it agrees with human labels.
 | `traces/` | Run receipts; `v1` is the first full run |
 | `scorer/` | The eleven plain-code checks, the agreement statistics, the calibration report, the judge harness and the A/B report |
 | `rubrics/`, `labels/`, `judgments/` | Three judge rubrics, my 120 labels on 40 rows and adjudication, and the judge's verdicts |
+| `rubrics-set2/` | The tightened `rule_adherence`, frozen before its fresh labels |
 | `packages/llm-judges/` | The Week 2 course package: each assignment's deliverables, the A/B report, and a table mapping every acceptance item to its file |
 | `variants/compare-first.txt` | The one prompt change the A/B tested |
 | `reports/` | The generated reports, including the calibration page, the judge page and the A/B page (open any of them in a browser) |
