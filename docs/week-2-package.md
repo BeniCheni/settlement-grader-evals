@@ -49,8 +49,8 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Reading every disagreement | Done for the code checks and for the judge on set 1 (41 rows across the three rubrics), in sample | `data/calibration_readings_v1.json`, `labels/set1-readings.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
 | A/B | Run on Sun 1 Nov 2026. 6 of 8 thresholds held and the owner's verdict is no-ship: `GRADE_CONTRADICTS_FACTS` rose from 15 tickets to 16 and `tool_call_accuracy` fell by 3. In sample | `reports/ab.html`, `packages/llm-judges/assignment-2/ab_report.md`, `docs/ab-spec.md`, `variants/compare-first.txt` |
-| The package | Built on Mon 2 Nov 2026, before step 9, with every course acceptance item mapped to a file | `packages/llm-judges/README.md` |
-| Step 9 | Specified, with its rubric and rows frozen; not labelled and not run | `docs/set2-spec.md`, `rubrics-set2/`, `labels/set2-plan.json` |
+| The package | Built on Mon 2 Nov 2026, before step 9, with every course acceptance item mapped to a file. Step 9's result and statement were added after it ran | `packages/llm-judges/README.md` |
+| Step 9 | Run on Mon 2 Nov 2026, and the tightening did not work. On the owner's 32 first-pass labels the judge answered FAIL on every row: agreement 53.1%, kappa 0.0000, no false pass and 15 false fails, so `rule_adherence` misses the bar. Held out only in a narrow sense: fresh outputs on tickets the owner had already labelled | `reports/judge-set2.md`, `.json`, `.html`, `docs/set2-spec.md`, `rubrics-set2/`, `labels/set2-plan.json`, `labels/set2.jsonl`, `judgments/set2-llama3.1-8b/` |
 
 Reproduce the repository counts in the table, from the repository root:
 
@@ -120,6 +120,10 @@ will be measured on. An A/A record for a base case shares its case ID even when 
    `packages/llm-judges/`, not `submissions/week-02/`. The archived prompts keep the old path as delivered.
 10. **Step 9's one change** (the owner's, Mon 2 Nov 2026). `rule_adherence` gains a PASS boundary example beside its FAIL one,
    with the NEEDS_HUMAN wording, in `rubrics-set2/`. The rows and the order of work are in `docs/set2-spec.md`.
+11. **Set 2's labels** (the owner's, Mon 2 Nov 2026). The owner answered question by question in the PM's session rather than
+   typing the sheet, so the PM seat wrote the sheet from those answers and the owner confirmed a read-back. After the
+   verdicts the PM seat questioned two PASS labels, `traces/ab-b` C13 and `traces/aa-1` B05, and the owner left both as
+   labelled.
 
 ## The order of work
 
@@ -192,6 +196,8 @@ packages/llm-judges/
 
 - The due dates.
 - Whether the weakest-judge cycle (step 9) is graded.
+- What to do about `rule_adherence`. Its tightening did not work, and this rubric is not edited and measured again on set 2.
+  Any further try needs the owner's ruling and rows of its own.
 - The course estimates 4 to 6 hours for Assignment 1, most of it labelling, and 3 to 4 hours for Assignment 2.
 
 ## Follow-ups
@@ -210,6 +216,12 @@ Small pieces left by the reviews so far, each written to be read cold. The step-
   an input, masking a banned word even when the input is as long as or longer than the word. A shorter input could split
   a banned word; set 1's inputs are not that short, but the test fixture has shorter ones. The discovery test needs the
   repository root as its working directory.
+- **The judge page with one rubric.** The header prints "1 rubrics", and the report names a "worst judge" among one rubric.
+  The page also joins a hand-written statement's paragraphs into one block, though the Markdown keeps them, which matters
+  now that set 2's statement runs to nine paragraphs. A small page fix. Found in PR #26's review.
+- **The reply format beyond the verdict.** `parse_reply` takes the first non-empty line and the first later `Reason:` line,
+  as `docs/judge-spec.md` says, so no report counts a blank second line or a reason of 20 words or more. On set 2 that is
+  all 32 replies and 13 reasons. A count beside `UNPARSED`, if the owner wants it. Found in PR #26's review.
 - **Layout proof.** The stylesheet tests pin that the rules exist. Only a browser run measures the page, and CI has no
   browser, so the matrix stays a review step. Assistive technology beyond Chrome's accessibility tree has not been
   tried.
