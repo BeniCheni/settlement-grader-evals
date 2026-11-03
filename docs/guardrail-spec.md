@@ -58,7 +58,7 @@ as the case, because none reads it; `run_eval.TICKET_FIELDS`, `LEG_FIELDS` and `
 ## The owner's answers on the cold read
 
 Cursor's review of this spec found places where the text gave two answers, or a wrong one. The owner ruled on these six on Tue 3 Nov 2026, and the
-contracts below carry them. They move no ruling and no threshold in the plan, and the next docs PR adds them to the plan's table.
+contracts below carry them. They move no earlier ruling and no threshold in the plan, and they are rulings 20 to 25 in the plan's table.
 
 1. A row with a twin has `source` set to the exact string `synthetic`.
 2. A real ticket keeps the `source` value on its row in `data/gold.json`.
