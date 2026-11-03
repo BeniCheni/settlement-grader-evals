@@ -1,0 +1,38 @@
+[
+ {
+  "case_id": "P0",
+  "source": "synthetic",
+  "category": "proof",
+  "book": "book",
+  "bet_type": "single",
+  "stake": 1,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Home"
+   }
+  ],
+  "expected": {
+   "ticket_result": "LOSS",
+   "net": -1
+  }
+ },
+ {
+  "case_id": "P1",
+  "source": "synthetic",
+  "category": "proof",
+  "book": "book",
+  "bet_type": "single",
+  "stake": 1,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Away"
+   }
+  ],
+  "expected": {
+   "ticket_result": "LOSS",
+   "net": -1
+  }
+ }
+]

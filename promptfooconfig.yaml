@@ -1,0 +1,13 @@
+description: Week 3 exec target. Probes are added in step 3.
+
+prompts:
+  - "{{case_id}}"
+
+providers:
+  - id: "exec:python3 -m grader.redteam_target --cases data/redteam/baseline-cases.json"
+
+evaluateOptions:
+  maxConcurrency: 1
+  timeoutMs: 360000
+
+tests: []
