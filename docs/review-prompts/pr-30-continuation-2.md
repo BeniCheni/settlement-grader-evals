@@ -1,0 +1,21 @@
+# PR #30 — the owner's sixth answer, and the instruction to read one commit and land (TZ=America/New_York)
+
+The text delivered Tue 3 Nov 2026, as archived by the PM seat (Claude) on Tue 3 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
+
+---
+
+PR #30 — the owner's answer to your question, and the instruction to read one commit and land (Tue 3 Nov 2026, about 15:02 EST).
+
+The PM read your addendum, reproduced your finding by reading the spec, and accepts it. The PM pushed one commit on top, f599cf21415d6c1790cf6b4aabaaa92f17770020, which you did not write. Read it cold. Expected tree 9cb6d94a5b92bf5ece8aa71af4c983f40f353618. Seven commits on the PR; against main, one file, 397 insertions; against ee8ee523c1cc1d75acd9fe415bec111499d9e763, 5 insertions and 3 deletions. Fetch and fast-forward your branch in the same fresh clone. Take the head and CI state from GitHub, and say if the head has moved.
+
+THE OWNER'S ANSWER, named as the owner's (report it as stated to you and do not confirm it second-hand as fact), Tue 3 Nov 2026: yes. On G4's own column, apart from the stack, an input block is ignored, so that column stays rulings 17 to 19. Changing an answer is not a fix. You may argue one is wrong, and that goes in the comment as a question.
+
+THE COMMIT'S CLAIM. It adds the rule directly after the six-count definitions, records the answer as the sixth in the owner's section, adds a test to step 6 item 6 that gives one attack and one legitimate row a different count in each column, and adds a mutation to item 11. It changes nothing else.
+
+WHAT TO CHECK, re-derived and never taken from this prompt. (a) Your two grids, now run once for G4's own column and once for a stack: does every row land in exactly one count in each, and does G4's own column read no input block? (b) Whether the catch and over-block denominators, the four cells, agreement, kappa, meets_bar, review load and the three-way split each still give one answer for G4's own column. (c) Whether the test and the mutation would go red for the implementation you described, one classifier used for both columns. (d) The plan's stack bar still reads the same, and no line moves a ruling or a threshold. (e) Only docs/guardrail-spec.md differs from main. The suite and compileall on Python 3.9 and 3.14 with real counts, and the privacy sweep over this commit's diff, counts only. Do not print a source value, a difference, a residual or any amount.
+
+SCOPE. This is a read of this one commit and what it touches. You already read ee8ee52. Do not reopen what you closed or left as wording there unless this commit makes it false. A new finding needs to show a builder could meet the text and miss the plan or a ruling. The other rules of the original brief still bind: the environment check, RUN NO MODEL, THE PAYOUT CHECK, the identity rule, and the push rule.
+
+FIX POLICY. A wording preference with nothing wrong in it is not a fix: list it and leave it. Fix what you reproduce and prove, in scope, in one push at the end. A fix that only corrects a wrong figure, path or name does not need the PM's read, and you may land after it if the gate holds. Anything else that you push, stop, say the SHA and do not land until the PM has read it. Mark anything that changes an answer, a ruling, a threshold's meaning or a contract's meaning as RULE CHANGE, leave it and stop at the comment. Touch only docs/guardrail-spec.md.
+
+LANDING. Post one new PR comment in the shape of the skill's pr-comment.md, saying it adds to your earlier comments. If the gate in AGENTS.md holds, wait for verify at the head you land and squash-merge pinned to the full SHA with gh pr merge 30 --squash --match-head-commit, with a terse factual message and Co-authored-by lines for Claude <noreply@anthropic.com> and Cursor <cursoragent@cursor.com>. Then confirm main's tree equals that head, that no tag exists on the remote, and that verify is green on the push to main, and leave the branch and the clone for the owner's word. Otherwise stop at the comment and escalate with questions answerable in one word. A no-finding read of this commit needs you to say what you tried that could have found something.
