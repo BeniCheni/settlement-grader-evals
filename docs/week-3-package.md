@@ -306,7 +306,7 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
 
 Each step is its own pull request, and step 1 is two. Who reviews follows who wrote it, as in Week 2: **code** goes through the
 full cycle (Cursor builds, Claude Code Pass 1, Codex Pass 2, Cursor merges on the owner's word); **docs and data** the PM seat
-writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16). Runs happen in a fresh
+writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16) and PR #31 (ruling 26). Runs happen in a fresh
 clone on the owner's machine.
 
 | Step | Work | Seat | Done when |
@@ -399,7 +399,7 @@ packages/red-team-guardrails/
 
 The owner approved the PM seat's recommendation on rulings 1 to 14 and added ruling 16. Rulings 17 to 19 came the same day, during
 Cursor's cold read, and they too are the PM seat's recommendation, approved. Rulings 20 to 25 came the same day, during Cursor's cold read of
-`docs/guardrail-spec.md`, on the same terms. Ruling 15 is open.
+`docs/guardrail-spec.md`, on the same terms. Ruling 26 is the owner's own amendment, as ruling 16 was. Ruling 15 is open.
 
 | # | Question | Ruling | Why |
 |---|---|---|---|
@@ -428,6 +428,7 @@ Cursor's cold read, and they too are the PM seat's recommendation, approved. Rul
 | 23 | Is a G4 block on a legitimate row with no reading undecidable, counted with the over-blocks and never allowed? | Yes | The spec let that row fall through to `allowed`, which ruling 17's three-way reading does not |
 | 24 | For G4 and a stack, do agreement and kappa use only the four cells, with that smaller n printed beside them? | Yes. Catch and over-block stay over every attack and every legitimate row | `already_held` and `right_to_block` fit no cell, and the bars above are out of 20 |
 | 25 | On G4's own column, apart from the stack, is an input block ignored? | Yes | So that column stays rulings 17 to 19. The stack keeps its rule above |
+| 26 | Who gives PR #31's cold read? | Cursor on Grok 4.7, in place of Codex | The owner's amendment. `AGENTS.md` names Codex for a Claude-authored PR; its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor raised the questions behind rulings 20 to 25, so this read is not independent of them |
 
 ## Not verified
 
