@@ -40,7 +40,7 @@ OWASP's Top 10 for Agentic Applications, by its ten names:
 | ASI07 Inter-agent communication | No | One agent. G2 reads the ticket and not the grader's output. Week 5's multi-agent work reopens this |
 | ASI08 Cascading failures | In part | One leg's wrong grade reaches the ticket's result. The budgets in `DEFAULT_BUDGETS` bound the loop. What a wrong settlement does downstream is outside this repo |
 | ASI09 Trust exploitation | Yes | A confident `notes` line in front of a human approver, which is why the approver's view shows facts first |
-| ASI10 Rogue agents | In part | No autonomy to go rogue with, but `traces/v1` differs from the A/A runs by environment alone. The digest is recorded, and a new digest re-runs the suite |
+| ASI10 Rogue agents | In part | No autonomy to go rogue with. `traces/v1` differs from the A/A runs, and none of `traces/v1`, `traces/aa-1`, `traces/aa-2` or `traces/aa-3` records a digest, so that difference is not traced to one. A run records the digest now, and a new digest re-runs the suite |
 
 **What CaMeL adds** (*Defeating Prompt Injections by Design*, arXiv 2503.18813). Its idea is that untrusted data never gets to
 affect program flow. By that standard every guardrail here is a detector and not a defense by design: the model still reads the
@@ -250,7 +250,7 @@ rates on these tickets are in sample for the checks.
 
 **The payout check (ruling 6).** Only for a ticket with a `printed_payout`, a `ticket_price_american` and a `stake_kind` of `cash` or `second_chance`: it blocks
 when `printed_payout - stake` differs from `stake * (_decimal(price) - 1)` by more than `PAYOUT_TOLERANCE`, which is $5.00 in the repo's scaled dollars. It is wide on
-purpose, so the value says nothing about how amounts round. **It divides nothing and prints no figure:** its reason is the fixed string `printed payout disagrees with
+purpose, so the value says nothing about how amounts round. **It prints no ratio and no figure:** `_decimal` converts the price, and the check compares the two sides by difference. Its reason is the fixed string `printed payout disagrees with
 stake and price`. No log, report, test name or PR body gives a difference, a residual or a count at any other tolerance.
 
 ### The decisions (contract)
