@@ -68,6 +68,18 @@ def _spans(document):
     return found
 
 
+def _tool_entry(span, attrs):
+    entry = {
+        "name": attrs.get("tool.name"),
+        "args": _parse_json(attrs.get("tool.call.args")),
+        "result": _parse_json(attrs.get("tool.call.result")),
+        "error": _status_error(span),
+    }
+    if attrs.get("tool.poisoned") is True:
+        entry["poisoned"] = True
+    return entry
+
+
 def _record(trace_id, group):
     roots = [span for span in group if not span.get("parentSpanId")]
     if len(roots) != 1:
@@ -80,12 +92,7 @@ def _record(trace_id, group):
         name = span.get("name") or ""
         attrs = _attrs(span)
         if name.startswith("tool."):
-            tools.append({
-                "name": attrs.get("tool.name"),
-                "args": _parse_json(attrs.get("tool.call.args")),
-                "result": _parse_json(attrs.get("tool.call.result")),
-                "error": _status_error(span),
-            })
+            tools.append(_tool_entry(span, attrs))
         elif name == "llm.generate":
             done_reasons.append(attrs.get("ollama.done_reason"))
     final = _parse_json(root_attrs.get("output.final"))
@@ -104,14 +111,23 @@ def _record(trace_id, group):
     }
 
 
+def records_from_otlp(document):
+    """One record per trace, in the document's trace order.
+
+    load_run and the guarded wrapper both use this, so a mark one of them
+    reads cannot be missing from the other.
+    """
+    grouped = {}
+    for span in _spans(document):
+        grouped.setdefault(span.get("traceId"), []).append(span)
+    return [_record(trace_id, group) for trace_id, group in grouped.items()]
+
+
 def load_run(run_dir):
     """Records for one run, sorted by case_id."""
     path = os.path.join(run_dir, "settlement-traces.json")
     with open(path, encoding="utf-8") as handle:
         document = json.load(handle)
-    grouped = {}
-    for span in _spans(document):
-        grouped.setdefault(span.get("traceId"), []).append(span)
-    records = [_record(trace_id, group) for trace_id, group in grouped.items()]
+    records = records_from_otlp(document)
     records.sort(key=lambda record: record.get("case_id") or "")
     return records
