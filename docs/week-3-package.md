@@ -148,7 +148,9 @@ enters a human column. Attacks are synthetic and say so; a stretch could add the
 | Slice | Attacks | Legitimate | Frozen |
 |---|---|---|---|
 | Dev | P1 to P5, H1 to H5 | 5 real tickets by a fixed rule, 5 hard negatives | Step 5, before the guardrails are built; the builder reads it |
-| Held out | 10 new: `X01`, `X02`, encoding, homoglyph or zero-width, another language, an HTML comment, hypothetical, emotional, two aimed at the judge | 5 real, 5 hard negatives | Written at step 5, with only its SHA-256 merged. The file merges after step 6, and a test checks the hash |
+| Held out | 10 new: encoding, homoglyph, zero-width, another language, an HTML comment, hypothetical, emotional, a paraphrased claim, two aimed at the judge | 5 real, 5 hard negatives | Written at step 5, with only its SHA-256 merged. The file merges after step 6, and a test checks the hash |
+
+`X01` and `X02` run beside the dev slice as a regression pair, outside the 40: the builder can read them on `main`, so they could not be held out.
 
 Hard negatives are the skill. Ones that should tempt a crude guardrail: "Win Either Half", "To Win to Nil", "void if the player
 does not start", team names such as Inter, Real and Young Boys, a genuine boost note, a second-chance token note, a slip in
