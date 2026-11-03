@@ -9,9 +9,10 @@ Writes, under traces/<run_id>/:
 
 Usage:
   python3 run_eval.py data/gold.json [--only A01,C03] [--show-expected] [--think] [--model qwen3:8b]
-                       [--prompt-file FILE]
+                       [--prompt-file FILE] [--drop-field FIELD]
 """
 import argparse
+import copy
 import csv
 import http.client
 import json
@@ -22,6 +23,7 @@ from datetime import datetime
 from urllib.parse import urlsplit
 
 from grader.agent import DEFAULT_BUDGETS, OLLAMA_URL, SYSTEM_PROMPT, grade_ticket
+from grader.poison import PoisonError, poison_runner, validate_poison
 from grader.tracer import Tracer
 
 TICKET_FIELDS = ["book", "bet_type", "stake", "stake_kind", "boost_or_token",
@@ -54,6 +56,56 @@ class SetupReadError(Exception):
 
 class PromptFileError(Exception):
     """The prompt file cannot be used. main exits with status 2 and writes nothing."""
+
+
+def seam_refusal(case):
+    """Why this case's poison or followups cannot run, or None.
+
+    The message names the case id and not the poison text. An empty list is
+    not a use of the seam.
+    """
+    if not isinstance(case, dict):
+        return None
+    case_id = case.get("case_id")
+    label = case_id if isinstance(case_id, str) and case_id else "a case"
+    if "poison" in case and not isinstance(case.get("poison"), list):
+        return "%s: poison is refused" % label
+    if "followups" in case and not isinstance(case.get("followups"), list):
+        return "%s: followups are refused" % label
+    poison = case.get("poison") or []
+    followups = case.get("followups") or []
+    if poison:
+        try:
+            validate_poison(poison)
+        except PoisonError:
+            return "%s: poison is refused" % label
+    for item in followups:
+        if not isinstance(item, str):
+            return "%s: followups are refused" % label
+    if (poison or followups) and case.get("source") != "synthetic":
+        return "%s: poison and followups require source synthetic" % label
+    return None
+
+
+def drop_ticket_fields(ticket, fields):
+    """A copy of ticket with each named ticket or leg field removed."""
+    kept = copy.deepcopy(ticket)
+    for field in fields:
+        if field in TICKET_FIELDS:
+            kept.pop(field, None)
+        else:
+            for leg in kept.get("legs") or []:
+                if isinstance(leg, dict):
+                    leg.pop(field, None)
+    return kept
+
+
+def _unknown_drop_field(fields):
+    allowed = set(TICKET_FIELDS) | set(LEG_FIELDS)
+    for field in fields:
+        if field not in allowed:
+            return field
+    return None
 
 
 def _read_prompt_file(text):
@@ -172,13 +224,26 @@ def main(argv=None, opener=None):
     ap.add_argument("--run-id", default=datetime.now().strftime("%Y%m%d-%H%M%S"))
     ap.add_argument("--prompt-file", default=None,
                     help="system prompt for every ticket, read once and not stripped")
+    ap.add_argument("--drop-field", action="append", default=[], metavar="FIELD",
+                    help="remove this ticket or leg field before the model sees the ticket")
     args = ap.parse_args(argv)
+    unknown = _unknown_drop_field(args.drop_field)
+    if unknown is not None:
+        sys.stderr.write("unknown field %s\n" % unknown)
+        return 2
     system_prompt = SYSTEM_PROMPT
     if args.prompt_file is not None:
         try:
             system_prompt = _read_prompt_file(args.prompt_file)
         except PromptFileError as error:
             sys.stderr.write("%s\n" % error)
+            return 2
+    with open(args.cases) as f:
+        cases = json.load(f)
+    for case in cases:
+        message = seam_refusal(case)
+        if message:
+            sys.stderr.write("%s\n" % message)
             return 2
     if opener is None:
         opener = urllib.request.urlopen
@@ -188,8 +253,6 @@ def main(argv=None, opener=None):
         sys.stderr.write("%s\n" % error)
         return 1
 
-    with open(args.cases) as f:
-        cases = json.load(f)
     if args.only:
         keep = set(args.only.split(","))
         cases = [c for c in cases if c["case_id"] in keep]
@@ -204,10 +267,19 @@ def main(argv=None, opener=None):
         exp_result, exp_net = expected_of(c)
         root_attrs = {"case.id": c["case_id"], "case.category": c.get("category"), "ticket.summary": summary(c)}
         print(f"[{i}/{len(cases)}] {summary(c)} …", flush=True)
+        ticket = ticket_from_case(c)
+        if args.drop_field:
+            ticket = drop_ticket_fields(ticket, args.drop_field)
         ticket_kwargs = {"model": args.model, "think": args.think, "root_attrs": root_attrs}
         if args.prompt_file is not None:
             ticket_kwargs["system_prompt"] = system_prompt
-        r = grade_ticket(ticket_from_case(c), tracer, **ticket_kwargs)
+        poison = c.get("poison") or []
+        followups = c.get("followups") or []
+        if poison:
+            ticket_kwargs["tool_runner"] = poison_runner(poison)
+        if followups:
+            ticket_kwargs["followups"] = tuple(followups)
+        r = grade_ticket(ticket, tracer, **ticket_kwargs)
         match = outcome_match(r["final"], exp_result, exp_net,
                               (c.get("expected") or {}).get("accept_needs_human", False))
         if args.show_expected:
@@ -238,7 +310,7 @@ def main(argv=None, opener=None):
         for r in rows:
             w.writerow([r["trace_id"], r["case_id"], "", ""])
     with open(os.path.join(out_dir, "run_meta.json"), "w") as f:
-        json.dump({
+        meta = {
             "run_id": args.run_id,
             "cases_file": os.path.relpath(os.path.abspath(args.cases), os.path.dirname(os.path.abspath(__file__))),
             "model": args.model,
@@ -249,7 +321,10 @@ def main(argv=None, opener=None):
             "system_prompt": system_prompt,
             "n_cases": len(rows),
             "outcome_matches": sum(r["outcome_match"] for r in rows),
-        }, f, indent=1)
+        }
+        if args.drop_field:
+            meta["drop_fields"] = list(args.drop_field)
+        json.dump(meta, f, indent=1)
     print(f"\n{sum(r['outcome_match'] for r in rows)}/{len(rows)} outcome matches · traces → {out_dir}")
     return 0
 
