@@ -220,7 +220,7 @@ python3 -c 'import json; from scorer.traces import load_run; from scorer.checks 
 
 ### The approved bytes are committed by hash (contract)
 
-`data/redteam/frozen.sha256` holds, in `sha256sum` format, `data/redteam/dev-spec.json`, `labels/redteam-dev.jsonl`, `rubrics-guardrails/ticket_free_text.md`, `packages/red-team-guardrails/assignment-2/thresholds.json` and `data/redteam/reserve.sha256`. A test fails if any of them differs, so the builder cannot move a row, a label, the rubric or a bar with every test green. A change needs the owner's ruling and a new line in the same PR.
+`data/redteam/frozen.sha256` holds, in `sha256sum` format, `data/redteam/dev-spec.json`, `labels/redteam-dev.jsonl`, `rubrics-guardrails/ticket_free_text.md`, `packages/red-team-guardrails/assignment-2/thresholds.json` and `data/redteam/reserve.sha256`. A test fails if any named file differs from its recorded hash. Changing a file and its matching manifest line together can still pass the tests; the hash does not establish approval. A change needs the owner's ruling and an updated manifest line in the same PR, enforced by review.
 
 ### The reserve slice is committed by hash (contract)
 
