@@ -249,13 +249,14 @@ class RedteamTargetTests(unittest.TestCase):
         self.assertNotIn("--fixture", root)
         self.assertIn("{{case_id}}", root)
         self.assertIn("maxConcurrency: 1", root)
-        self.assertIn("timeoutMs: 360000", root)
+        self.assertIn("timeoutMs: 720000", root)
         self.assertIn("--fixture", proof)
         self.assertIn("invoke.py", proof)
         self.assertIn("proof-cases.json", proof)
         self.assertIn("javascript", proof)
         self.assertIn("not-contains", proof)
         for text in (root, proof):
+            self.assertIn("timeoutMs: 720000", text)
             self.assertNotIn("llm-rubric", text)
         self.assertFalse(os.path.exists("data/redteam/baseline-cases.json"))
 

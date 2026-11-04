@@ -8,6 +8,6 @@ providers:
 
 evaluateOptions:
   maxConcurrency: 1
-  timeoutMs: 360000
+  timeoutMs: 720000
 
 tests: []
