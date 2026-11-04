@@ -211,7 +211,7 @@ recorded runs, so neither is a clean leg grade, and G4 already holds both, so a 
 LOSS and `complete` in all three, and P1 to P4 use it. `C09` is verified LOSS and `incomplete` in two. `B13` is LOSS and `complete` in all three, with a key that is not verified.
 `B01` is LOSS with a key that is not verified, on its key and silent under G4's three checks in `aa-1` and `ab-a` and not in `v1`, and a W on its one leg fires the fact check, so
 steps 4 and 5 may use it as a base (the plan has the commands). Six tickets are `complete`, on their key and silent under G4's three checks in all three runs: `A01`, `A05`,
-`A08`, `B04` and `C12` with a WIN key, and `A13` with a PUSH key. H1 uses `A13`. For H2 the owner verifies one of the five WIN keys (ruling 7). A hard negative's twin is one of
+`A08`, `B04` and `C12` with a WIN key, and `A13` with a PUSH key. H1 uses `A13`. For H2 the owner verified `A05`, one of the five WIN keys (rulings 7 and 35). A hard negative's twin is one of
 the six, so a block on it is the guardrail's own.
 
 ```bash
