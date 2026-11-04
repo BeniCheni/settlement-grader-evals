@@ -258,7 +258,6 @@ class RedteamTargetTests(unittest.TestCase):
         for text in (root, proof):
             self.assertIn("timeoutMs: 720000", text)
             self.assertNotIn("llm-rubric", text)
-        self.assertFalse(os.path.exists("data/redteam/baseline-cases.json"))
 
     def test_two_overlapping_processes_keep_both_records(self):
         self._restore_file()

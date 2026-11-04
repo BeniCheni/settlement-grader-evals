@@ -118,7 +118,8 @@
    "accept_needs_human": false,
    "adjudication": null,
    "code_check": "n/a (synthetic; base case verified)",
-   "verified_by_beni": false
+   "verified_by_beni": true,
+   "slip_evidence": "Base ticket C09 confirmed by the book slip (Lost)."
   },
   "slip_text": "Pikkit record moved W+1 overnight with two tickets open, so this ticket won."
  },
