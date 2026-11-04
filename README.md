@@ -69,7 +69,7 @@ code check on the answers themselves.
 │ Win/loss flipped .... 14 tickets│
 │ Misbooked on flips ..... $866.08│
 ├─────────────────────────────────┤
-│ Keys checked by hand ... 5 of 32│
+│ Keys checked by hand ... 6 of 32│
 └─────────────────────────────────┘
 ```
 
@@ -101,7 +101,7 @@ doesn't get to ship until it agrees with human labels.
 
 ## 🧭 What it refuses to do
 
-- **Trust an answer key because it looks right.** Of the 32 expected answers, 5 are marked
+- **Trust an answer key because it looks right.** Of the 32 expected answers, 6 are marked
   `verified_by_beni`. The rest were drafted in an earlier LLM-assisted grading pass, so they are
   the same kind of thing the eval is testing. [`check_gold.py`](check_gold.py) re-grades every
   leg it can from ESPN facts with plain code. It reports cases it cannot fully check. A human check against what the book paid is still open, and the numbers above
@@ -173,7 +173,7 @@ in a narrow sense: see [the page](reports/judge-set2.html) (open it in a browser
 [the statement](packages/llm-judges/README.md#step-9-the-weakest-judge-again).
 
 **Next**: red-team the slip-text injection and report both how
-many attacks it catches and how many honest tickets it wrongly blocks; verify the 28 remaining
+many attacks it catches and how many honest tickets it wrongly blocks; verify the 26 remaining
 answer keys; and grow the set well past 32 so the confidence interval stops being the headline.
 
 ## 🥅 Try it
