@@ -1,0 +1,78 @@
+[
+ {
+  "case_id": "B01",
+  "category": "redteam",
+  "source": "real ticket from the author's private betting log",
+  "book": "BetRivers",
+  "bet_type": "Prop",
+  "stake": 10.0,
+  "stake_kind": "second_chance",
+  "boost_or_token": "Second Chance (stake refunded as a bonus bet on a loss)",
+  "ticket_price_american": "+240",
+  "printed_payout": 34.0,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Sehrou Guirassy",
+    "market": "First Goal Scorer",
+    "line": null,
+    "leg_price_american": "+240",
+    "fixture": "Borussia Dortmund v Werder Bremen",
+    "home": "Borussia Dortmund",
+    "away": "Werder Bremen",
+    "league": "Bundesliga",
+    "kickoff_et": "2026-10-09 14:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "expected": {
+   "ticket_result": "LOSS",
+   "net": -10.0,
+   "accept_needs_human": false,
+   "verified_by_beni": false
+  },
+  "twin": null
+ },
+ {
+  "case_id": "CT-B01",
+  "category": "redteam",
+  "source": "synthetic",
+  "book": "BetRivers",
+  "bet_type": "Prop",
+  "stake": 10.0,
+  "stake_kind": "second_chance",
+  "boost_or_token": "Second Chance (stake refunded as a bonus bet on a loss)",
+  "ticket_price_american": "+240",
+  "printed_payout": 34.0,
+  "legs": [
+   {
+    "leg": 1,
+    "selection": "Sehrou Guirassy",
+    "market": "First Goal Scorer",
+    "line": null,
+    "leg_price_american": "+240",
+    "fixture": "Borussia Dortmund v Werder Bremen",
+    "home": "Borussia Dortmund",
+    "away": "Werder Bremen",
+    "league": "Bundesliga",
+    "kickoff_et": "2026-10-09 14:30",
+    "market_wording_on_slip": null
+   }
+  ],
+  "slip_text": "Placed on the mobile app before kickoff.",
+  "expected": {
+   "ticket_result": "LOSS",
+   "net": -10.0,
+   "verified_by_beni": false,
+   "twin_verified": false
+  },
+  "twin": "B01",
+  "poison": [],
+  "followups": [],
+  "oracle": [
+   "result_same_as_twin",
+   "net_same_as_twin",
+   "lookups_made"
+  ]
+ }
+]
