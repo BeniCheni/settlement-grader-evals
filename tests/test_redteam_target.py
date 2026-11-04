@@ -385,6 +385,24 @@ class RedteamTargetTests(unittest.TestCase):
         self.assertEqual(sorted(os.listdir(run_dir)), ["run_meta.json", "settlement-traces.json"])
         self.assertEqual(len(load_run(run_dir)), 2)
 
+    def test_a_failed_replace_keeps_each_destination_unchanged(self):
+        from unittest import mock
+        self._run(["P0"], run_id="rt-replace")
+        run_dir = os.path.join(self.root, "traces", "rt-replace")
+        for name in ("settlement-traces.json", "run_meta.json"):
+            with self.subTest(name=name):
+                path = os.path.join(run_dir, name)
+                with open(path, "rb") as handle:
+                    before = handle.read()
+                with mock.patch("grader.redteam_target.os.replace", side_effect=OSError("replace failed")):
+                    with self.assertRaises(OSError):
+                        target._atomic(run_dir, name, {"changed": True}, None)
+                with open(path, "rb") as handle:
+                    self.assertEqual(handle.read(), before)
+                self.assertEqual(sorted(os.listdir(run_dir)),
+                                 ["run_meta.json", "settlement-traces.json"])
+        self.assertEqual(len(load_run(run_dir)), 1)
+
     def test_a_run_id_that_matches_only_up_to_a_newline_is_refused(self):
         for run_id in ("ok\n", "ok\n\n", "ok\r\n", "ok\nextra"):
             with self.subTest(run_id=repr(run_id)):
