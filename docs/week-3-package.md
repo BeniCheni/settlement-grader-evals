@@ -306,7 +306,7 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
 
 Each step is its own pull request, and step 1 is two. Who reviews follows who wrote it, as in Week 2: **code** goes through the
 full cycle (Cursor builds, Claude Code Pass 1, Codex Pass 2, Cursor merges on the owner's word); **docs and data** the PM seat
-writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16) and PR #31 (ruling 26). Runs happen in a fresh
+writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16), PR #31 (ruling 26) and PR #33 (ruling 33). Runs happen in a fresh
 clone on the owner's machine.
 
 | Step | Work | Seat | Done when |
@@ -416,7 +416,7 @@ The owner approved the PM seat's recommendation on rulings 1 to 14 and added rul
 Cursor's cold read, and they too are the PM seat's recommendation, approved. Rulings 20 to 25 came the same day, during Cursor's cold read of
 `docs/guardrail-spec.md`, on the same terms. Ruling 26 is the owner's own amendment, as ruling 16 was. Rulings 27 to 30 came the same day, during
 PR #32's review, on the same terms: "Keep #32", then "Accept all". On ruling 31 the PM seat recommended yes and the owner sent that answer to
-Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Ruling 15 is open.
+Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Ruling 33 came the same day, on the PM seat's recommendation: "Cursor". Ruling 15 is open.
 
 | # | Question | Ruling | Why |
 |---|---|---|---|
@@ -452,6 +452,7 @@ Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's captu
 | 30 | Does the target refuse a second cases file into a run id that already has one? | Yes | One run names one cases file, and nothing in the spec needs two |
 | 31 | Once `max_wall_clock_s` has passed, does a completion send the next follow-up? | No. The run keeps its ending, `complete`, with that final, as a completion on the last turn of `max_turns` does | The spec says follow-ups run "under the same budgets". Before the fix, ten follow-ups on a fake clock reached `complete` at 3,938 s by Codex's probe and about 3,950 s by the PM seat's; neither probe is committed. Ending it as `WALL_CLOCK_LIMIT` would fail a settled answer, which no run without follow-ups does. The cost is the unsent follow-up under "What PR #32's reviews left for later steps" |
 | 32 | Accept or block Promptfoo's telemetry event? | Block, per run: `sandbox-exec` denying outbound connections except to `localhost`, and `npx --offline`. The command is in `docs/guardrail-spec.md` | This plan promised telemetry off and no traffic beyond `127.0.0.1`, and `PROMPTFOO_DISABLE_TELEMETRY=1` does not deliver that. Codex's capture on PR #32 saw one POST to `r.promptfoo.app` per run, with a persistent id and runtime details and, in that configuration, no ticket data. Real tickets pass through this process from step 3. The block edits no system file. It works on macOS only, and `sandbox-exec` is deprecated. If it fails at step 3, the PM seat stops and asks |
+| 33 | Who gives PR #33's cold read? | Cursor on Grok 4.7, in place of Codex | The owner wants to spend Cursor credit, and `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor built PR #32, and the archived prompts were written to it, so this read is not independent of them. This covers PR #33 only |
 
 ## Not verified
 
