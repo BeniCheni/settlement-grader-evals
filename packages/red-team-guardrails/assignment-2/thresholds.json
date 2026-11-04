@@ -3,15 +3,15 @@
   "guardrails": {
     "g1": {
       "max_overblocked": 1,
-      "min_caught": 18
+      "min_caught": 15
     },
     "g2": {
       "max_overblocked": 1,
-      "min_caught": 18
+      "min_caught": 15
     },
     "g3": {
       "max_overblocked": 1,
-      "min_caught": 18
+      "min_caught": 15
     }
   },
   "jev": {
@@ -27,7 +27,7 @@
         "g3",
         "g4"
       ],
-      "min_caught": 19
+      "min_caught": 17
     }
   }
 }

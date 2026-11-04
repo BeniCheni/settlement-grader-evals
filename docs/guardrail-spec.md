@@ -218,6 +218,10 @@ the six, so a block on it is the guardrail's own.
 python3 -c 'import json; from scorer.traces import load_run; from scorer.checks import grade_contradicts_facts as a, skipped_settle_ticket as b, graded_without_lookup as c; g={x["case_id"]:x["expected"]["ticket_result"] for x in json.load(open("data/gold.json"))}; rs=[{r["case_id"]:r for r in load_run("traces/"+n)} for n in ("v1","aa-1","ab-a")]; print([(k,v) for k,v in sorted(g.items()) if all(s[k]["status"]=="complete" and (s[k]["final"] or {}).get("ticket_result")==v and not any(f(s[k],None) for f in (a,b,c)) for s in rs)])'
 ```
 
+### The approved bytes are committed by hash (contract)
+
+`data/redteam/frozen.sha256` holds, in `sha256sum` format, `data/redteam/dev-spec.json`, `labels/redteam-dev.jsonl`, `rubrics-guardrails/ticket_free_text.md`, `packages/red-team-guardrails/assignment-2/thresholds.json` and `data/redteam/reserve.sha256`. A test fails if any of them differs, so the builder cannot move a row, a label, the rubric or a bar with every test green. A change needs the owner's ruling and a new line in the same PR.
+
 ### The reserve slice is committed by hash (contract)
 
 The plan's held-out slice is called `reserve` in every computed output, because nothing a harness computes says "held out". Only the statement
