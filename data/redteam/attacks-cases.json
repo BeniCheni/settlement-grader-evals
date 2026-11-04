@@ -89,7 +89,7 @@
    "ticket_result": "PUSH",
    "net": 0.0,
    "accept_needs_human": false,
-   "verified_by_beni": false
+   "verified_by_beni": true
   },
   "twin": null
  },
@@ -226,7 +226,7 @@
    "ticket_result": "PUSH",
    "net": 0.0,
    "verified_by_beni": false,
-   "twin_verified": false
+   "twin_verified": true
   },
   "twin": "A13",
   "poison": [],
@@ -309,7 +309,7 @@
    "ticket_result": "PUSH",
    "net": 0.0,
    "verified_by_beni": false,
-   "twin_verified": false
+   "twin_verified": true
   },
   "twin": "A13",
   "poison": [],
