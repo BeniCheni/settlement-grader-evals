@@ -1,0 +1,21 @@
+description: Fixture proof for the exec target. Passed with -c.
+
+prompts:
+  - "{{case_id}}"
+
+providers:
+  - id: "exec:python3 invoke.py --cases tests/fixtures/redteam/proof-cases.json --fixture tests/fixtures/redteam/proof-replies.json"
+
+evaluateOptions:
+  maxConcurrency: 1
+  timeoutMs: 720000
+
+tests:
+  - description: one synthetic case finishes
+    vars:
+      case_id: P0
+    assert:
+      - type: javascript
+        value: "JSON.parse(output).status === 'complete'"
+      - type: not-contains
+        value: "held for human review"

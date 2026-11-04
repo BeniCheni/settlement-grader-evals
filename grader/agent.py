@@ -7,6 +7,7 @@ import time
 import urllib.error
 import urllib.request
 
+from .poison import PoisonedResult
 from .tools import TOOLS, call_tool, dumps
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
@@ -68,9 +69,11 @@ def _parse_final(text):
 
 
 def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, root_attrs=None, think=False,
-                 system_prompt=SYSTEM_PROMPT):
+                 system_prompt=SYSTEM_PROMPT, *, tool_runner=call_tool, followups=()):
     budgets = {**DEFAULT_BUDGETS, **(budgets or {})}
     options = {"temperature": 0, "num_ctx": 8192, "num_predict": 1024, **(options or {})}
+    pending = list(followups)
+    seen_finals = []
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": "Grade this ticket:\n" + json.dumps(ticket, indent=1, ensure_ascii=False)},
@@ -90,6 +93,7 @@ def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, r
     result = None
 
     def finish(status, reason=None, final=None, final_text=None):
+        shown = final
         attrs = {
             "run.status": status,
             "run.reason_code": reason,
@@ -102,15 +106,23 @@ def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, r
             "gen_ai.usage.output_tokens": stats["output_tokens"],
             "output.final_text": final_text,
         }
-        if final:
+        if followups:
+            recorded = list(seen_finals)
+            if final is not None:
+                recorded.append(final)
+            if recorded:
+                shown = recorded[-1]
+            attrs["input.followups"] = json.dumps(list(followups), ensure_ascii=False)
+            attrs["output.final_by_turn"] = json.dumps(recorded, ensure_ascii=False)
+        if shown:
             attrs.update({
-                "output.final": json.dumps(final, ensure_ascii=False),
-                "output.ticket_result": str(final.get("ticket_result")),
-                "output.net": final.get("net") if isinstance(final.get("net"), (int, float)) else None,
-                "output.leg_results": [l.get("result") for l in final.get("legs", []) if isinstance(l, dict)],
+                "output.final": json.dumps(shown, ensure_ascii=False),
+                "output.ticket_result": str(shown.get("ticket_result")),
+                "output.net": shown.get("net") if isinstance(shown.get("net"), (int, float)) else None,
+                "output.leg_results": [l.get("result") for l in shown.get("legs", []) if isinstance(l, dict)],
             })
         tracer.end(root, attrs, error=None if status == "complete" else reason)
-        return {"status": status, "reason_code": reason, "final": final, "final_text": final_text,
+        return {"status": status, "reason_code": reason, "final": shown, "final_text": final_text,
                 "trace_id": root["traceId"], **stats, "wall_clock_s": attrs["run.wall_clock_s"]}
 
     for turn in range(1, budgets["max_turns"] + 1):
@@ -165,6 +177,11 @@ def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, r
                 return finish("incomplete", "UNPARSEABLE_FINAL", final_text=text)
             if not tool_counts.get("settle_ticket"):
                 return finish("incomplete", "PREMATURE_FINAL", final=final, final_text=text)
+            if (pending and turn < budgets["max_turns"]
+                    and time.time() - started <= budgets["max_wall_clock_s"]):
+                seen_finals.append(final)
+                messages.append({"role": "user", "content": pending.pop(0)})
+                continue
             return finish("complete", final=final, final_text=text)
 
         if stats["tool_calls"] + len(calls) > budgets["max_tool_calls"]:
@@ -184,8 +201,11 @@ def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, r
                 except json.JSONDecodeError:
                     args = {"_raw": args}
             span = tracer.start(f"tool.{name}", parent=llm, attrs={"tool.name": name, "tool.call.args": dumps(args)})
-            out = call_tool(name, args)
-            tracer.end(span, {"tool.call.result": dumps(out)},
+            out = tool_runner(name, args)
+            end_attrs = {"tool.call.result": dumps(out)}
+            if isinstance(out, PoisonedResult):
+                end_attrs["tool.poisoned"] = True
+            tracer.end(span, end_attrs,
                        error=out.get("error") if isinstance(out, dict) and out.get("error") else None)
             stats["tool_calls"] += 1
             tool_counts[name] = tool_counts.get(name, 0) + 1

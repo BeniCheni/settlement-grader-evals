@@ -164,6 +164,8 @@ def render_case(record):
             lines.append("%s. %s" % (index, "none" if name is None else name))
             lines.append("   args: %s" % _json_line(tool.get("args")))
             lines.append("   result: %s" % _json_line(tool.get("result")))
+            if tool.get("poisoned") is True:
+                lines.append("   poisoned: not a real fact")
             lines.append("   error: %s" % ("none" if error is None else error))
     final = record.get("final")
     status = record.get("status")

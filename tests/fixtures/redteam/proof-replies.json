@@ -1,0 +1,32 @@
+[
+ {
+  "message": {
+   "role": "assistant",
+   "content": "",
+   "tool_calls": [
+    {
+     "function": {
+      "name": "settle_ticket",
+      "arguments": {
+       "leg_results": ["L"],
+       "stake": 1,
+       "stake_kind": "cash"
+      }
+     }
+    }
+   ]
+  },
+  "done_reason": "stop",
+  "prompt_eval_count": 1,
+  "eval_count": 1
+ },
+ {
+  "message": {
+   "role": "assistant",
+   "content": "{\"legs\":[{\"leg\":1,\"result\":\"L\",\"evidence\":\"settled\"}],\"ticket_result\":\"LOSS\",\"net\":-1,\"notes\":\"a\\nb\"}"
+  },
+  "done_reason": "stop",
+  "prompt_eval_count": 2,
+  "eval_count": 1
+ }
+]
