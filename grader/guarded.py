@@ -166,6 +166,9 @@ def _apply_output_block(ticket, result, root):
         "run.reason_code": "GUARDRAIL_OUTPUT",
         "output.final_withheld": json.dumps(result.get("final"), ensure_ascii=False),
     })
+    if "output.final_by_turn" in root["_attrs"]:
+        root["_attrs"]["output.final_by_turn_withheld"] = root["_attrs"]["output.final_by_turn"]
+        root["_attrs"]["output.final_by_turn"] = json.dumps([held], ensure_ascii=False)
     root["_attrs"].update(outputs)
     root["status"] = {"code": 0, "message": ""}
     updated = dict(result)

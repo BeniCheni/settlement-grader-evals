@@ -197,9 +197,40 @@ class GuardedTests(unittest.TestCase):
         self.assertEqual(withheld["notes"], "grader-note")
         self.assertEqual(root["_attrs"]["output.final_text"], result["final_text"])
         self.assertNotIn("grader-note", result["final_text"])
+        self.assertNotIn("output.final_by_turn", root["_attrs"])
+        self.assertNotIn("output.final_by_turn_withheld", root["_attrs"])
         self.assertNotIn("grader", result["final"]["legs"][0]["evidence"])
         self._held(result, root, legs=1)
         self.assertEqual(result["tool_calls"], 1)
+
+    def test_an_output_block_withholds_every_followup_final(self):
+        replies = (_settle(), _final(), _final(FINAL.replace("grader-note", "second-note")))
+        seen, result, tracer = _drive(replies, lambda tracer: grade_ticket_guarded(
+            _ticket(), tracer, followups=("again",),
+            output_guardrails=(("hold", lambda record: (True, REASON)),)))
+        attrs = _roots(tracer)[0]["_attrs"]
+        self.assertEqual(json.loads(attrs["input.followups"]), ["again"])
+        self.assertEqual(json.loads(attrs["output.final_by_turn"]), [result["final"]])
+        self.assertEqual(json.loads(attrs["output.final"]),
+                         json.loads(attrs["output.final_by_turn"])[-1])
+        self.assertEqual([item["notes"] for item in
+                          json.loads(attrs["output.final_by_turn_withheld"])],
+                         ["grader-note", "second-note"])
+        self.assertEqual(json.loads(attrs["output.final_withheld"])["notes"], "second-note")
+        completions = [span["_attrs"]["gen_ai.completion"] for span in tracer.spans
+                       if span["name"] == "llm.generate"]
+        self.assertEqual(completions[1:], [FINAL, FINAL.replace("grader-note", "second-note")])
+        self.assertEqual(records_from_otlp(tracer.to_otlp())[0]["final"], result["final"])
+
+    def test_followup_keys_are_absent_on_an_input_block(self):
+        tracer = Tracer("settlement-grader")
+        with mock.patch("grader.agent._chat", side_effect=AssertionError("model")):
+            result = grade_ticket_guarded(_ticket(), tracer, followups=("not sent",),
+                                         input_guardrails=(("hold", lambda ticket: (True, REASON)),))
+        self.assertEqual(result["status"], "blocked")
+        attrs = _roots(tracer)[0]["_attrs"]
+        for key in ("input.followups", "output.final_by_turn", "output.final_by_turn_withheld"):
+            self.assertNotIn(key, attrs)
 
     def test_an_output_block_on_an_incomplete_run_is_not_an_error_span(self):
         seen, result, tracer = _drive((
