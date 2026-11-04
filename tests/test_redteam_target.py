@@ -385,6 +385,15 @@ class RedteamTargetTests(unittest.TestCase):
         self.assertEqual(sorted(os.listdir(run_dir)), ["run_meta.json", "settlement-traces.json"])
         self.assertEqual(len(load_run(run_dir)), 2)
 
+    def test_a_run_id_that_matches_only_up_to_a_newline_is_refused(self):
+        for run_id in ("ok\n", "ok\n\n", "ok\r\n", "ok\nextra"):
+            with self.subTest(run_id=repr(run_id)):
+                status, stdout, stderr = self._run(["P0"], run_id=run_id)
+                self.assertEqual(status, 2)
+                self.assertEqual(stdout, "")
+                self.assertIn("REDTEAM_RUN_ID", stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.root, "traces")))
+
 
 
 def _call(name, args):

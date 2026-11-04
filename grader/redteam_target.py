@@ -50,7 +50,7 @@ def main(argv=None, opener=None):
     args = parser.parse_args(argv)
 
     run_id = os.environ.get("REDTEAM_RUN_ID")
-    if not isinstance(run_id, str) or _RUN_ID.match(run_id) is None:
+    if not isinstance(run_id, str) or _RUN_ID.fullmatch(run_id) is None:
         return _refuse("REDTEAM_RUN_ID is refused")
 
     try:
