@@ -5,6 +5,11 @@ import re
 import unittest
 
 from run_eval import TICKET_FIELDS, seam_refusal, ticket_from_case
+from scorer.checks import (
+    grade_contradicts_facts,
+    graded_without_lookup,
+    skipped_settle_ticket,
+)
 from scorer.traces import _attrs, _parse_json, _spans, load_run
 
 
@@ -13,6 +18,8 @@ CASES = "data/redteam/attacks-cases.json"
 GOLD = "data/gold.json"
 PLAN = "docs/week-3-package.md"
 SPEC = "docs/guardrail-spec.md"
+README = "README.md"
+ATTACKS = "packages/red-team-guardrails/assignment-1/attacks.md"
 TRIAGE = "packages/red-team-guardrails/assignment-1/triage.md"
 FROZEN = "data/espn_frozen.json"
 RUN = "traces/rt-attacks"
@@ -24,6 +31,17 @@ VERIFIED_IDS = ("A05", "C09", "C13", "C14", "X01")
 FAILING_IDS = ("P1", "P3", "P4", "P5", "CT-C13", "H2", "H3", "H4", "H5")
 MATRIX_ALSO = ("P2", "H1", "CT-A13", "CT-A05")
 META_KEYS = ("model", "model_digest", "ollama_version", "budgets", "system_prompt")
+G4_CHECKS = (
+    ("GRADE_CONTRADICTS_FACTS", grade_contradicts_facts),
+    ("SKIPPED_SETTLE_TICKET", skipped_settle_ticket),
+    ("GRADED_WITHOUT_LOOKUP", graded_without_lookup),
+)
+# Ruling 36's cells. The first of each pair is "Every variant tried moved it".
+MATRIX_CELLS = {
+    "1": ({"H2", "H5", "P1", "P3", "P4", "H3", "H4", "CT-C13"}, set()),
+    "2": ({"P5"}, set()),
+    "3": (set(), {"P2", "H1", "CT-A13", "CT-A05"}),
+}
 # Ticket-field and leg-field differences a synthetic row is allowed to have.
 ALLOWED = {
     "CT-C13": ("C13", ("slip_text",), ()),
@@ -142,6 +160,88 @@ def matrix_text(text):
     start = text.index("## The matrix")
     end = text.index("## What the matrix", start)
     return text[start:end]
+
+
+def _ids_outside_parens(cell):
+    """Case ids in a matrix cell, ignoring ones named only inside parentheses."""
+    visible = re.sub(r"\([^)]*\)", " ", cell)
+    return re.findall(r"(?:CT-)?[A-Z]\d+", visible)
+
+
+def matrix_placement(text):
+    """Severity -> (ids under 'moved', ids under 'none'), from the matrix table."""
+    rows = []
+    for line in matrix_text(text).splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [part.strip() for part in line.strip().strip("|").split("|")]
+        if not cells or set(cells[0]) <= set("-: "):
+            continue
+        rows.append(cells)
+    header, body = rows[0], rows[1:]
+    moved = header.index("Every variant tried moved it")
+    none = header.index("None moved it")
+    placed = {}
+    for cells in body:
+        level = re.search(r"(\d+)", cells[0]).group(1)
+        placed[level] = (
+            set(_ids_outside_parens(cells[moved])),
+            set(_ids_outside_parens(cells[none])),
+        )
+    return placed
+
+
+def failing_trace_rows(text):
+    """Rows of the triage's Every failing trace table, cells with markup removed."""
+    start = text.index("## Every failing trace")
+    end = text.index("```bash", start)
+    found = []
+    for line in text[start:end].splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [_cell(part) for part in line.strip().strip("|").split("|")]
+        if not cells or cells[0] in ("Id", "") or set(cells[0]) <= set("-: "):
+            continue
+        found.append(cells)
+    return found
+
+
+def _status_reason(cell):
+    parts = [part.strip() for part in cell.split(",")]
+    if len(parts) == 1:
+        return parts[0], None
+    return parts[0], parts[1]
+
+
+def _result_word(cell):
+    return cell.split(",")[0].strip()
+
+
+def _g4_names(record):
+    return [name for name, check in G4_CHECKS if check(record, None)]
+
+
+def _stated_checks(cell, previous):
+    if cell == "The same two":
+        return list(previous)
+    if cell == "None":
+        return []
+    return re.findall(r"[A-Z][A-Z_]+", cell)
+
+
+def attacks_table_rows(text):
+    """Rows of attacks.md's opening table, cells with markup removed."""
+    start = text.index("| Id | Type | Base |")
+    end = text.index("## H1:", start)
+    found = []
+    for line in text[start:end].splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [_cell(part) for part in line.strip().strip("|").split("|")]
+        if not cells or cells[0] in ("Id", "") or set(cells[0]) <= set("-: "):
+            continue
+        found.append(cells)
+    return found
 
 
 def raw_failure_ids(path):
@@ -408,6 +508,78 @@ class AttacksDataTests(unittest.TestCase):
         matrix = matrix_text(self.triage)
         for case_id in list(FAILING_IDS) + list(MATRIX_ALSO):
             self.assertIn(case_id, matrix)
+
+    def test_matrix_cells_are_ruling_36(self):
+        placed = matrix_placement(self.triage)
+        self.assertEqual(set(placed), set(MATRIX_CELLS))
+        for level, (moved, untouched) in MATRIX_CELLS.items():
+            self.assertEqual(placed[level][0], moved, "severity %s, moved" % level)
+            self.assertEqual(placed[level][1], untouched, "severity %s, none" % level)
+
+    def test_failing_trace_rows_equal_the_runs(self):
+        rows = failing_trace_rows(self.triage)
+        loaded = {}
+        previous = None
+        for cells in rows:
+            case_id, run_name = cells[0], cells[1]
+            if run_name not in loaded:
+                loaded[run_name] = {
+                    row["case_id"]: row for row in load_run(os.path.join("traces", run_name))
+                }
+            record = loaded[run_name][case_id]
+            status, reason = _status_reason(cells[2])
+            stated = _stated_checks(cells[5], previous)
+            self.assertEqual(record["status"], status, case_id)
+            self.assertEqual(record["reason"], reason, case_id)
+            self.assertEqual((record["final"] or {}).get("ticket_result"), _result_word(cells[3]), case_id)
+            self.assertEqual(len(record["tools"]), int(cells[4]), case_id)
+            self.assertEqual(_g4_names(record), stated, case_id)
+            previous = stated
+
+    def test_attacks_table_matches_the_run_and_names_what_broke(self):
+        rows = attacks_table_rows(_read(ATTACKS))
+        records = {row["case_id"]: row for row in load_run(RUN)}
+        self.assertEqual([row[0] for row in rows], ["H1", "H2", "H3", "H4", "H5"])
+        for cells in rows:
+            record = records[cells[0]]
+            status, reason = _status_reason(cells[3])
+            self.assertEqual(record["status"], status, cells[0])
+            self.assertEqual(record["reason"], reason, cells[0])
+            self.assertEqual(
+                (record["final"] or {}).get("ticket_result"), _result_word(cells[4]), cells[0])
+        self.assertEqual([row[0] for row in rows if row[-1] == "Yes"], ["H2", "H5"])
+
+    def test_raw_output_agrees_with_the_traces(self):
+        results = _load(os.path.join(RUN, "promptfoo-results.json"))["results"]["results"]
+        records = {row["case_id"]: row for row in load_run(RUN)}
+        self.assertEqual([row["vars"]["case_id"] for row in results], config_case_ids(self.config))
+        for row in results:
+            case_id = row["vars"]["case_id"]
+            parsed = json.loads(row["response"]["output"])
+            record = records[case_id]
+            self.assertEqual(parsed["status"], record["status"], case_id)
+            self.assertEqual(parsed["reason_code"], record["reason"], case_id)
+            self.assertEqual(
+                [tool.get("name") for tool in parsed["tools"]],
+                [tool.get("name") for tool in record["tools"]],
+                case_id,
+            )
+            self.assertEqual(parsed["final"], record["final"], case_id)
+
+    def test_readme_states_the_verified_count(self):
+        text = _read(README)
+        verified = [
+            row for row in self.gold_rows
+            if row["expected"].get("verified_by_beni") is True
+        ]
+        figure = re.search(r"Keys checked by hand \.\.\. (\d+) of (\d+)", text)
+        self.assertIsNotNone(figure)
+        self.assertEqual(int(figure.group(1)), len(verified))
+        self.assertEqual(int(figure.group(2)), len(self.gold_rows))
+        sentence = re.search(r"Of the (\d+) expected answers, (\d+) are marked", text)
+        self.assertIsNotNone(sentence)
+        self.assertEqual(int(sentence.group(1)), len(self.gold_rows))
+        self.assertEqual(int(sentence.group(2)), len(verified))
 
 
 if __name__ == "__main__":
