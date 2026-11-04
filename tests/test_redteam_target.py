@@ -361,6 +361,30 @@ class RedteamTargetTests(unittest.TestCase):
         self.assertIn(" POISON_TEXT", prompts[1])
         self.assertIn("why that grade?", prompts[3])
         self.assertNotIn("why that grade?", json.dumps(prompts[:3]))
+    def test_a_failed_write_leaves_the_previous_files_and_no_temporary_file(self):
+        from unittest import mock
+        self._run(["P0"], run_id="rt-atomic")
+        self._run(["P1"], run_id="rt-atomic")
+        run_dir = os.path.join(self.root, "traces", "rt-atomic")
+
+        def read(name):
+            with open(os.path.join(run_dir, name), "rb") as handle:
+                return handle.read()
+
+        traces_before, meta_before = read("settlement-traces.json"), read("run_meta.json")
+        self.assertEqual(len(load_run(run_dir)), 2)
+
+        def boom(*args, **kwargs):
+            raise RuntimeError("disk full")
+
+        with mock.patch("grader.redteam_target.json.dump", boom):
+            with self.assertRaises(RuntimeError):
+                self._run(["P0"], run_id="rt-atomic")
+        self.assertEqual(read("settlement-traces.json"), traces_before)
+        self.assertEqual(read("run_meta.json"), meta_before)
+        self.assertEqual(sorted(os.listdir(run_dir)), ["run_meta.json", "settlement-traces.json"])
+        self.assertEqual(len(load_run(run_dir)), 2)
+
 
 
 def _call(name, args):
