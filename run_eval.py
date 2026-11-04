@@ -238,8 +238,15 @@ def main(argv=None, opener=None):
         except PromptFileError as error:
             sys.stderr.write("%s\n" % error)
             return 2
-    with open(args.cases) as f:
-        cases = json.load(f)
+    try:
+        with open(args.cases) as f:
+            cases = json.load(f)
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        sys.stderr.write("cases file is unreadable\n")
+        return 2
+    if not isinstance(cases, list):
+        sys.stderr.write("cases file is unreadable\n")
+        return 2
     for case in cases:
         message = seam_refusal(case)
         if message:

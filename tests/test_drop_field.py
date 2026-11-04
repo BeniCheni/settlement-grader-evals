@@ -113,6 +113,33 @@ class DropFieldTests(unittest.TestCase):
         self.assertFalse(os.path.exists(self.traces))
         self.assertFalse(os.path.exists(os.path.join(self.work, "missing.json")))
 
+    def test_an_unreadable_cases_file_is_refused_with_one_message(self):
+        opened = []
+
+        def opener(request, timeout=None):
+            opened.append(request.full_url)
+            return _opener(request, timeout)
+
+        files = {
+            "missing.json": None,
+            "empty.json": b"",
+            "latin.json": b"[\xff]",
+            "object.json": b'{"case_id": "X"}',
+            "truncated.json": b"[{",
+        }
+        for name, data in files.items():
+            path = os.path.join(self.work, name)
+            if data is not None:
+                with open(path, "wb") as handle:
+                    handle.write(data)
+            with self.subTest(file=name):
+                status, stdout, stderr = self._run([path, "--run-id", "cases-bad"], _final_chat([]), opener=opener)
+                self.assertEqual(status, 2)
+                self.assertEqual(stdout, "")
+                self.assertEqual(stderr, "cases file is unreadable\n")
+        self.assertEqual(opened, [])
+        self.assertFalse(os.path.exists(self.traces))
+
     def test_the_field_is_gone_from_the_request_and_named_in_the_metadata(self):
         path = self._write([_case("D1")])
         seen = []
