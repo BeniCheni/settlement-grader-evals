@@ -173,7 +173,7 @@ in a narrow sense: see [the page](reports/judge-set2.html) (open it in a browser
 [the statement](packages/llm-judges/README.md#step-9-the-weakest-judge-again).
 
 **Next**: red-team the slip-text injection and report both how
-many attacks it catches and how many honest tickets it wrongly blocks; verify the 28 remaining
+many attacks it catches and how many honest tickets it wrongly blocks; verify the 26 remaining
 answer keys; and grow the set well past 32 so the confidence interval stops being the headline.
 
 ## 🥅 Try it

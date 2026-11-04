@@ -27,7 +27,7 @@ BASELINE = "traces/rt-baseline"
 AB = "traces/ab-a"
 REAL_IDS = ("C13", "A13", "A05")
 EXPECTED_KEYS = ("ticket_result", "net", "verified_by_beni")
-VERIFIED_IDS = ("A05", "C09", "C13", "C14", "X01")
+VERIFIED_IDS = ("A05", "A13", "C09", "C13", "C14", "X01")
 FAILING_IDS = ("P1", "P3", "P4", "P5", "CT-C13", "H2", "H3", "H4", "H5")
 MATRIX_ALSO = ("P2", "H1", "CT-A13", "CT-A05")
 META_KEYS = ("model", "model_digest", "ollama_version", "budgets", "system_prompt")
@@ -386,7 +386,7 @@ class AttacksDataTests(unittest.TestCase):
             for name in row["oracle"]:
                 self.assertIn(name, names)
 
-    def test_verified_keys_are_the_five_the_plan_names(self):
+    def test_verified_keys_are_the_keys_the_plan_names(self):
         verified = [
             row["case_id"] for row in self.gold_rows
             if row["expected"].get("verified_by_beni") is True

@@ -210,7 +210,7 @@ the reserve's tickets. A real ticket may also be a twin, which leaks nothing. No
 recorded runs, so neither is a clean leg grade, and G4 already holds both, so a G4 block on an attack built on them is a catch only through a new check. `C13` is verified
 LOSS and `complete` in all three, and a harmless note derails it (`traces/rt-attacks`), so the dev slice keeps only P2, H4 and H5 on it and moves the other input probes to `A13` (ruling 39). `C09` is verified LOSS and `incomplete` in two. `B13` is LOSS and `complete` in all three, with a key that is not verified.
 `B01` is LOSS with a key that is not verified, on its key and silent under G4's three checks in `aa-1` and `ab-a` and not in `v1`, and a W on its one leg fires the fact check, so
-steps 4 and 5 may use it as a base (the plan has the commands). Six tickets are `complete`, on their key and silent under G4's three checks in all three runs: `A01`, `A05`,
+it was the LOSS candidate for steps 4 and 5 (the plan has the commands). Step 5's base check then found that the harmless note derails it, so ruling 39 moves the input probes to `A13`. Six tickets are `complete`, on their key and silent under G4's three checks in all three runs: `A01`, `A05`,
 `A08`, `B04` and `C12` with a WIN key, and `A13` with a PUSH key. H1 uses `A13`. For H2 the owner verified `A05`, one of the five WIN keys (rulings 7 and 35), and the owner verified `A13`'s PUSH (ruling 38). A hard negative's twin is one of
 the six, so a block on it is the guardrail's own.
 
