@@ -64,7 +64,8 @@ def main(argv=None, opener=None):
     message = seam_refusal(case)
     if message:
         return _refuse(message)
-    if not isinstance(case.get("legs"), list):
+    legs = case.get("legs")
+    if not isinstance(legs, list) or not all(isinstance(leg, dict) for leg in legs):
         return _refuse("case is unusable")
 
     replies = None

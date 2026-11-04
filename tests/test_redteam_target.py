@@ -394,6 +394,18 @@ class RedteamTargetTests(unittest.TestCase):
                 self.assertIn("REDTEAM_RUN_ID", stderr)
         self.assertFalse(os.path.exists(os.path.join(self.root, "traces")))
 
+    def test_a_case_whose_legs_are_not_all_objects_is_refused(self):
+        path = os.path.join(self.root, "legs.json")
+        for legs in (None, {}, [1], [{"leg": 1}, "x"], [[]]):
+            with open(path, "w", encoding="utf-8") as handle:
+                json.dump([{"case_id": "L1", "source": "synthetic", "legs": legs}], handle)
+            with self.subTest(legs=legs):
+                status, stdout, stderr = self._run(["--cases", path, "--fixture", REPLIES, "L1"], run_id="rt-legs")
+                self.assertEqual(status, 2)
+                self.assertEqual(stdout, "")
+                self.assertEqual(stderr, "case is unusable\n")
+        self.assertFalse(os.path.isdir(os.path.join(self.root, "traces", "rt-legs")))
+
 
 
 def _call(name, args):
