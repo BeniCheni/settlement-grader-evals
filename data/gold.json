@@ -220,7 +220,8 @@
    "accept_needs_human": false,
    "adjudication": null,
    "code_check": "AGREE",
-   "verified_by_beni": false
+   "verified_by_beni": true,
+   "slip_evidence": "Book slip (FanDuel, confirmed 4 Nov): Won. The owner confirmed the result, not the amounts."
   }
  },
  {

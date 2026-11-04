@@ -44,7 +44,7 @@ pitfall "Keep a held-out slice if you iterate". Whether the course grades it is 
 | Adjudication | 17 of the 120 labels changed, each with the owner's reason | `labels/set1-final.jsonl`, `packages/llm-judges/assignment-1/diagnosis.md` |
 | Agreement and the comparison view | On the final labels: agreement 80.0%, 65.0% and 92.5%, kappa 0.3191, 0.0000 and 0.8500 (`needs_human_correctness`, `rule_adherence`, `tool_call_accuracy`); one rubric's numbers meet 85% and 0.6. In sample: the final labels were adjudicated after the verdicts were seen, and the first-pass figures are blind to the judge but still in sample | `reports/judge-set1.md`, `.json`, `.html` |
 | Agreement matrix, agreement, kappa, the bar | Built for the code checks, and used by the judge report: `confusion`, `agreement`, `cohen_kappa`, `wilson`, `false_pass_rate`, `meets_bar` (85% and 0.6) | `scorer/stats.py` |
-| Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes are marked verified. The per-rubric label counts are above | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
+| Outputs to judge | 32 tickets; 21 do not match the expected outcome, but only 4 of the 32 expected outcomes were marked verified when this was written (5 since `A05`, ruling 35 in `docs/week-3-package.md`). The per-rubric label counts are above | `traces/v1/results.csv`, column `outcome_match`; `data/gold.json`, `expected.verified_by_beni` |
 | Failure codes to turn into rubrics | 12 codes, each listing the traces labelled with it; 11 have a plain-code check. For every one of the 32 traces the annotation's note was drafted by Claude and its verdict and edits made by the owner | `data/codes_v1.json`, `scorer/checks.py` (`CHECKS`), `data/annotation_provenance.csv` |
 | Reading every disagreement | Done for the code checks and for the judge on set 1 (41 rows across the three rubrics), in sample | `data/calibration_readings_v1.json`, `labels/set1-readings.json` |
 | Noise floor between identical runs | Three runs of the v1 configuration on Thu 29 Oct 2026 gave the same final answer on all 32 tickets; 21 of those 32 differ from `traces/v1` (14 Oct), whose `run_meta.json`, like theirs, records neither the Ollama version nor the model's digest | `traces/aa-1`, `traces/aa-2`, `traces/aa-3` |
@@ -69,7 +69,7 @@ python3 -c 'import json; from scorer import traces; f=lambda d: {x["case_id"]: j
 The course's rubrics are written for a grocery-support agent. Each maps onto this grader, which settles a ticket with four
 tools (`find_match`, `get_match_facts`, `lookup_rule`, `settle_ticket`) and returns graded legs with evidence. The judge
 sees the ticket, every tool call with its arguments and result, the final answer and the run status, and never the answer
-key, which holds only 4 keys the owner has verified (`data/gold.json`, `expected.verified_by_beni`).
+key, which held only 4 keys the owner had verified when this was written, and 5 since `A05` (`data/gold.json`, `expected.verified_by_beni`).
 
 | Course rubric | Here | One binary question | Failure codes it draws on |
 |---|---|---|---|
