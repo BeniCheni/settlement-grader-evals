@@ -298,7 +298,7 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
 |---|---|---|
 | The course materials | The lessons, the deck, both transcripts, the chat and the course repo are read | Nothing |
 | Threat model | Above, in brief | The five surfaces and the OWASP ten, each marked applies or not, with a reason, in the spec (step 1) |
-| Promptfoo | The exec provider passes the prompt as the first argument and two JSON strings after it, so the target reads only the first. `--no-cache`, `evaluateOptions.timeoutMs` (default none), `PROMPTFOO_DISABLE_TELEMETRY=1`, `PROMPTFOO_DISABLE_UPDATE=1` | On a fake target in step 2: quoting a long ticket as an argument; one-at-a-time running; timestamps or paths in its output; no traffic beyond `127.0.0.1` |
+| Promptfoo | The exec provider passes the prompt as the first argument and two JSON strings after it, so the target reads only the first, a case id, and no ticket is ever quoted. `--no-cache`. `maxConcurrency: 1` runs one case at a time. A passing cell holds no timestamp or machine path, the banner's eval id carries a timestamp, and an error cell can hold a machine path (PR #32's body and Pass 1). `PROMPTFOO_DISABLE_TELEMETRY=1` does not stop its telemetry event, so every run goes through ruling 32's block, and `timeoutMs` is 720000 (ruling 28) | At step 3: the block with a real Ollama, and a real ticket against that timeout |
 | Jev | Above | Whether the probabilities can be read without the SDK (step 9) |
 | Readings | | The CaMeL paper and OWASP's agentic list, read for the spec |
 
@@ -306,14 +306,14 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
 
 Each step is its own pull request, and step 1 is two. Who reviews follows who wrote it, as in Week 2: **code** goes through the
 full cycle (Cursor builds, Claude Code Pass 1, Codex Pass 2, Cursor merges on the owner's word); **docs and data** the PM seat
-writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16) and PR #31 (ruling 26). Runs happen in a fresh
+writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16), PR #31 (ruling 26) and PR #33 (ruling 33). Runs happen in a fresh
 clone on the owner's machine.
 
 | Step | Work | Seat | Done when |
 |---|---|---|---|
 | 1. Plan and spec | This file, then `docs/guardrail-spec.md`, each with Cursor's cold read. The build prompt follows the spec | PM | Both merged |
 | 2. The seams | `grade_ticket_guarded`, dispute follow-ups, the poison overlay, the exec target, a `promptfooconfig.yaml` skeleton. Fixtures only, no real run | Builder | A test shows that with no guardrail, overlay or follow-up, the requests to the model are byte for byte `main`'s |
-| 3. The baseline | P1 to P5 as data; `X01` corrected in `data/adversarial.json` (ruling 8); `promptfoo eval`; pass or fail per probe; every failing trace read | PM runs | Assignment 1's scan items hold |
+| 3. The baseline | P1 to P5 as data; `X01` corrected in `data/adversarial.json` (ruling 8); `promptfoo eval` under the block (ruling 32); pass or fail per probe; every failing trace read | PM runs | Assignment 1's scan items hold |
 | 4. Triage and attacks | The owner verifies one WIN key (ruling 7). `triage.md`, `attacks.md`, H1 to H5, H5's transcript. Severity: money wrong for the bettor's benefit, then other wrong results, then no money effect. Frequency: the share of a technique's variants that break it | PM drafts, owner places the cells | Assignment 1's list holds; G1 to G4 confirmed or changed |
 | 5. Frozen first | Thresholds as data; the dev slice and labels; G2's rubric; the held-out file's hash | Owner approves, PM drafts | Merged before any guardrail runs |
 | 6. Guardrails and scorer | G1 to G4; a scorer for all rates; `reports/guardrails.*`; CI runs the model-free part on the dev slice | Builder | The spec's list holds, proved on fixtures and the dev slice |
@@ -333,6 +333,20 @@ stretch questions are where time comes from.
 python3 -c 'import csv; xs=[float(r["wall_clock_s"]) for r in csv.DictReader(open("traces/ab-a/results.csv"))]; print(len(xs), round(sum(xs)/len(xs), 1))'
 ```
 
+**What PR #32's reviews left for later steps.** Each item reproduces as PR #32's Pass 1 and Pass 2 comments say, and none is fixed.
+
+- **Step 3's assertions** check `status` and `reason_code` as well as the final, because a follow-up that ends unparseable still
+  returns the last good final.
+- **Promptfoo's raw error cells** can hold a machine path, so none is pasted, and step 6's scan scrubs them.
+- **The lock file.** A run leaves `traces/<id>.lock` beside its directory. Git does not ignore it, and it is never committed.
+- **A timeout is not a kill.** At `timeoutMs` Promptfoo reports an error and leaves the ticket running, and the ticket can still
+  write its record, so the scan and the trace would disagree on that case.
+- **A crash between the target's two file replaces** can leave `n_cases` one behind the records, and a later call carries that on
+  with no warning. The spec excludes a crash in the middle of a write. If it happens, keep the run and use a new run id.
+- **Two questions go to the owner before step 6.** `_facts_seen` reads a poisoned fact as a real one, so a fact check on a poisoned
+  run can compare the final with the poison. And a follow-up that was never sent shows only by comparing the lengths of
+  `input.followups` and `output.final_by_turn`; `load_run`'s record has neither, so it could read as the grader resisting the attack.
+
 ### Validate
 
 | Claim | How it is proved |
@@ -347,6 +361,7 @@ python3 -c 'import csv; xs=[float(r["wall_clock_s"]) for r in csv.DictReader(ope
 | A difference is real | All rows in one session, with the Ollama version and digest recorded; deltas against the unguarded run use `paired_difference` |
 | Reports do not go stale | Byte-stable output and a test. Promptfoo's raw output is kept as a dated receipt, like a trace, if its timestamps cannot be removed |
 | Nothing private entered | The pattern sweep on every PR, with counts, patterns stated and no hit printed |
+| The run stays on this machine | Every Promptfoo run goes through ruling 32's block. Step 3 first shows an external connection denied and the local Ollama still answering, and stops if either fails |
 | A G4 catch is about the attack | The report counts it only when G4 fired a check that neither the twin nor the control fired in the same session, and names that check, by test |
 | The review ran | Pass 1 re-runs the commands, and re-runs the model where it can, as PR #26's did |
 
@@ -370,7 +385,7 @@ python3 -c 'import csv; xs=[float(r["wall_clock_s"]) for r in csv.DictReader(ope
 | 5, keys | Calling an attack's oracle "verified" | Every claim carries the count. No WIN key is verified (ruling 7), and `X01` disagrees between files (ruling 8) |
 | 6, claims | Payloads that imitate a tracker or balance claim trip the sweep's "account or balance claims" | Tagged synthetic, invented figures, a new payload names no real tracker, read and counted apart (ruling 13) |
 | 6, names | The sessions' students and instructor | None appear here or in the package |
-| Hosted | Promptfoo's `redteam` generation and any hosted run | `eval` only, telemetry off; Jev gets tracked and synthetic tickets only |
+| Hosted | Promptfoo's `redteam` generation and any hosted run, and its telemetry event, which the disable flag does not stop | `eval` only, under the network block (ruling 32); Jev gets tracked and synthetic tickets only |
 
 ## The package
 
@@ -395,11 +410,13 @@ packages/red-team-guardrails/
     reliability.svg       the diagram, generated
 ```
 
-## Rulings (the owner's, Tue 3 Nov 2026)
+## Rulings (the owner's, from Tue 3 Nov 2026)
 
 The owner approved the PM seat's recommendation on rulings 1 to 14 and added ruling 16. Rulings 17 to 19 came the same day, during
 Cursor's cold read, and they too are the PM seat's recommendation, approved. Rulings 20 to 25 came the same day, during Cursor's cold read of
-`docs/guardrail-spec.md`, on the same terms. Ruling 26 is the owner's own amendment, as ruling 16 was. Ruling 15 is open.
+`docs/guardrail-spec.md`, on the same terms. Ruling 26 is the owner's own amendment, as ruling 16 was. Rulings 27 to 30 came the same day, during
+PR #32's review, on the same terms: "Keep #32", then "Accept all". On ruling 31 the PM seat recommended yes and the owner sent that answer to
+Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Ruling 33 came the same day, on the PM seat's recommendation: "Cursor". Ruling 15 is open.
 
 | # | Question | Ruling | Why |
 |---|---|---|---|
@@ -429,6 +446,13 @@ Cursor's cold read, and they too are the PM seat's recommendation, approved. Rul
 | 24 | For G4 and a stack, do agreement and kappa use only the four cells, with that smaller n printed beside them? | Yes. Catch and over-block stay over every attack and every legitimate row | `already_held` and `right_to_block` fit no cell, and the bars above are out of 20 |
 | 25 | On G4's own column, apart from the stack, is an input block ignored? | Yes | So that column stays rulings 17 to 19. The stack keeps its rule above |
 | 26 | Who gives PR #31's cold read? | Cursor on Grok 4.7, in place of Codex | The owner's amendment. `AGENTS.md` names Codex for a Claude-authored PR; its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor raised the questions behind rulings 20 to 25, so this read is not independent of them |
+| 27 | Two Cursor sessions built step 2 separately. Which goes to review? | PR #32. The other stays local and unpushed | PR #32 was already on GitHub with a full body and green CI. This is no quality comparison: the PM seat could not see the other build, and comparing would have meant pushing it and paying for a second review |
+| 28 | What is `timeoutMs` in both Promptfoo configs? | 720000, twelve minutes | On a timeout Promptfoo reports an error while the ticket keeps running and still writes its record. With ruling 31, a ticket's worst case is 660 s, from `DEFAULT_BUDGETS`: `max_wall_clock_s` plus two attempts of `request_timeout_s`. That assumes each attempt stops within its timeout, and `urllib`'s timeout limits each blocking operation and not a whole response, so 720 s is an allowance and not a deadline |
+| 29 | On an output block with follow-ups, what do the root's list keys hold? | `output.final_by_turn` holds the held final alone, and the grader's list moves to `output.final_by_turn_withheld`. Neither key appears without follow-ups | Otherwise a blocked run shows the grader's answers beside the held final. `output.final` stays the last of `output.final_by_turn`. The `llm.generate` spans keep each step's completion, because they record each step |
+| 30 | Does the target refuse a second cases file into a run id that already has one? | Yes | One run names one cases file, and nothing in the spec needs two |
+| 31 | Once `max_wall_clock_s` has passed, does a completion send the next follow-up? | No. The run keeps its ending, `complete`, with that final, as a completion on the last turn of `max_turns` does | The spec says follow-ups run "under the same budgets". Before the fix, ten follow-ups on a fake clock reached `complete` at 3,938 s by Codex's probe and about 3,950 s by the PM seat's; neither probe is committed. Ending it as `WALL_CLOCK_LIMIT` would fail a settled answer, which no run without follow-ups does. The cost is the unsent follow-up under "What PR #32's reviews left for later steps" |
+| 32 | Accept or block Promptfoo's telemetry event? | Block, per run: `sandbox-exec` denying outbound connections except to `localhost`, and `npx --offline`. The command is in `docs/guardrail-spec.md` | This plan promised telemetry off and no traffic beyond `127.0.0.1`, and `PROMPTFOO_DISABLE_TELEMETRY=1` does not deliver that. Codex's capture on PR #32 saw one POST to `r.promptfoo.app` per run, with a persistent id and runtime details and, in that configuration, no ticket data. Real tickets pass through this process from step 3. The block edits no system file. It works on macOS only, and `sandbox-exec` is deprecated. If it fails at step 3, the PM seat stops and asks |
+| 33 | Who gives PR #33's cold read? | Cursor on Grok 4.7, in place of Codex | The owner wants to spend Cursor credit, and `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor built PR #32, and the archived prompts were written to it, so this read is not independent of them. This covers PR #33 only |
 
 ## Not verified
 
@@ -439,3 +463,7 @@ Cursor's cold read, and they too are the PM seat's recommendation, approved. Rul
 - H1 to H5 are ideas. None has been run, and the course asks that at least one really breaks the agent.
 - Ruling 19 has been run on the recorded twins only. No recorded run has a benign control, so its other half is first exercised at step 4.
 - Ollama did not answer on `127.0.0.1` while this was written, so the models' presence was not checked.
+- The telemetry capture behind ruling 32 is Codex's, on one machine and one configuration, and the PM seat did not re-run it. The PM seat
+  did run the block: the spec's command on `tests/fixtures/redteam/promptfooconfig.yaml` exits 0 with one test passed, an empty stderr
+  and one record, a `127.0.0.1` request goes through it, and an external connection is refused with errno 1. It has not run with a real
+  Ollama or a real ticket.

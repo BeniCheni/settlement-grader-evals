@@ -83,7 +83,7 @@ writes the same files with the same keys.
 - **`tool_runner`** is called wherever `call_tool` is called now, with the same `(name, args)`.
 - **`followups`** is a sequence of strings. When the run would finish `complete`, the next string is appended as a `user`
   message and the loop goes on, under the same budgets; the run finishes when none is left. A completion on the last turn of `max_turns` has no turn left, so the next string is not
-  sent and the run keeps that ending. Any other ending finishes the run as it does now. The root span gains `input.followups` and `output.final_by_turn` (a JSON list) when `followups` is not empty.
+  sent and the run keeps that ending. A completion after `max_wall_clock_s` has passed is the same (ruling 31). Any other ending finishes the run as it does now. The root span gains `input.followups` and `output.final_by_turn` (a JSON list) when `followups` is not empty.
   `output.final` is the last final. Neither key appears otherwise.
 
 ### Case fields (contract)
@@ -116,7 +116,9 @@ and each callable returns `(blocked, reason)`.
   `ticket_result: "NEEDS_HUMAN"`, `net: null`, one `NEEDS_HUMAN` leg per ticket leg, and `notes` and each `evidence` reading
   `held for human review`. The held final names no guardrail, pattern or field, because a refusal tells an attacker nothing.
 - **The trace** carries what the final does not: the root span has `guardrail.decisions`, a JSON list of `{"guardrail", "side",
-  "blocked", "reason", "latency_ms"}`, and on an output block `output.final_withheld`, the grader's own final. A root span with
+  "blocked", "reason", "latency_ms"}`, and on an output block `output.final_withheld`, the grader's own final. With follow-ups, an output block
+  leaves `output.final_by_turn` holding the held final alone and moves the grader's list to `output.final_by_turn_withheld` (ruling 29), so `output.final` is
+  still the last of `output.final_by_turn`. With follow-ups supplied, an input block has neither list key and no `input.followups`, because `grade_ticket` never ran. A root span with
   `run.status` of `blocked` is not an error span.
 - **A guardrail that raises** counts as a block, with the reason `guardrail error` and no traceback in the final, because a
   guardrail that fails must fail closed. The trace says which.
@@ -132,16 +134,21 @@ the case id as its first positional argument and ignores the two JSON arguments 
 no ticket is ever quoted through a shell. It prints exactly one line to stdout, a JSON object with `status`, `reason_code`, `final`,
 `final_text` and `tools` (each `name` and `args`). The run directory is `traces/<REDTEAM_RUN_ID>/`; without that variable the command
 exits with status 2. Each call adds its spans to `settlement-traces.json` in a way that survives a crash between calls, and `load_run`
-then reads the directory as usual. `run_meta.json` has the same keys as `run_eval.py`'s. `--fixture FILE` replays canned chat replies,
+then reads the directory as usual. `run_meta.json` has the same keys as `run_eval.py`'s. A call that names a different cases file from the run's own is refused with
+status 2 and writes nothing (ruling 30). `--fixture FILE` replays canned chat replies,
 so that `promptfoo eval` can be proved, by the builder and the reviewers, without a model.
 
 `promptfooconfig.yaml` sits at the repository root, as the course's command expects. It names the exec target, sets one prompt,
-`{{case_id}}`, and gives each probe a test with `javascript` or `not-contains` assertions on the printed JSON. **No `llm-rubric`:** a test
-fails if the word appears. The documented run is:
+`{{case_id}}`, runs one case at a time with `maxConcurrency: 1`, sets `timeoutMs` to 720000 (ruling 28), and gives each probe a test with `javascript` or `not-contains` assertions on the printed JSON. **No `llm-rubric`:** a test
+fails if the word appears. The documented run, under the block of ruling 32, is:
 
 ```bash
-PROMPTFOO_DISABLE_TELEMETRY=1 PROMPTFOO_DISABLE_UPDATE=1 REDTEAM_RUN_ID=rt-baseline npx promptfoo@0.124.1 eval --no-cache
+PROMPTFOO_DISABLE_TELEMETRY=1 PROMPTFOO_DISABLE_UPDATE=1 REDTEAM_RUN_ID=rt-baseline sandbox-exec -p '(version 1)(allow default)(deny network-outbound)(allow network-outbound (remote ip "localhost:*"))' npx --offline --yes promptfoo@0.124.1 eval --no-cache
 ```
+
+`sandbox-exec` denies every outbound connection except to `localhost`, which keeps Ollama reachable and stops the telemetry event that
+the first flag does not stop. It works on macOS only and edits no system file. `--offline` skips the registry check, so the package must
+already be in npm's cache: without it, the command exits with `ENOTCACHED` and reaches nothing.
 
 ### What the step 2 PR must show
 
