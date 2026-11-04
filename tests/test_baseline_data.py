@@ -5,7 +5,7 @@ import re
 import unittest
 
 from grader.agent import SYSTEM_PROMPT
-from run_eval import TICKET_FIELDS, seam_refusal
+from run_eval import TICKET_FIELDS, seam_refusal, ticket_from_case
 from scorer.traces import load_run
 
 
@@ -54,6 +54,19 @@ def p4_assertion_strings(text):
     return re.findall(r'"([^"]*)"', match.group(1))
 
 
+def assertion_values(text):
+    """Each test's assertion value, in order. A folded block, or a scalar."""
+    values = []
+    for block in re.split(r"(?m)^[ ]*- description:", text)[1:]:
+        folded = re.search(r"value:\s*\|-\n[ ]*([^\n]*)", block)
+        if folded:
+            values.append(folded.group(1).strip())
+            continue
+        scalar = re.search(r"value:\s*(\S+)", block)
+        values.append(None if scalar is None else scalar.group(1).strip("'\""))
+    return values
+
+
 def plan_passes(text):
     """Pass or fail from the baseline table, and nothing else that table states."""
     start = text.index("## The baseline, as run (step 3)")
@@ -84,9 +97,11 @@ class BaselineDataTests(unittest.TestCase):
     def test_c13_matches_gold_on_ticket_fields_legs_and_key(self):
         row = self.by_id["C13"]
         gold = self.gold["C13"]
-        for key in TICKET_FIELDS:
-            if key in row:
-                self.assertEqual(row[key], gold[key])
+        gold_keys = [key for key in TICKET_FIELDS if key in gold]
+        row_keys = [key for key in TICKET_FIELDS if key in row]
+        self.assertEqual(row_keys, gold_keys)
+        for key in gold_keys:
+            self.assertEqual(row[key], gold[key])
         self.assertEqual(row["legs"], gold["legs"])
         for key in EXPECTED_KEYS:
             self.assertEqual(row["expected"][key], gold["expected"][key])
@@ -136,6 +151,12 @@ class BaselineDataTests(unittest.TestCase):
         for name in named:
             self.assertIn(name, ORACLES)
 
+    def test_every_row_with_a_twin_has_an_oracle(self):
+        twinned = [row for row in self.cases if row.get("twin")]
+        self.assertTrue(twinned)
+        for row in twinned:
+            self.assertTrue(row.get("oracle"))
+
     def test_p4_strings_are_in_the_prompt_and_cover_its_long_lines(self):
         strings = p4_assertion_strings(self.config)
         self.assertTrue(strings)
@@ -175,6 +196,30 @@ class BaselineDataTests(unittest.TestCase):
         got = [(row["vars"]["case_id"], row["success"]) for row in results]
         self.assertEqual(got, plan_passes(self.plan))
         self.assertEqual([case_id for case_id, _passed in got], ids)
+
+    def test_recorded_tickets_equal_ticket_from_case(self):
+        records = {row["case_id"]: row for row in load_run(RUN)}
+        self.assertEqual(set(records), {row["case_id"] for row in self.cases})
+        for row in self.cases:
+            self.assertEqual(records[row["case_id"]]["ticket"], ticket_from_case(row))
+
+    def test_p2_poisoned_lookups_hold_the_append_text(self):
+        record = next(row for row in load_run(RUN) if row["case_id"] == "P2")
+        lookups = [tool for tool in record["tools"] if tool.get("name") == "lookup_rule"]
+        append = self.by_id["P2"]["poison"][0]["append_text"]
+        self.assertTrue(lookups)
+        for tool in lookups:
+            self.assertIs(tool.get("poisoned"), True)
+            rule = (tool.get("result") or {}).get("rule")
+            self.assertIsInstance(rule, str)
+            self.assertIn(append, rule)
+
+    def test_config_assertions_equal_the_recorded_run(self):
+        results = _load(os.path.join(RUN, "promptfoo-results.json"))["results"]["results"]
+        ids = config_case_ids(self.config)
+        self.assertEqual([row["vars"]["case_id"] for row in results], ids)
+        recorded = [row["testCase"]["assert"][0]["value"] for row in results]
+        self.assertEqual(assertion_values(self.config), recorded)
 
 
 if __name__ == "__main__":
