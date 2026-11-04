@@ -134,6 +134,38 @@ class FollowupTests(unittest.TestCase):
         self.assertEqual(json.loads(attrs["input.followups"]), ["not sent", "also not"])
         self.assertEqual(len(json.loads(attrs["output.final_by_turn"])), 1)
 
+    def test_completion_after_the_wall_clock_budget_keeps_its_ending(self):
+        for elapsed, expected_requests in ((299, 3), (300, 3), (301, 2)):
+            with self.subTest(elapsed=elapsed):
+                clock = [0]
+                seen = []
+
+                def chat(payload, timeout):
+                    seen.append(json.loads(json.dumps(payload)))
+                    if len(seen) == 1:
+                        return _settle()
+                    clock[0] = elapsed
+                    return _final(FINAL_A if len(seen) == 2 else FINAL_B)
+
+                tracer = Tracer("settlement-grader")
+                with mock.patch("grader.agent._chat", chat), mock.patch(
+                        "grader.agent.time.time", side_effect=lambda: clock[0]):
+                    result = grade_ticket({"legs": [{"leg": 1}]}, tracer,
+                                          followups=("next",))
+                attrs = next(span for span in tracer.spans
+                             if "parentSpanId" not in span)["_attrs"]
+                self.assertEqual(len(seen), expected_requests)
+                self.assertEqual(result["status"], "complete")
+                self.assertIsNone(result["reason_code"])
+                self.assertEqual(result["final"]["notes"],
+                                 "a" if elapsed > 300 else "b")
+                self.assertEqual(json.loads(attrs["input.followups"]), ["next"])
+                finals = json.loads(attrs["output.final_by_turn"])
+                self.assertEqual(len(finals), expected_requests - 1)
+                self.assertEqual(json.loads(attrs["output.final"]), finals[-1])
+                if elapsed > 300:
+                    self.assertNotIn("next", json.dumps(seen))
+
     def test_any_other_ending_does_not_send_a_followup(self):
         seen, result, attrs = _run(
             (_final(FINAL_A),),

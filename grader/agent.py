@@ -177,7 +177,8 @@ def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, r
                 return finish("incomplete", "UNPARSEABLE_FINAL", final_text=text)
             if not tool_counts.get("settle_ticket"):
                 return finish("incomplete", "PREMATURE_FINAL", final=final, final_text=text)
-            if pending and turn < budgets["max_turns"]:
+            if (pending and turn < budgets["max_turns"]
+                    and time.time() - started <= budgets["max_wall_clock_s"]):
                 seen_finals.append(final)
                 messages.append({"role": "user", "content": pending.pop(0)})
                 continue
