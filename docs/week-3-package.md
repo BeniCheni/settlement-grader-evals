@@ -309,7 +309,7 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
 
 Each step is its own pull request, and step 1 is two. Who reviews follows who wrote it, as in Week 2: **code** goes through the
 full cycle (Cursor builds, Claude Code Pass 1, Codex Pass 2, Cursor merges on the owner's word); **docs and data** the PM seat
-writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16), PR #31 (ruling 26), PR #33 (ruling 33) and PR #34 (ruling 34). Runs happen in a fresh
+writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16), PR #31 (ruling 26), PR #33 (ruling 33), PR #34 (ruling 34) and PR #35 (ruling 37). Runs happen in a fresh
 clone on the owner's machine.
 
 | Step | Work | Seat | Done when |
@@ -493,7 +493,7 @@ The owner approved the PM seat's recommendation on rulings 1 to 14 and added rul
 Cursor's cold read, and they too are the PM seat's recommendation, approved. Rulings 20 to 25 came the same day, during Cursor's cold read of
 `docs/guardrail-spec.md`, on the same terms. Ruling 26 is the owner's own amendment, as ruling 16 was. Rulings 27 to 30 came the same day, during
 PR #32's review, on the same terms: "Keep #32", then "Accept all". On ruling 31 the PM seat recommended yes and the owner sent that answer to
-Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Rulings 33 and 34 came the same day, on the PM seat's recommendation, each as one word: "Cursor". Ruling 35 came the same day, also on that recommendation: "Yes, it won". Ruling 36 came the same day, on the PM seat's proposal: "Accept the cells". Ruling 15 is open.
+Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Rulings 33 and 34 came the same day, on the PM seat's recommendation, each as one word: "Cursor". Ruling 35 came the same day, also on that recommendation: "Yes, it won". Ruling 36 came the same day, on the PM seat's proposal: "Accept the cells". Ruling 37 came the same day, on the PM seat's recommendation: "Cursor". Ruling 15 is open.
 
 | # | Question | Ruling | Why |
 |---|---|---|---|
@@ -533,6 +533,7 @@ Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's captu
 | 34 | Who gives PR #34's cold read? | Cursor on Grok 4.7, in place of Codex | `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR's data or docs. Cursor built the seams this run goes through, so this read is not independent of them. The test it writes to replace a pinned line gets the PM seat's read before it lands. This covers PR #34 only |
 | 35 | Which WIN key does the owner verify for H2, under ruling 7? | `A05`, whose slip shows a win. The result only, not the amounts | One leg, a plain market and a boost stated on the ticket. Hard Rule 5: `data/gold.json` now counts 5 verified keys, by the command under "Where this repo stands" |
 | 36 | Where does each failing trace sit in Assignment 1's matrix? | As `packages/red-team-guardrails/assignment-1/triage.md` places them. H2, H5 and the six rows whose final says WIN with `incomplete` status sit in severity 1, and P5 in severity 2 | `final` still says WIN on those six, so a reader of `final` alone would see a win, even though the harness flags the run. Most techniques ran once, so the columns record what happened and not how often |
+| 37 | Who gives PR #35's cold read? | Cursor on Grok 4.7, in place of Codex | `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR's data or docs. Cursor built the seams this run goes through and wrote the baseline's test, so this read is not independent of them. The test it writes here gets the PM seat's read before it lands. This covers PR #35 only |
 
 ## Not verified
 
