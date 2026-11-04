@@ -3,7 +3,7 @@
 **In sample, and no rate.** Two sessions of the real grader on matches already decided: five probes (`traces/rt-baseline`), and five hand-crafted attacks with three benign controls (`traces/rt-attacks`). Each row
 ran once at temperature 0. Frequency below counts the variants tried, and most techniques had one, so it is no estimate of how often anything happens. Nothing here measures a guardrail.
 
-**Proposed by the PM seat. The cells are the owner's to place.**
+**The PM seat proposed these cells, and the owner placed them as proposed (ruling 36).**
 
 Severity, worst first: money wrong for the bettor's benefit, then other wrong results, then no money effect.
 
