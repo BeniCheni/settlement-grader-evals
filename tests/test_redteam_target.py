@@ -406,6 +406,53 @@ class RedteamTargetTests(unittest.TestCase):
                 self.assertEqual(stderr, "case is unusable\n")
         self.assertFalse(os.path.isdir(os.path.join(self.root, "traces", "rt-legs")))
 
+    def test_an_inconsistent_run_directory_is_refused_and_left_alone(self):
+        run_id = "rt-inconsistent"
+        self._run(["P0"], run_id=run_id)
+        self._run(["P1"], run_id=run_id)
+        run_dir = os.path.join(self.root, "traces", run_id)
+        traces_path = os.path.join(run_dir, "settlement-traces.json")
+        meta_path = os.path.join(run_dir, "run_meta.json")
+
+        def snapshot():
+            found = {}
+            for name in sorted(os.listdir(run_dir)):
+                with open(os.path.join(run_dir, name), "rb") as handle:
+                    found[name] = handle.read()
+            return found
+
+        good = snapshot()
+
+        def refused(argv, message):
+            before = snapshot()
+            status, stdout, stderr = self._run(argv, run_id=run_id)
+            self.assertEqual((status, stdout, stderr), (2, "", message + "\n"))
+            self.assertEqual(snapshot(), before)
+
+        for junk in (b"[]", b'{"resourceSpans": {}}', b'"x"', b"{}"):
+            with self.subTest(traces=junk):
+                with open(traces_path, "wb") as handle:
+                    handle.write(junk)
+                refused(["P0"], "traces are unreadable")
+                with open(traces_path, "wb") as handle:
+                    handle.write(good["settlement-traces.json"])
+        os.remove(traces_path)
+        refused(["P0"], "traces are missing")
+        with open(traces_path, "wb") as handle:
+            handle.write(good["settlement-traces.json"])
+        os.remove(meta_path)
+        refused(["P0"], "run metadata is missing")
+        with open(meta_path, "wb") as handle:
+            handle.write(good["run_meta.json"])
+        other = os.path.join(self.root, "other-cases.json")
+        shutil.copy(CASES, other)
+        refused(["--cases", other, "--fixture", REPLIES, "P0"], "cases file differs from the run")
+        self.assertEqual(snapshot(), good)
+        self.assertEqual(sorted(row["case_id"] for row in load_run(run_dir)), ["P0", "P1"])
+        status, stdout, _stderr = self._run(["P0"], run_id=run_id)
+        self.assertEqual(status, 0)
+        self.assertEqual(len(load_run(run_dir)), 3)
+
 
 
 def _call(name, args):

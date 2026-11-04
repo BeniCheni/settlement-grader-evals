@@ -211,10 +211,14 @@ def _atomic(directory, name, payload, indent):
         raise
 
 
+def _cases_relpath(root, cases_path):
+    return os.path.relpath(os.path.abspath(cases_path), root)
+
+
 def _fresh_meta(root, run_id, cases_path, setup, matched):
     return {
         "run_id": run_id,
-        "cases_file": os.path.relpath(os.path.abspath(cases_path), root),
+        "cases_file": _cases_relpath(root, cases_path),
         "model": _MODEL,
         "ollama_version": setup[0],
         "model_digest": setup[1],
@@ -230,7 +234,9 @@ def commit_call(root, run_id, cases_path, setup, document, matched):
     """Append this call's spans. A different setup writes nothing.
 
     An exclusive lock covers the read and the replace. The replace is atomic.
-    Returns an error string, or None.
+    A directory that holds one of the two files without the other, a traces
+    file that is not an OTLP document, or a call naming a different cases
+    file is refused and left as it is. Returns an error string, or None.
     """
     run_dir = os.path.join(root, "traces", run_id)
     lock = _Lock(_lock_path(root, run_id))
@@ -249,6 +255,8 @@ def commit_call(root, run_id, cases_path, setup, document, matched):
                     or meta.get("model_digest") != setup[1]
                     or meta.get("model") != _MODEL):
                 return "setup differs from the run"
+            if meta.get("cases_file") != _cases_relpath(root, cases_path):
+                return "cases file differs from the run"
             try:
                 n_cases = int(meta.get("n_cases") or 0)
                 matches = int(meta.get("outcome_matches") or 0)
@@ -256,23 +264,21 @@ def commit_call(root, run_id, cases_path, setup, document, matched):
                 return "run metadata is unreadable"
             meta["n_cases"] = n_cases + 1
             meta["outcome_matches"] = matches + (1 if matched else 0)
-            existing = {"resourceSpans": []}
-            if os.path.isfile(traces_path):
-                try:
-                    with open(traces_path, encoding="utf-8") as handle:
-                        existing = json.load(handle)
-                except (OSError, UnicodeError, json.JSONDecodeError):
-                    return "traces are unreadable"
-            if not isinstance(existing, dict):
-                existing = {"resourceSpans": []}
-            spans = existing.get("resourceSpans")
-            if not isinstance(spans, list):
-                spans = []
-            spans.extend(document.get("resourceSpans") or [])
-            existing["resourceSpans"] = spans
+            if not os.path.isfile(traces_path):
+                return "traces are missing"
+            try:
+                with open(traces_path, encoding="utf-8") as handle:
+                    existing = json.load(handle)
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                return "traces are unreadable"
+            if not isinstance(existing, dict) or not isinstance(existing.get("resourceSpans"), list):
+                return "traces are unreadable"
+            existing["resourceSpans"].extend(document.get("resourceSpans") or [])
             _atomic(run_dir, "settlement-traces.json", existing, None)
             _atomic(run_dir, "run_meta.json", meta, 1)
             return None
+        if os.path.isfile(traces_path):
+            return "run metadata is missing"
         meta = _fresh_meta(root, run_id, cases_path, setup, matched)
         _atomic(run_dir, "settlement-traces.json", document, None)
         _atomic(run_dir, "run_meta.json", meta, 1)
