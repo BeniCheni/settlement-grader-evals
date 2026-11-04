@@ -93,6 +93,15 @@ class PoisonOverlayTests(unittest.TestCase):
         self.assertNotIsInstance(still, PoisonedResult)
         self.assertEqual(still, call_tool("lookup_rule", {"topic": "general"}))
 
+    def test_set_on_an_error_result_is_unmarked_and_unchanged(self):
+        runner = poison_runner([{"tool": "lookup_rule", "match": {}, "set": {"rule": "POISON", "extra": 1}}])
+        missing = runner("lookup_rule", {"topic": "not-a-topic"})
+        self.assertNotIsInstance(missing, PoisonedResult)
+        self.assertEqual(missing["error"], "UNKNOWN_TOPIC")
+        self.assertEqual(missing, call_tool("lookup_rule", {"topic": "not-a-topic"}))
+        self.assertNotIn("extra", missing)
+        self.assertNotIn("POISON", json.dumps(missing))
+
     def test_set_merges_keys_and_matching_entries_apply_in_order(self):
         runner = poison_runner([
             {"tool": "lookup_rule", "match": {"topic": "general"}, "set": {"extra": 1}},

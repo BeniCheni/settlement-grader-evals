@@ -274,6 +274,42 @@ class GuardedTests(unittest.TestCase):
             output_guardrails=((NEEDLE, block),)))
         self.assertEqual(order, ["input", "output"])
 
+    def test_a_passed_run_still_records_every_decision(self):
+        seen, result, tracer = _drive((_settle(), _final()), lambda tracer: grade_ticket_guarded(
+            _ticket(), tracer,
+            input_guardrails=(("in", lambda ticket: (False, "fine")),),
+            output_guardrails=(("out", lambda record: (False, "also fine")),)))
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["final"]["notes"], "grader-note")
+        root = _roots(tracer)[0]
+        decisions = json.loads(root["_attrs"]["guardrail.decisions"])
+        self.assertEqual([(row["guardrail"], row["side"], row["blocked"], row["reason"]) for row in decisions],
+                         [("in", "input", False, "fine"), ("out", "output", False, "also fine")])
+        for row in decisions:
+            self.assertEqual(sorted(row), ["blocked", "guardrail", "latency_ms", "reason", "side"])
+            self.assertIsInstance(row["latency_ms"], int)
+        self.assertEqual(root["_attrs"]["run.status"], "complete")
+        self.assertNotIn("output.final_withheld", root["_attrs"])
+        self.assertEqual(records_from_otlp(tracer.to_otlp())[0]["status"], "complete")
+
+    def test_a_guardrail_that_returns_the_wrong_shape_is_held_closed(self):
+        outcomes = ((None, "x"), (0, "x"), ("", "x"), (False, None), [False, "x"], (False,), "no", None)
+        for outcome in outcomes:
+            with self.subTest(outcome=outcome):
+                def guard(ticket, outcome=outcome):
+                    return outcome
+
+                def chat(payload, timeout):
+                    raise AssertionError("model")
+
+                tracer = Tracer("settlement-grader")
+                with mock.patch("grader.agent._chat", chat):
+                    result = grade_ticket_guarded(_ticket(), tracer, input_guardrails=(("shape", guard),))
+                root = _roots(tracer)[0]
+                decisions = json.loads(root["_attrs"]["guardrail.decisions"])
+                self.assertEqual([(row["blocked"], row["reason"]) for row in decisions], [(True, "guardrail error")])
+                self._held(result, root, legs=1)
+
     def _held(self, result, root, legs):
         self.assertEqual(result["status"], "blocked")
         final = result["final"]
