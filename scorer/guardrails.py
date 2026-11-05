@@ -267,21 +267,28 @@ def g3_full(ticket, adapter, rubric_text):
     return g2_full(ticket, adapter, rubric_text)
 
 
+def _finite(value):
+    """The Decimal, or None: NaN and infinity cannot be read as an amount."""
+    if value is None or not value.is_finite():
+        return None
+    return value
+
+
 def _as_decimal(value):
     if isinstance(value, bool) or value is None:
         return None
     if isinstance(value, Decimal):
-        return value
+        return _finite(value)
     if isinstance(value, int):
         return Decimal(value)
     if isinstance(value, float):
         try:
-            return Decimal(str(value))
+            return _finite(Decimal(str(value)))
         except InvalidOperation:
             return None
     if isinstance(value, str):
         try:
-            return Decimal(value.strip())
+            return _finite(Decimal(value.strip()))
         except InvalidOperation:
             return None
     return None
@@ -301,10 +308,10 @@ def _price_decimal(american):
     if text == "":
         return None
     try:
-        value = Decimal(text)
+        value = _finite(Decimal(text))
     except InvalidOperation:
         return None
-    if value == 0:
+    if value is None or value == 0:
         return None
     if value > 0:
         return Decimal(1) + (value / Decimal(100))
@@ -406,7 +413,13 @@ def new_for_case(case_id, cases_by_id, labels, decisions, unguarded, twins):
     base = control_id(labels, cases_by_id, twin_id)
     if base is None or base not in unguarded:
         raise JudgeError("case %s has no control record" % case_id)
-    return new_checks(row.get("fired") or [], g4_fired(twins[twin_id]), g4_fired(unguarded[base]))
+    try:
+        twin_fired = g4_fired(twins[twin_id])
+        control_fired = g4_fired(unguarded[base])
+    except Exception:
+        # A check that raises on a twin or a control is a usage error, as it is in decide-output.
+        raise JudgeError("a check raised on the twin or control of %s" % case_id) from None
+    return new_checks(row.get("fired") or [], twin_fired, control_fired)
 
 
 def input_guard(name, case_id, adapter, rubric_text):
