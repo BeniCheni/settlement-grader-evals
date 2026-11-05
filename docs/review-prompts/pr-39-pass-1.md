@@ -1,0 +1,56 @@
+# PR #39 — Pass 1: the cold read, by Cursor (TZ=America/New_York)
+
+The text delivered Thu 5 Nov 2026, as archived by the PM seat (Claude) on Thu 5 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
+
+---
+
+/grader-pr-review 39 --pass 1
+
+PR #39 — Pass 1 (cold review, fast-track): rulings 44 to 48, PR #38's corrections in step 6's spec, and the archive, in github.com/BeniCheni/settlement-grader-evals
+
+You are Cursor on Grok 4.7 at High effort, in a session started directly in a fresh clone, on the local branch cursor/pr39-review, which starts at the PR's head. Git records two commits on this PR, authored as Claude, and you wrote neither. This brief names the round a fast-track: one cold review by you takes the place of Passes 1 to 3, as AGENTS.md "How work moves" item 5 says, on the owner's ruling 48, which this PR records. AGENTS.md outranks this prompt on process. Read .claude/skills/grader-pr-review/SKILL.md and follow its method. A claim you could not re-run is listed as not verified.
+
+YOUR PART IN THIS TEXT. Cursor built the first four commits of PR #38, the code these docs describe, and Claude and Codex then changed it, so this read is not independent of that build. You wrote none of these docs. Say so in your comment, and check each claim against the files and commands, never against what you remember of them. Read as the seat that has to run steps 7 and 8 from this text: anything it would have to guess is a finding.
+
+ENVIRONMENT. The working directory must be the fresh clone itself and not a worktree of any other checkout. Say what it is in your environment line and confirm private/ and data/espn_cache/ are absent. If either is present, stop at once, say so, and change nothing. Never print or derive the scale constant, never compute a ratio between a published amount and anything, and write no home-directory path, absolute or tilde, in anything you commit or post.
+
+RUN NO MODEL. Start no Ollama server, run no real ticket and run no Promptfoo: a real run with other apps open has already frozen this machine once. Everything here is proved by reading, on a fake _chat, the fake adapter, invented text, or runs already committed under traces/, in temporary extractions and never in your working tree. Do not run G1, suspicious, the payout check or anything else of the guardrails over the whole of data/gold.json, data/adversarial.json or a run holding every ticket, such as traces/v1, traces/aa-1 or traces/ab-a. Run them only on data/redteam/dev-cases.json, invented text, and traces/rt-baseline, traces/rt-attacks and traces/rt-base-check. Compute, print and post no payout difference, residual or count at any tolerance.
+
+THE OWNER'S RULINGS, named as the owner's: rulings 1 to 43 are on main in docs/week-3-package.md. Rulings 44 to 48 are what this PR adds, stated to you here, each the PM's recommendation, chosen by the owner in a dialog. On Wed 4 Nov 2026: ruling 44 is "G1 only", on which guardrails read the six other string fields. Ruling 45 is "Whitespace only", on what G1 normalises between words. Ruling 46 is "Yes", on removing four one-row phrases. Ruling 47 is "List", on what report --guarded does with a row where only G4 differs. On Thu 5 Nov 2026: ruling 48 is "Cursor", on who gives this read. You cannot see where these were made, so report them as stated. Ruling 15 is open and blocks nothing here. Changing a ruling's answer is not a fix. A tag and a release number stay the owner's: create none.
+
+WHAT IS WITHHELD. The held-out slice's three files are outside every checkout, and data/redteam/reserve.sha256 is all of it that is in the repo. Do not ask for them, and do not try to work out their contents. Nothing in this read needs them.
+
+STATE, as the PM read it on Thu 5 Nov 2026 at about 10:00 EST (re-check all of it). PR #39 is an open draft, head 09fd36455e46127ef631a18902862783f4b45a62 on docs/step-6-record, tree ac55c0d00ff862538983f01c449330f383cd9907, base main at ff673a07b833c5ef75870f1bff9354184134936f, which is the branch's fork point. Two commits: 4f23a64 the rulings and the spec, 09fd364 the archive. Nine files, 342 insertions, 21 deletions: docs/guardrail-spec.md, docs/week-3-package.md, docs/cursor-prompts/guardrails-build.md and six docs/review-prompts/ files. Take the head and CI state from GitHub, never from this prompt. The PR body is a claim, not a source.
+
+WHAT TO CHECK, each re-derived and never taken from this prompt or the PR body.
+
+(a) Every amended sentence against the code. Read git diff origin/main...HEAD -- docs/guardrail-spec.md hunk by hunk, then scorer/guardrails.py, scorer/traces.py, run_eval.py and tests/test_guardrails.py at this tree. For each sentence, name the function and the test that holds it, and run the test or a probe on invented inputs. In particular: G1's fields and the order of its normalisation; which fields suspicious and render_free_text read; what a thresholds file must hold; a non-finite stake, payout or price; decide-output on a run with other rows, a missing record, a repeated id and a blocked decided row; a check raising on a twin or a control; a control in two slices and any other repeated id; the catch lines for an attack and a regression row; every outcome of report --guarded, including a row blocked on its input side; the stale test with its file absent, naming one output and with one byte changed; a stack's reading key, G4's class and an empty text; the proof that no guardrail reads a label; the reserve-cases stale test and the missing-spec refusal. A sentence the code does not hold is a high finding.
+
+(b) What still passes G1. Run the PR body's command, then try at least two invented strings of your own for each item on the list. Is any item wrong? Does anything else pass that the list omits? Do the spec's list and the plan's list agree?
+
+(c) The rulings and the plan. Rulings 44 to 48 in the table and the sentence above it, PR #39 in the Build paragraph, the G1 row in the guardrails table, "What PR #38's reviews left for later steps" and "Not verified". Test each ruling's stated reason: that two of the six fields are prices, that the ticket_result pattern holds an underscore, that G1's committed decisions on dev did not change (git diff --stat 1399b14 86edeee -- judgments, after fetching cursor/guardrails), and that no number is computed from the guarded run. Read PR #38's comments and say whether any ruling misdescribes the finding behind it.
+
+(d) The PR body's corrections table. For each row, is "What the spec said" true of docs/guardrail-spec.md on origin/main, and is "What the code does" true at this tree?
+
+(e) Stale lines. Search both documents, the README and the package for what these changes could leave wrong: zero-width, free-text field, passes and says so, --guarded, a blocked record, the labels file. Is every name in the amendment on this tree?
+
+(f) The archive. The text under each "---" must not change. That each equals what was delivered is the PM's statement, by a script over the transcript, and you cannot check it: report it as the PM's. You can check each header against GitHub: guardrails-build.md's four Cursor, nine Claude and five Codex commits, head 1399b14, the squash at ff673a0 pinned to 86edeee, and pr-38-pass-3.md's steps against what PR #38's merge did. Name any archived text that states a fact about the withheld rows beyond what main already says.
+
+(g) Steps 7 and 8 from this text. What does the seat running them have to do that neither document says: which files step 7's PR commits and from where, what runs next, what step 8 writes and commits, which readings key to use, what the ship report has to state? List anything it would have to guess, as a finding or as a question answerable in one word.
+
+(h) Scope and privacy. git diff --name-only origin/main...HEAD must list only docs/. Sweep the added lines, the two commit bodies, the PR body and your own comment by pattern: bet ids, e-mail addresses with agent identities apart, home paths, private folder names, balance or account words, dollar figures, digit runs of six or more, and names beyond the owner and licence notices. Counts only, patterns stated, no hit printed. Run the suite and python3 -m compileall -q . on Python 3.9 and 3.14 with real counts, one interpreter at a time.
+
+FIX POLICY. Finish the whole audit before you push anything. A wording preference with nothing wrong in it is not a fix: list it and leave it. You may fix only a wrong figure, name, path or claim in docs/guardrail-spec.md or docs/week-3-package.md, in one push at the end, authored as Cursor via per-commit git -c user.name=Cursor -c user.email=cursoragent@cursor.com commit with the trailer your harness gives you, and a message saying what was wrong, how you proved it and how you verified it. Push only with git push origin HEAD:docs/step-6-record after git fetch origin shows the remote tip unmoved. Do not change code or tests, what a contract requires, a ruling's answer, the text under an archive's "---", or anything outside those two documents. If the code looks wrong and not the sentence, that goes to the PM as a finding.
+
+POST ONE PR COMMENT in the shape of the skill's pr-comment.md, saying whether you wrote to the PR branch and the SHAs, with your verdict, findings, killed findings, the reproductions, the sweep, deliberately not done and the commands as run, and any questions answerable in one word. Report the PM's statement on the archive as the PM's.
+
+THEN, ONE OF TWO. If your verdict is mergeable, or mergeable after only the fixes above, and no finding asks to change a contract, nothing is contested, verify is green at the tip and the gate in AGENTS.md holds, land it: run gh pr ready 39 --repo BeniCheni/settlement-grader-evals, then squash-merge pinned to the head you reviewed, with gh pr merge 39 --repo BeniCheni/settlement-grader-evals --squash --match-head-commit <that head> --subject "docs: record rulings 44 to 48 and PR #38's corrections" --body with exactly these lines:
+
+Record the owner's rulings 44 to 48 and write PR #38's corrections into step 6's contracts. G1 reads every string the model reads and collapses whitespace, four one-row phrases leave it, report --guarded lists rows where only G4 differs, decide-output reads one run for every slice, and a control in two slices is one row in the union. Say what those reviews leave for steps 7 and 8, including what still passes G1. Cursor gives the cold read (ruling 48). Archive step 6's build prompt and the briefs of PRs #37 and #38. No code, data, label, rubric, threshold, config or trace changes.
+
+Co-authored-by: Claude <noreply@anthropic.com>
+Co-authored-by: Cursor <cursoragent@cursor.com>
+
+Otherwise stop, do not mark the PR ready and do not merge. Report your findings and questions, and the PM will answer them. Either way, create no tag and leave the branch and the clone for the owner's word.
+
+REPORT BACK. The head you reviewed, the verify run id, the comment's URL, and if you landed: main's new SHA, that main's tree equals that head's tree, that no tag exists on the remote, and that verify is green on the push to main.
