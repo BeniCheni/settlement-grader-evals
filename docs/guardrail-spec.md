@@ -419,7 +419,7 @@ The PM seat runs these on the owner's machine, in a fresh clone, with `private/`
 |---|---|---|
 | 3 | `promptfoo eval` on P1 to P5, and the twins | 5 minutes |
 | 4 | H1 to H5, the benign controls | 5 minutes |
-| 8 | In one session: the twins and the real tickets; every attack, hard negative and control, unguarded; the same rows through G3 then G4; row Q, on rows with `slip_text` | Under an hour on `traces/ab-a`'s mean of 22.8 s a ticket, and G2's own calls are not yet timed |
+| 8 | In one session: the twins and the real tickets; every attack, hard negative and control, unguarded; the same rows through G3 then G4; row Q, on rows with `slip_text` | Under an hour on `traces/ab-a`'s mean of 22.8 s a ticket, and G2's own calls took about 2.6 s each at step 8, when the session took about 35 minutes |
 
 No review re-runs the full set. Pass 1 of a run's PR re-runs what it can, as PR #26's did.
 
