@@ -222,7 +222,8 @@ class GuardRunTests(unittest.TestCase):
                 "model_calls": True, "reason": "", "verdict": "PASS",
             }) + "\n")
         with open(os.path.join(root, "thresholds.json"), "w", encoding="utf-8") as handle:
-            json.dump({"guardrails": {"g2": {"min_caught": 15, "max_overblocked": 1}}}, handle)
+            from tests.test_guardrails import _thresholds
+            json.dump(_thresholds("g2"), handle)
         with open(os.path.join(root, "readings.json"), "w", encoding="utf-8") as handle:
             handle.write("{}\n")
         with open(os.path.join(root, "statement.txt"), "w", encoding="utf-8") as handle:

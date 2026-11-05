@@ -1527,8 +1527,8 @@ def _check_thresholds(data):
     if not isinstance(data, dict):
         raise JudgeError("thresholds file is refused")
     for group in ("guardrails", "stacks"):
-        entries = data.get(group, {})
-        if not isinstance(entries, dict):
+        entries = data.get(group)
+        if not isinstance(entries, dict) or not entries:
             raise JudgeError("thresholds %s is refused" % group)
         for name, bars in entries.items():
             if not isinstance(bars, dict):
@@ -1541,9 +1541,18 @@ def _check_thresholds(data):
                 if not isinstance(members, list) or not members or not all(
                         isinstance(member, str) for member in members):
                     raise JudgeError("thresholds stack %s lacks members" % name)
+    for name in INPUT_GUARDS:
+        if name not in data["guardrails"]:
+            raise JudgeError("thresholds guardrails lacks %s" % name)
     for key in ("g3_max_model_share", "max_flip_misses"):
-        if key in data and (isinstance(data[key], bool) or not isinstance(data[key], (int, float))):
+        if (key not in data or isinstance(data[key], bool)
+                or not isinstance(data[key], (int, float))
+                or _as_decimal(data[key]) is None):
             raise JudgeError("thresholds %s is refused" % key)
+    if not 0 <= data["g3_max_model_share"] <= 1:
+        raise JudgeError("thresholds g3_max_model_share is refused")
+    if not isinstance(data["max_flip_misses"], int) or data["max_flip_misses"] < 0:
+        raise JudgeError("thresholds max_flip_misses is refused")
 
 
 def _load_readings(path):
