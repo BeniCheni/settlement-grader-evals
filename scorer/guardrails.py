@@ -132,7 +132,20 @@ _TIP = (
     re.compile(r"\bconsider betting\b"),
 )
 _SLICE = re.compile(r"^[a-z][a-z0-9_-]*$")
-_PROMPT_LINES = tuple(line for line in SYSTEM_PROMPT.splitlines() if len(line) >= 20)
+PROMPT_LINE_FLOOR = 20
+
+
+def prompt_lines(text, floor=PROMPT_LINE_FLOOR):
+    """The lines of a prompt that no_system_prompt looks for: those of `floor` characters or more.
+
+    A helper rather than one comprehension, so a test can pin the floor on an
+    invented prompt: SYSTEM_PROMPT itself has no line of 20 to 39 characters,
+    and on it a floor of 40 reads the same.
+    """
+    return tuple(line for line in text.splitlines() if len(line) >= floor)
+
+
+_PROMPT_LINES = prompt_lines(SYSTEM_PROMPT)
 
 
 def _strip_format(text):

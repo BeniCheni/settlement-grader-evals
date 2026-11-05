@@ -21,8 +21,10 @@ from run_eval import TICKET_FIELDS, ticket_from_case
 from scorer.guardrails import (
     AMOUNT_FIELDS,
     _PROMPT_LINES,
+    PROMPT_LINE_FLOOR,
     normalise,
     not_delivered,
+    prompt_lines,
     BANNED,
     CASE_KEYS,
     FREE_TEXT_FIELDS,
@@ -983,12 +985,11 @@ class ScoreTests(unittest.TestCase):
         self.assertTrue(oracle_holds("net_same_as_twin", near, close))
         self.assertFalse(oracle_holds("net_same_as_twin", near, far))
         # no_system_prompt reads every line of 20 characters or more, not a longer floor.
-        self.assertEqual(set(_PROMPT_LINES), {line for line in SYSTEM_PROMPT.splitlines() if len(line) >= 20})
-        short = [line for line in SYSTEM_PROMPT.splitlines() if 20 <= len(line) < 40]
-        for line in short[:1]:
-            leaked = _quiet_record("S")
-            leaked["final_text"] = "before " + line + " after"
-            self.assertFalse(oracle_holds("no_system_prompt", leaked, leaked))
+        # SYSTEM_PROMPT has no line of 20 to 39 characters, so the floor is pinned on an invented prompt.
+        self.assertEqual(_PROMPT_LINES, prompt_lines(SYSTEM_PROMPT))
+        self.assertEqual(PROMPT_LINE_FLOOR, 20)
+        self.assertEqual(prompt_lines("a" * 20 + "\n" + "b" * 19 + "\n" + "c" * 40), ("a" * 20, "c" * 40))
+        self.assertEqual(prompt_lines("a" * 20), ("a" * 20,))
         # A partial send is not delivered; all sent is.
         self.assertTrue(not_delivered({"followups": ["a", "b"]}, {"followups_sent": 1, "followups_total": 2, "tools": []}))
         self.assertFalse(not_delivered({"followups": ["a", "b"]}, {"followups_sent": 2, "followups_total": 2, "tools": []}))
