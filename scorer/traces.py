@@ -98,7 +98,8 @@ def _record(trace_id, group):
     final = _parse_json(root_attrs.get("output.final"))
     ticket = _parse_json(root_attrs.get("input.ticket"))
     tool_calls = root_attrs.get("run.tool_calls")
-    return {
+    final_text = root_attrs.get("output.final_text")
+    record = {
         "trace_id": trace_id,
         "case_id": root_attrs.get("case.id"),
         "ticket": ticket if isinstance(ticket, dict) else {},
@@ -106,9 +107,21 @@ def _record(trace_id, group):
         "reason": root_attrs.get("run.reason_code"),
         "tool_calls": 0 if tool_calls is None else int(tool_calls),
         "final": final if isinstance(final, dict) else None,
+        "final_text": final_text if isinstance(final_text, str) else None,
         "tools": tools,
         "done_reasons": done_reasons,
     }
+    # Both keys appear only when the span recorded how many follow-ups went out.
+    # A null final_text is omitted by the tracer, so the record holds None.
+    if "run.followups_sent" in root_attrs:
+        sent = root_attrs.get("run.followups_sent")
+        try:
+            record["followups_sent"] = int(sent)
+        except (TypeError, ValueError):
+            record["followups_sent"] = 0
+        listed = _parse_json(root_attrs.get("input.followups"))
+        record["followups_total"] = len(listed) if isinstance(listed, list) else 0
+    return record
 
 
 def records_from_otlp(document):
