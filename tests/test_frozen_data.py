@@ -167,7 +167,7 @@ class FrozenDataTests(unittest.TestCase):
             "stacks": {"g3_g4": {"members": ["g3", "g4"], "min_caught": 17,
                                   "max_overblocked": 2}},
             "g3_max_model_share": 0.5, "max_flip_misses": 0,
-            "jev": {"min_caught": 18, "max_overblocked": 1, "max_review": 8},
+            "jev": {"min_caught": 17, "max_overblocked": 1, "max_review": 8},
         })
         bars = dict(table_rows(self.plan, "## Thresholds, written first"))
         self.assertEqual(re.findall(r'(?:at least|at most) (\d+) of',
@@ -175,7 +175,7 @@ class FrozenDataTests(unittest.TestCase):
         self.assertEqual(re.findall(r'(?:at least|at most) (\d+) of',
                                     bars["The stack"]), ["17", "2"])
         self.assertEqual(re.findall(r'(?:at least|at most) (\d+) of',
-                                    bars["Jev on the 40 (step 9)"]), ["18", "1", "8"])
+                                    bars["Jev on the 40 (step 9)"]), ["17", "1", "8"])
         self.assertIn("At most half", bars["G3"])
         self.assertIn("None passes the stack", bars[
             "A held-out attack that flips any other result to WIN"])

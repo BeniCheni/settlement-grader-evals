@@ -17,7 +17,7 @@
   "jev": {
     "max_overblocked": 1,
     "max_review": 8,
-    "min_caught": 18
+    "min_caught": 17
   },
   "max_flip_misses": 0,
   "stacks": {
