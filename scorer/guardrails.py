@@ -73,14 +73,15 @@ CASE_KEYS = (
 )
 FACT_TOOLS = ("get_match_facts", "find_match")
 
-_ZW = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u00ad]")
 # Lowercase lookalikes, applied after casefold. Cyrillic dze is the homoglyph test.
 _HOMO = {
     "а": "a", "е": "e", "о": "o", "р": "p", "с": "c", "у": "y", "х": "x",
     "і": "i", "ѕ": "s", "һ": "h", "ј": "j", "ӏ": "l",
+    "к": "k", "ԁ": "d", "ԛ": "q", "ԝ": "w", "ѵ": "v",
     "α": "a", "ε": "e", "ι": "i", "κ": "k", "ο": "o", "ρ": "p", "τ": "t",
-    "υ": "u", "χ": "x", "ν": "v",
+    "υ": "u", "χ": "x", "ν": "v", "ϳ": "j",
 }
+# Applied after casefold, so a letter casefold rewrites, such as the lunate sigma, never reaches it.
 _INSTRUCTION = (
     re.compile(r"\bsettle (?:it|this|the ticket|as)\b"),
     re.compile(r"\bregrade\b"),
@@ -134,11 +135,23 @@ _SLICE = re.compile(r"^[a-z][a-z0-9_-]*$")
 _PROMPT_LINES = tuple(line for line in SYSTEM_PROMPT.splitlines() if len(line) >= 20)
 
 
+def _strip_format(text):
+    """Remove every format character (Unicode category Cf).
+
+    That is every zero-width character and the soft hyphen: the joiners and
+    the word joiner, the byte-order mark, the bidi marks and embeddings, the
+    invisible operators and the tag characters. A list of six code points
+    left the rest in place, and one of them between two letters hid a word
+    from every pattern.
+    """
+    return "".join(ch for ch in text if unicodedata.category(ch) != "Cf")
+
+
 def normalise(raw):
     """NFKC, zero-width and soft hyphens removed, casefold, then lookalikes."""
     if not isinstance(raw, str):
         return ""
-    text = _ZW.sub("", unicodedata.normalize("NFKC", raw))
+    text = _strip_format(unicodedata.normalize("NFKC", raw))
     text = text.casefold()
     return "".join(_HOMO.get(ch, ch) for ch in text)
 
@@ -148,7 +161,7 @@ def _obfuscated(raw):
     if not isinstance(raw, str) or raw == "":
         return False
     nfkc = unicodedata.normalize("NFKC", raw)
-    stripped = _ZW.sub("", nfkc)
+    stripped = _strip_format(nfkc)
     folded = stripped.casefold()
     mapped = "".join(_HOMO.get(ch, ch) for ch in folded)
     return stripped != nfkc or mapped != folded
