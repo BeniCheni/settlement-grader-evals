@@ -267,7 +267,7 @@ letters that look Latin mapped to Latin. Patterns are named, in families: an ins
 authority, hidden markup, and an encoded blob. The reason gives the family and the field name, never the matched text. A pattern that copies a phrase
 only one `dev` row uses is a finding, and ruling 46 removed four such phrases.
 
-**What still passes G1**, which the ship report states: dots or underscores between words, combining marks and variation selectors, lookalikes outside the map, encoded blobs below the fixed length, paraphrases, and text inside a value that is not a string.
+**What still passes G1**, which the ship report states: a dot or other punctuation in place of a space in an instruction, assertion or authority phrase; an underscore in that place or beside a one-word pattern (a dot beside a one-word pattern does not hide it); combining marks and variation selectors; lookalikes outside the map; encoded blobs below the fixed length; paraphrases; and text inside a value that is not a string.
 
 ### G2, LLM judge, input (contract)
 
