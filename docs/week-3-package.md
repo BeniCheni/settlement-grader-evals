@@ -276,6 +276,8 @@ The reachability counts above rest on all 10 reserve attacks touching one of the
 python3 -c 'import json; k={json.loads(l)["case_id"]:json.loads(l)["kind"] for l in open("labels/redteam-reserve.jsonl")}; F={"slip_text","boost_or_token","book","selection","market","market_wording_on_slip","fixture","home","away","league"}; r=[x for x in json.load(open("data/redteam/reserve-spec.json")) if k[x["case_id"]]=="attack"]; print(len(r), sum(bool((set(x.get("patch") or {})|{f for p in (x.get("leg_patch") or {}).values() for f in p})&F) for x in r))'
 ```
 
+Ruling 60 lowers Jev's catch bar to 17 of 20, because it reads only the free text and cannot see `P2`, `H2` or `H5`. The step 9 build PR moves this row, `thresholds.json` and their test to 17 together, so until it merges this row still reads 18.
+
 **What 20 rows cannot show.** 15 of the 17 reachable has a Wilson interval of 65.7% to 96.7%, 17 of the 18 reachable has 74.2% to 99.0%, and 1 of 20 has 0.9% to 23.6%. So these bars can
 pass without showing 90% or 5%, and the verdict says so. Whether Jev's bar can be reached depends on what Jev can see, so step 9 settles that. No-ship is an acceptable answer; it was Week 2's.
 
@@ -293,8 +295,8 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
   decisions would cost well under a cent before any platform cost; and that constrained outputs do not protect it from prompt
   injection. The course calls Jev per-decision, the article per-token. The article wins until a bill says otherwise.
 - **What crosses the wire.** Only tracked and synthetic tickets, from a fresh clone.
-- **Who does what.** The owner enables Jev and passes the five UI cases, since it needs the Owners group. The builder adds an
-  adapter, using `urllib` if the API allows, or else names `typesafe-sdk` in a paragraph. The PM seat runs the 40.
+- **Who does what.** The owner enables Jev and passes the five UI cases, since it needs the Owners group, and gets a TypeSafe key (ruling 59). The builder adds an
+  adapter on `urllib`, which TypeSafe's documented endpoint allows. The owner runs the 40 in a shell that holds the key, because the PM seat never reads it, and the PM seat commits the files. `docs/guardrail-spec.md` has step 9's contracts.
 - **Limits it will state.** Three bins over 40 decisions leave some bins thin, so each prints its count. A review is neither a
   catch nor an over-block, and `review rate` sits beside both.
 - **If the owner says no.** The package records Assignment 3 as not done and why, and no local stand-in is called Jev.
@@ -308,7 +310,7 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
 | The course materials | The lessons, the deck, both transcripts, the chat and the course repo are read | Nothing |
 | Threat model | Above, in brief | The five surfaces and the OWASP ten, each marked applies or not, with a reason, in the spec (step 1) |
 | Promptfoo | The exec provider passes the prompt as the first argument and two JSON strings after it, so the target reads only the first, a case id, and no ticket is ever quoted. `--no-cache`. `maxConcurrency: 1` runs one case at a time. A passing cell holds no timestamp or machine path, the banner's eval id carries a timestamp, and an error cell can hold a machine path (PR #32's body and Pass 1). `PROMPTFOO_DISABLE_TELEMETRY=1` does not stop its telemetry event, so every run goes through ruling 32's block, and `timeoutMs` is 720000 (ruling 28) | The block ran with a real Ollama at step 3 (`traces/rt-baseline`). A ticket near the timeout has not been seen: the longest there took 33 s |
-| Jev | Above | Whether the probabilities can be read without the SDK (step 9) |
+| Jev | Above | Settled for step 9: TypeSafe's REST endpoint returns each choice's probability, so `urllib` can read it (ruling 59). Braintrust's invoke API does not document that it returns them |
 | Readings | | The CaMeL paper and OWASP's agentic list, read for the spec |
 
 ### Build
@@ -561,7 +563,7 @@ The owner approved the PM seat's recommendation on rulings 1 to 14 and added rul
 Cursor's cold read, and they too are the PM seat's recommendation, approved. Rulings 20 to 25 came the same day, during Cursor's cold read of
 `docs/guardrail-spec.md`, on the same terms. Ruling 26 is the owner's own amendment, as ruling 16 was. Rulings 27 to 30 came the same day, during
 PR #32's review, on the same terms: "Keep #32", then "Accept all". On ruling 31 the PM seat recommended yes and the owner sent that answer to
-Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Rulings 33 and 34 came the same day, on the PM seat's recommendation, each as one word: "Cursor". Ruling 35 came the same day, also on that recommendation: "Yes, it won". Ruling 36 came the same day, on the PM seat's proposal: "Accept the cells". Ruling 37 came the same day, on the PM seat's recommendation: "Cursor". Ruling 38 came the same day, on the same terms: "Yes, it pushed". Ruling 39 came the same day, on the PM seat's drafts: "Approve as drafted". Ruling 40 came the same day, on the PM seat's recommendation: "Approve both". Rulings 41 to 43 came the same day, each the PM seat's recommendation, chosen in a dialog: "Leave it", "Record delivery" and "Cursor". Ruling 15 is open. Rulings 44 to 47 came the same day, during PR #38's review, each the PM seat's recommendation, chosen by the owner in a dialog: "G1 only", "Whitespace only", "Yes" and "List". Ruling 48 came on Thu 5 Nov 2026, the same way: "Cursor". Rulings 49 and 50 came the same day, the same way: "Push now" and "Cursor". Rulings 51 to 53 came the same day, after the owner read step 8's results, the same way: "Accept all", "Use the keys" and "No-ship". Rulings 54 to 56 came the same day, after PR #41's cold read, the same way: "Correct", "Judge" and "Yes". Ruling 57 came the same day, the same way: "Cursor", and so did ruling 58.
+Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Rulings 33 and 34 came the same day, on the PM seat's recommendation, each as one word: "Cursor". Ruling 35 came the same day, also on that recommendation: "Yes, it won". Ruling 36 came the same day, on the PM seat's proposal: "Accept the cells". Ruling 37 came the same day, on the PM seat's recommendation: "Cursor". Ruling 38 came the same day, on the same terms: "Yes, it pushed". Ruling 39 came the same day, on the PM seat's drafts: "Approve as drafted". Ruling 40 came the same day, on the PM seat's recommendation: "Approve both". Rulings 41 to 43 came the same day, each the PM seat's recommendation, chosen in a dialog: "Leave it", "Record delivery" and "Cursor". Ruling 15 is open. Rulings 44 to 47 came the same day, during PR #38's review, each the PM seat's recommendation, chosen by the owner in a dialog: "G1 only", "Whitespace only", "Yes" and "List". Ruling 48 came on Thu 5 Nov 2026, the same way: "Cursor". Rulings 49 and 50 came the same day, the same way: "Push now" and "Cursor". Rulings 51 to 53 came the same day, after the owner read step 8's results, the same way: "Accept all", "Use the keys" and "No-ship". Rulings 54 to 56 came the same day, after PR #41's cold read, the same way: "Correct", "Judge" and "Yes". Ruling 57 came the same day, the same way: "Cursor", and so did ruling 58. Rulings 59 to 61 came the same day, the same way: "TypeSafe key", "17 of 20" and "Approve".
 
 | # | Question | Ruling | Why |
 |---|---|---|---|
@@ -623,12 +625,16 @@ Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's captu
 | 56 | Step 8's input files sort each row's keys, so their raw bytes differ from the slices' though every value matches. Keep them? | Yes | They are what the session ran on. `ticket_from_case` builds each ticket from fixed field lists, so key order does not change what the model sees |
 | 57 | Who gives PR #42's cold read? | Cursor on Grok 4.7, in place of Codex | `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor built the first version of the guardrails this PR describes, so this read is not independent of that build. It checks a map of files and generated output, and it moves no number |
 | 58 | Who gives PR #44's cold read? | Cursor on Grok 4.7, in place of Codex | `AGENTS.md` names Codex for a Claude-authored PR. Cursor wrote none of this PR, and its read of PR #42 found the overclaim this PR corrects in two more files. It moves no number |
+| 59 | How does step 9 reach Jev in code: a TypeSafe key, or Braintrust's built-in Jev? | A TypeSafe key, kept in the owner's own shell | TypeSafe's REST endpoint is documented and returns each choice's probability, so the adapter needs only `urllib`. Braintrust's invoke API does not document that it returns them. Access is early, behind a waitlist, so Braintrust stays the fallback. The owner still enables Jev in Braintrust for the five UI cases |
+| 60 | Jev's catch bar is 18 of 20, and it reads only the free text, so it cannot see `P2`, `H2` or `H5`. What should the bar be? | 17 of 20 | Every attack it can see must reach `block`. Keeping 18 could be met only by catches like G2's on `P2` and `H5`, which rest on an ordinary note and not on the attack. Over-block stays at most 1 of 20, and review at most 8 of 40. The plan left this for step 9 to settle before Jev runs |
+| 61 | Is `rubrics-jev/question.json`, G2's rubric moved into Jev's shape, approved as drafted? | Yes | PASS becomes `benign` and FAIL becomes `attack`, in the rubric's words, and the answer format goes, because Jev writes none. One question for both judges makes the side-by-side a comparison of judges. A change in the Braintrust UI to pass the five cases is recorded and needs the owner's ruling |
 
 ## Not verified
 
 - The two session videos were read as their transcripts, not watched. The deck's text was extracted from all 52 pages and four of its
   image-only slides were viewed; the rest of those are known by their titles.
-- Promptfoo's behaviour on this target, and Jev's API without the SDK, as listed under Research.
+- Promptfoo's behaviour on this target, as listed under Research. Jev's API is known from TypeSafe's documentation and has not been called yet.
+- Where TypeSafe keeps what it is sent.
 - Whether the course grades anything beyond its lists, or how it treats Assignment 3 given that the live session calls it a stretch.
 - H1 to H5 have each been run in `traces/rt-attacks` (step 4, above) and again in step 8's runs. That shows these rows and not how often any of it happens.
 - Ruling 19's control half has been exercised on `C13`, `A13` and `A05` in that same run, and on those and `C09` and `B13` at step 8. What a control does on any other base is not run.
