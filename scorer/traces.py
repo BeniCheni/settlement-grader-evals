@@ -111,6 +111,8 @@ def _record(trace_id, group):
         "tools": tools,
         "done_reasons": done_reasons,
     }
+    if "guardrail.decisions" in root_attrs:
+        record["guardrail_decisions"] = _parse_json(root_attrs["guardrail.decisions"])
     # Both keys appear only when the span recorded how many follow-ups went out.
     # A null final_text is omitted by the tracer, so the record holds None.
     if "run.followups_sent" in root_attrs:

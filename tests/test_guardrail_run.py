@@ -240,7 +240,7 @@ class GuardRunTests(unittest.TestCase):
                 os.path.join(root, "thresholds.json"),
                 os.path.join(root, "readings.json"),
                 os.path.join(root, "statement.txt"))
-        self.assertIn("differs", str(caught.exception))
+        self.assertIn("errored", str(caught.exception))
 
 
 def tearDownModule():

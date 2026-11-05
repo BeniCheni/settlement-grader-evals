@@ -69,6 +69,13 @@ class SeamTests(unittest.TestCase):
         self.assertEqual(record["final_text"], FINAL_A)
         self.assertIsNone(result["reason_code"])
 
+    def test_guardrail_decisions_are_carried_only_when_the_root_has_them(self):
+        _result, root, tracer = _run((_settle(), _final(FINAL_A)))
+        self.assertNotIn("guardrail_decisions", records_from_otlp(tracer.to_otlp())[0])
+        decisions = [{"guardrail": "g4", "side": "output", "reason": "guardrail error", "blocked": True}]
+        root["_attrs"]["guardrail.decisions"] = json.dumps(decisions)
+        self.assertEqual(records_from_otlp(tracer.to_otlp())[0]["guardrail_decisions"], decisions)
+
     def test_a_null_final_text_is_none_and_does_not_raise(self):
         result, _root, tracer = _run((_settle(), _final("")))
         # An empty completion is EMPTY_FINAL and passes no text.

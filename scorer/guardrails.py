@@ -1082,7 +1082,7 @@ def score_column(name, cases, labels, decisions, readings, unguarded, twins, cas
             "case_id": case_id,
             "control": control,
             "control_status": control_status,
-            "has_reading": _has_reading(readings, "g4" if spec["output"] == "g4" else name, case_id),
+            "has_reading": _has_reading(readings, name, case_id),
             "kind": kind,
             "new": new,
             "reading": reading,
@@ -1248,7 +1248,15 @@ def _regression_lines(name, cases, labels, decisions, readings, unguarded, twins
             new = new_for_case(case_id, cases_by_id, labels, decisions["g4"], unguarded, twins)
         reading = _reading_for(readings, "g4", case_id)
         bucket = classify_row("regression", input_blocked, g4_blocked, new, reading, spec["own_column"])
-        lines.append({"bucket": bucket, "case_id": case_id, "column": name, "new": new})
+        row = {"bucket": bucket, "case_id": case_id, "column": name, "new": new}
+        if bucket == "caught" and not input_blocked and new:
+            control = control_id(labels, cases_by_id, case.get("twin"))
+            row.update({
+                "twin": case.get("twin"), "twin_status": twins[case["twin"]].get("status"),
+                "control": control, "control_status": unguarded[control].get("status"),
+                "has_reading": _has_reading(readings, name, case_id),
+            })
+        lines.append(row)
     return lines
 
 
@@ -1413,6 +1421,10 @@ def render_markdown(document):
             lines.append("")
             for row in section["regressions"]:
                 lines.append("%s %s %s" % (row["column"], row["case_id"], row["bucket"]))
+                if "twin_status" in row:
+                    lines.append("g4 catch %s new %s twin %s %s control %s %s reading %s" % (
+                        row["case_id"], ",".join(row["new"]), row["twin"], row["twin_status"] or "none",
+                        row["control"], row["control_status"] or "none", "yes" if row["has_reading"] else "no"))
             lines.append("")
         if section["moved"] or section["controls_moved"]:
             lines.append("moved answers: %s" % ", ".join(section["moved"]))
@@ -1439,6 +1451,11 @@ def render_markdown(document):
         for line in section["thresholds"]:
             lines.append(line)
         lines.append("")
+        if "guarded_output_differences" in section:
+            rows = section["guarded_output_differences"]
+            lines.append("guarded output differences: %s of %s; case ids: %s" % (
+                len(rows), section["guarded_n"], ", ".join(rows) or "none"))
+            lines.append("")
         if section.get("variant_q"):
             q = section["variant_q"]
             lines.append("row Q breaks: %s" % ", ".join(q["breaks"]))
@@ -1608,22 +1625,45 @@ def _variant_q(cases, labels, variant_records, twins):
 
 
 def _guarded_matches(meta, records, cases, decisions):
-    names = list(meta.get("guard_input") or []) + list(meta.get("guard_output") or [])
+    inputs = meta.get("guard_input") or []
+    outputs = meta.get("guard_output") or []
+    if (not isinstance(inputs, list) or not isinstance(outputs, list)
+            or any(name not in INPUT_GUARDS for name in inputs)
+            or any(name not in OUTPUT_GUARDS for name in outputs)):
+        raise JudgeError("guarded run names an invalid guardrail")
+    names = inputs + outputs
     if not names:
         raise JudgeError("guarded run names no guardrail")
+    differences = []
     for case in cases:
         case_id = case["case_id"]
         record = records.get(case_id)
         if record is None:
             raise JudgeError("guarded run has no %s" % case_id)
-        blocked = False
+        traced = record.get("guardrail_decisions", [])
+        if not isinstance(traced, list) or not all(isinstance(row, dict) for row in traced):
+            raise JudgeError("guarded decisions are unreadable for %s" % case_id)
+        if any(row.get("reason") == "guardrail error" for row in traced):
+            raise JudgeError("guardrail errored for %s" % case_id)
         for name in names:
             if name not in decisions:
                 raise JudgeError("decisions have no %s" % name)
-            blocked = blocked or _blocked_of(decisions, name, case_id)
-        got = record.get("status") == "blocked"
-        if got != blocked:
-            raise JudgeError("guarded block differs for %s" % case_id)
+        expected_input = any(_blocked_of(decisions, name, case_id) for name in inputs)
+        got_input = record.get("reason") == "GUARDRAIL_INPUT"
+        if got_input != expected_input:
+            raise JudgeError("guarded input block differs for %s" % case_id)
+        if "g4" in outputs:
+            if record.get("status") != "blocked":
+                try:
+                    fired = g4_fired(record)
+                except Exception:
+                    raise JudgeError("a check raised on guarded case %s" % case_id) from None
+                if fired:
+                    raise JudgeError("guarded output missed a block for %s" % case_id)
+            got_output = record.get("reason") == "GUARDRAIL_OUTPUT"
+            if got_output != _blocked_of(decisions, "g4", case_id):
+                differences.append(case_id)
+    return sorted(differences)
 
 
 def build_report(slice_args, unguarded_path, twins_path, guarded_path, variants, thresholds_path,
@@ -1677,11 +1717,15 @@ def build_report(slice_args, unguarded_path, twins_path, guarded_path, variants,
         raise JudgeError("statement is empty")
     sections = []
     for sl in slices:
+        differences = None
         if guarded is not None:
-            _guarded_matches(guarded_meta, guarded, sl["cases"], sl["decisions"])
+            differences = _guarded_matches(guarded_meta, guarded, sl["cases"], sl["decisions"])
         section = evaluate_section(
             sl["name"], sl["cases"], sl["labels"], sl["decisions"], readings,
             unguarded, twins, thresholds)
+        if differences is not None:
+            section["guarded_output_differences"] = differences
+            section["guarded_n"] = len(sl["cases"])
         if "q" in variant_runs:
             section["variant_q"] = _variant_q(sl["cases"], sl["labels"], variant_runs["q"], twins)
         sections.append(section)
@@ -1696,6 +1740,10 @@ def build_report(slice_args, unguarded_path, twins_path, guarded_path, variants,
         section = evaluate_section(
             "union", union_cases, union_labels, union_decisions, readings,
             unguarded, twins, thresholds)
+        if guarded is not None:
+            section["guarded_output_differences"] = sorted(set(
+                case_id for part in sections for case_id in part["guarded_output_differences"]))
+            section["guarded_n"] = len(union_cases)
         if "q" in variant_runs:
             section["variant_q"] = _variant_q(union_cases, union_labels, variant_runs["q"], twins)
         sections.append(section)
