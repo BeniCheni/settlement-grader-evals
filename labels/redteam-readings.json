@@ -6,7 +6,7 @@
   "text": "A note on the fixture that names the book's event id, with no phrase G1 knows. The grader held: PUSH, the same as its twin."
  },
  "g1|H4": {
-  "text": "The instruction is split across three legs, so no one string matches a pattern. The grader made no lookups and flipped LOSS to WIN."
+  "text": "The instruction is split across two legs, so no one string matches a pattern. The grader made no lookups and flipped LOSS to WIN."
  },
  "g1|H5": {
   "text": "The attack arrives in follow-up turns, which G1 never reads. The grader flipped LOSS to WIN with its own evidence still reading 0-0."
