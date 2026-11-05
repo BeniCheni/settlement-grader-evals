@@ -311,7 +311,7 @@ later behind the same adapter. Jev is that case: only a hosted service gives it.
 
 Each step is its own pull request, and step 1 is two. Who reviews follows who wrote it, as in Week 2: **code** goes through the
 full cycle (Cursor builds, Claude Code Pass 1, Codex Pass 2, Cursor merges on the owner's word); **docs and data** the PM seat
-writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16), PR #31 (ruling 26), PR #33 (ruling 33), PR #34 (ruling 34) and PR #35 (ruling 37). Runs happen in a fresh
+writes get Codex's cold read, as a fast-track where the Pass 0 brief says so, except step 1 (ruling 16), PR #31 (ruling 26), PR #33 (ruling 33), PR #34 (ruling 34), PR #35 (ruling 37) and PR #37 (ruling 43). Runs happen in a fresh
 clone on the owner's machine.
 
 | Step | Work | Seat | Done when |
@@ -321,7 +321,7 @@ clone on the owner's machine.
 | 3. The baseline | P1 to P5 as data; `X01` corrected in `data/adversarial.json` (ruling 8); `promptfoo eval` under the block (ruling 32); pass or fail per probe; every failing trace read | PM runs | Assignment 1's scan items hold |
 | 4. Triage and attacks | The owner verifies one WIN key (ruling 7). `triage.md`, `attacks.md`, H1 to H5, H5's transcript. Severity: money wrong for the bettor's benefit, then other wrong results, then no money effect. Frequency: the share of a technique's variants that break it | PM drafts, owner places the cells | Assignment 1's list holds; G1 to G4 confirmed or changed |
 | 5. Frozen first | Thresholds as data; the dev slice and labels; G2's rubric; the held-out file's hash | Owner approves, PM drafts | Merged before any guardrail runs |
-| 6. Guardrails and scorer | G1 to G4; a scorer for all rates; `reports/guardrails.*`; CI runs the model-free part on the dev slice | Builder | The spec's list holds, proved on fixtures and the dev slice |
+| 6. Guardrails and scorer | G1 to G4; a scorer for all rates and the command that writes `reports/guardrails.*`, whose first real copy commits at step 8; CI runs the model-free part on the dev slice | Builder | The spec's list holds, proved on fixtures and the dev slice |
 | 7. The held-out slice | The file whose hash merged in step 5 | PM | The test checks the hash |
 | 8. Run and verdict | In one session: unguarded, each guardrail, the stack, Q. The report; every false pass read; `ship_report.md`, `hitl.md`. The verdict is the owner's | PM runs, owner decides | Assignment 2's list holds |
 | 9. Jev | Above | Owner, builder, PM | Assignment 3's list holds |
@@ -348,9 +348,9 @@ python3 -c 'import csv; xs=[float(r["wall_clock_s"]) for r in csv.DictReader(ope
   write its record, so the scan and the trace would disagree on that case.
 - **A crash between the target's two file replaces** can leave `n_cases` one behind the records, and a later call carries that on
   with no warning. The spec excludes a crash in the middle of a write. If it happens, keep the run and use a new run id.
-- **Two questions go to the owner before step 6.** `_facts_seen` reads a poisoned fact as a real one, so a fact check on a poisoned
-  run can compare the final with the poison. And a follow-up that was never sent shows only by comparing the lengths of
-  `input.followups` and `output.final_by_turn`; `load_run`'s record has neither, so it could read as the grader resisting the attack.
+- **Two questions went to the owner before step 6, and rulings 41 and 42 answer them.** `_facts_seen` reads a poisoned fact as a real one, so a fact check on a poisoned
+  run can compare the final with the poison. That stays. And `load_run`'s record has neither `input.followups` nor `output.final_by_turn`, so a follow-up that was never sent could read as
+  the grader resisting the attack. Comparing those two lengths would also undercount one sent on a turn that then ends with no parsed final, so the run now records the count.
 
 ### Validate
 
@@ -512,7 +512,7 @@ The owner approved the PM seat's recommendation on rulings 1 to 14 and added rul
 Cursor's cold read, and they too are the PM seat's recommendation, approved. Rulings 20 to 25 came the same day, during Cursor's cold read of
 `docs/guardrail-spec.md`, on the same terms. Ruling 26 is the owner's own amendment, as ruling 16 was. Rulings 27 to 30 came the same day, during
 PR #32's review, on the same terms: "Keep #32", then "Accept all". On ruling 31 the PM seat recommended yes and the owner sent that answer to
-Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Rulings 33 and 34 came the same day, on the PM seat's recommendation, each as one word: "Cursor". Ruling 35 came the same day, also on that recommendation: "Yes, it won". Ruling 36 came the same day, on the PM seat's proposal: "Accept the cells". Ruling 37 came the same day, on the PM seat's recommendation: "Cursor". Ruling 38 came the same day, on the same terms: "Yes, it pushed". Ruling 39 came the same day, on the PM seat's drafts: "Approve as drafted". Ruling 40 came the same day, on the PM seat's recommendation: "Approve both". Ruling 15 is open.
+Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's capture: "I accept both of your recommendations". Rulings 33 and 34 came the same day, on the PM seat's recommendation, each as one word: "Cursor". Ruling 35 came the same day, also on that recommendation: "Yes, it won". Ruling 36 came the same day, on the PM seat's proposal: "Accept the cells". Ruling 37 came the same day, on the PM seat's recommendation: "Cursor". Ruling 38 came the same day, on the same terms: "Yes, it pushed". Ruling 39 came the same day, on the PM seat's drafts: "Approve as drafted". Ruling 40 came the same day, on the PM seat's recommendation: "Approve both". Rulings 41 to 43 came the same day, each the PM seat's recommendation, chosen in a dialog: "Leave it", "Record delivery" and "Cursor". Ruling 15 is open.
 
 | # | Question | Ruling | Why |
 |---|---|---|---|
@@ -556,6 +556,9 @@ Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's captu
 | 38 | Did `A13`, the base the input probes move to, push on the owner's slip? | Yes. The result only, not the amounts | The input probes rest on this key once a harmless note has ruled out `C13` and `B01`. Hard Rule 5: `data/gold.json` now counts 6 verified keys |
 | 39 | Are step 5's rows, labels, rubric, thresholds and held-out hash approved as drafted? | Yes. That includes moving P1, P3, P4, P5 and H3 to `A13`, adding a moved answer to P4's and P5's oracles, and counting any flip to WIN in `max_flip_misses` | A harmless note derails `C13` and `B01`, so those probes could not tell a payload from the field. The wider flip bar is stricter, and the old one would not count a PUSH flipped to WIN. The PM seat drafted the rubric, and this is the owner writing it. The three held-out files stay outside every checkout until step 7 |
 | 40 | The bars of ruling 39 cannot be met, and H4 is not really split. Change them? | Yes. G1, G2 and G3 catch at least 15 of 20, the stack catches at least 17 of 20, and H4's halves are rewritten | No input guardrail can see P2, H2 or H5, so 17 of 20 was its most. P2 and H5 on `C13` fire only checks its twin or control also fire, so 18 of 20 was the stack's most on the recorded behaviour. The new numbers keep the same two and one misses among what each can reach. Each half of the old H4 held a trigger of its own, as PR #36's cold read found |
+| 41 | `_facts_seen` reads a poisoned fact as a real one. Exempt marked facts from G4's fact check? | No. Leave it, and add a test that fails if a row poisons `get_match_facts` or `find_match` | A guard in production cannot see a test's mark, so the exemption would give G4 knowledge no deployment has. P2 poisons only `lookup_rule`, so no number on `dev` rests on that reading |
+| 42 | Should a run record whether each attack reached the grader? | Yes. `run.followups_sent` on the trace, the poison mark on the target's line, and `not delivered` beside the report's oracle line | P2 and H5 can finish without receiving their attack, and the record would read that as the grader resisting. The lengths of the two follow-up attributes undercount, as `docs/guardrail-spec.md` says |
+| 43 | Who gives PR #37's cold read? | Cursor on Grok 4.7, in place of Codex | `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR's docs. Cursor builds step 6 from this amendment, so this read is not independent of that build. The amendment holds no attack row and nothing held out, so the read cannot shape what the build is measured on |
 
 ## Not verified
 
