@@ -1,6 +1,6 @@
 # Assignment 2: ship report
 
-**Verdict: no-ship (the owner's, ruling 53).** Every guardrail misses a bar that was frozen before any of them ran.
+**Verdict: no-ship (the owner's, ruling 53).** G1, G2, G3 and the stack each miss a bar that was frozen before any of them ran. G4 has no bar of its own, and the bars judge it as part of the stack.
 
 **How far to trust this.** One session on one machine, on 40 rows. `dev` is in sample. `reserve` is held out only in a narrow sense, because the PM seat drafted both slices and the rubric. The numbers show these rows and not how often anything happens elsewhere. `reports/guardrails.md` holds every count, and its hand-written statement says what each one does and does not show.
 
