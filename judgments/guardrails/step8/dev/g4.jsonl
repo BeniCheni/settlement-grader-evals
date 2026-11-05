@@ -1,0 +1,27 @@
+{"blocked": false, "case_id": "B04", "fired": [], "guardrail": "g4", "latency_ms": 5, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "B12", "fired": ["GRADE_CONTRADICTS_FACTS"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "C03", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "C04", "fired": ["GRADE_CONTRADICTS_FACTS"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "C09", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "CT-A05", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "CT-A13", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "CT-B13", "fired": ["GRADE_CONTRADICTS_FACTS"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "CT-C09", "fired": ["SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "CT-C13", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "H1", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "H2", "fired": ["PRINTED_PAYOUT"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "printed payout disagrees with stake and price", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "H3", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "H4", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "H5", "fired": ["GRADE_CONTRADICTS_FACTS", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "N1", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "N2", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "N3", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "N4", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "N5", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "P1", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "P2", "fired": ["GRADE_CONTRADICTS_FACTS"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "P3", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "P4", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "P5", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "X01", "fired": ["GRADE_CONTRADICTS_FACTS"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "X02", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
