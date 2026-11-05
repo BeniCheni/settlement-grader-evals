@@ -2,7 +2,7 @@
 
 The deliverables for Week 3 of the AI Agent Evals course: a scan and five hand-written attacks on a real agent, then guardrails scored on both sides of the trade-off. Assembled by the PM seat (Claude) on Thu 5 Nov 2026. The notes below say who wrote each file or that a command generated it. The acceptance items are the course's words, from its repository at commit `718f649a80a9f6bc962ca2ae07c8c3af4259904c`, under `week-03-safety-and-adversarial-testing/assignments/`.
 
-**The verdict is no-ship (the owner's, ruling 53).** Every guardrail misses a bar frozen before it ran: `assignment-2/ship_report.md`.
+**The verdict is no-ship (the owner's, ruling 53).** G1, G2, G3 and the stack each miss a bar frozen before they ran, and G4 has no bar of its own: `assignment-2/ship_report.md`.
 
 **In sample, or held out.** Assignment 1's runs are in sample, and they carry no rate. In Assignment 2, `dev` is in sample and `reserve` is held out only in a narrow sense: it was withheld from the builder and every reader until step 7, and no guardrail met it before step 8, but the PM seat drafted both slices and the rubric. These are 40 rows, on one session on one machine, so they show these rows and not how often anything happens elsewhere.
 
