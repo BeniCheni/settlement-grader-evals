@@ -5,6 +5,7 @@ the tests never do. They replace `urlopen` or use the fake adapter. A refusal
 exits with status 2, one message and nothing written.
 """
 import argparse
+import http.client
 import json
 import os
 import re
@@ -63,7 +64,7 @@ def _constant(name):
 def _loads(text, label):
     try:
         return json.loads(text, parse_float=Decimal, parse_constant=_constant)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError):
         raise JudgeError("%s is not valid JSON" % label) from None
 
 
@@ -202,21 +203,29 @@ def _post(state, question, key):
         raise JudgeError("status %s" % error.code) from None
     except (urllib.error.URLError, socket.timeout, TimeoutError, OSError):
         raise JudgeError("request failed") from None
+    except (http.client.HTTPException, ValueError):
+        # A truncated body, a bad status line or an overlong header, and http.client's
+        # ValueError on a header value, whose text holds the whole header and so the key.
+        raise JudgeError("request failed") from None
     try:
         if isinstance(raw, str):
             text = raw
         else:
             text = raw.decode("utf-8")
         payload = json.loads(text, parse_float=Decimal, parse_constant=_constant)
-    except (UnicodeDecodeError, json.JSONDecodeError, AttributeError):
+    except (UnicodeDecodeError, json.JSONDecodeError, AttributeError, RecursionError):
         raise JudgeError("response is not valid JSON") from None
     return payload
 
 
 def _api_key():
+    """The key, or a refusal that names the variable and never its value."""
     key = os.environ.get("TYPESAFE_API_KEY")
-    if not key:
+    if not key or key.strip() == "":
         raise JudgeError("TYPESAFE_API_KEY is missing")
+    if any(not "!" <= char <= "~" for char in key):
+        raise JudgeError(
+            "TYPESAFE_API_KEY holds a space, a line break or a character outside printable ASCII")
     return key
 
 

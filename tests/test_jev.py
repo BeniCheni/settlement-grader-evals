@@ -2,16 +2,18 @@
 
 No test opens a socket. TYPESAFE_API_KEY is set only to a sentinel, and only here.
 """
+import http.client
 import json
 import os
 import shutil
 import socket
 import subprocess
 import sys
+import traceback
 import unittest
 import urllib.error
 import urllib.request
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from decimal import Decimal
 from io import BytesIO, StringIO
 from unittest import mock
@@ -177,6 +179,74 @@ class _Response(object):
 
     def __exit__(self, *_args):
         return False
+
+
+def _cli_traced(argv):
+    """_cli, except that an exception main lets through is printed as the interpreter would print it."""
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        try:
+            code = main(argv)
+        except SystemExit as caught:
+            code = caught.code
+        except Exception:
+            traceback.print_exc()
+            code = 1
+    return code, stdout.getvalue(), stderr.getvalue()
+
+
+def _http(status, body, extra=b""):
+    return (b"HTTP/1.1 " + status + b"\r\nContent-Type: application/json\r\n" + extra
+            + b"Content-Length: " + str(len(body)).encode("ascii") + b"\r\nConnection: close\r\n\r\n" + body)
+
+
+def _good_bytes():
+    return json.dumps(_body("attack", "1", "0", confidence=1)).encode("utf-8")
+
+
+class _CannedSocket(object):
+    """Stands where http.client keeps its socket: records what is sent and replays canned bytes."""
+
+    def __init__(self, raw):
+        self.raw = raw
+        self.sent = []
+
+    def sendall(self, data):
+        self.sent.append(bytes(data))
+
+    def makefile(self, *_args, **_kwargs):
+        return BytesIO(self.raw)
+
+    def close(self):
+        pass
+
+
+@contextmanager
+def _canned_https(replies):
+    """The real urllib and http.client code over canned replies, one per connection. No socket opens.
+
+    Yields the list of (host, canned socket) pairs, one per connection made.
+    """
+    replies = list(replies)
+    seen = []
+
+    class Canned(http.client.HTTPConnection):
+        def __init__(self, host, port=None, timeout=None, **_kwargs):
+            http.client.HTTPConnection.__init__(self, host, port, timeout)
+
+        def connect(self):
+            self.sock = _CannedSocket(replies.pop(0) if replies else b"")
+            seen.append((self.host, self.sock))
+
+    def refuse(*_args, **_kwargs):
+        raise AssertionError("a socket was opened")
+
+    with mock.patch("http.client.HTTPSConnection", Canned), \
+            mock.patch("urllib.request.getproxies", lambda: {}), \
+            mock.patch("socket.create_connection", refuse), \
+            mock.patch.object(socket.socket, "connect", refuse):
+        yield seen
 
 
 class JevTest(unittest.TestCase):
@@ -866,6 +936,84 @@ class AdapterTests(JevTest):
         self.assertFalse(is_visible({"patch": {}, "leg_patch": {}}))
         self.assertTrue(is_visible({"patch": {}, "leg_patch": {"1": {"selection": "Home"}}}))
         self.assertFalse(is_visible({"patch": {"bet_type": "single"}, "leg_patch": {}}))
+
+
+class TransportTests(JevTest):
+    """The typesafe path through the real urlopen and http.client, over canned bytes."""
+
+    def _typesafe(self, root):
+        cases_path = os.path.join(root, "edge-cases.json")
+        _dump(cases_path, [{"case_id": "ROW", "legs": [], "slip_text": "A plain note."}])
+        return ["decide", "--cases", cases_path, "--question", QUESTION,
+                "--adapter", "typesafe", "--out", os.path.join(root, "out")]
+
+    def test_canned_https_reaches_the_pinned_endpoint_and_writes(self):
+        root = _scratch("canned-ok")
+        with _canned_https([_http(b"200 OK", _good_bytes())]) as seen:
+            code, stdout, err = _cli_traced(self._typesafe(root))
+        self.assertEqual(code, 0, err)
+        self._clean(stdout, err, _tree(os.path.join(root, "out")))
+        self.assertEqual([host for host, _sock in seen], ["api.typesafe.ai"])
+        sent = b"".join(seen[0][1].sent)
+        self.assertTrue(sent.startswith(b"POST /v1/systemone HTTP/1.1\r\n"))
+        self.assertIn(b"Authorization: Bearer " + SENTINEL.encode("ascii") + b"\r\n", sent)
+        self.assertTrue(os.path.isfile(os.path.join(root, "out", "jev.jsonl")))
+
+    def test_a_key_a_header_cannot_carry_is_refused_and_never_printed(self):
+        root = _scratch("bad-key")
+        argv = self._typesafe(root)
+        out = argv[-1]
+        before = _seed(out)
+        tail = SENTINEL[4:]
+        keys = (
+            ("trailing newline", SENTINEL + "\n"),
+            ("trailing carriage return", SENTINEL + "\r"),
+            ("newline inside", SENTINEL[:4] + "\n" + tail),
+            ("character outside Latin-1", SENTINEL + "€"),
+            ("tab", SENTINEL + "\t"),
+            ("leading space", " " + SENTINEL),
+            ("only spaces", "   "),
+        )
+        for name, key in keys:
+            with self.subTest(key=name):
+                os.environ["TYPESAFE_API_KEY"] = key
+                with _canned_https([_http(b"200 OK", _good_bytes())]) as seen:
+                    code, stdout, err = _cli_traced(argv)
+                self.assertEqual(code, 2)
+                self.assertEqual(seen, [])
+                self._clean(stdout, err, _tree(out))
+                for text in (stdout, err, _tree(out)):
+                    self.assertNotIn(tail, text)
+                    self.assertNotIn("Bearer", text)
+                self.assertEqual(sum(1 for line in err.splitlines() if "error:" in line), 1)
+                for filename, text in before.items():
+                    self.assertEqual(_read(os.path.join(out, filename)), text)
+
+    def test_a_broken_response_prints_one_line_and_no_traceback(self):
+        root = _scratch("broken")
+        argv = self._typesafe(root)
+        out = argv[-1]
+        before = _seed(out)
+        secret = SECRET.encode("ascii")
+        replies = (
+            ("truncated body", b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+             b"Content-Length: 400\r\n\r\n" + _good_bytes()[:20]),
+            ("bad status line", b"garbage " + secret + b"\r\n\r\n"),
+            ("overlong header line", b"HTTP/1.1 200 OK\r\nX: " + b"a" * 70000 + b"\r\n\r\n"),
+            ("nesting deeper than the parser's stack", _http(b"200 OK", b"[" * 200000)),
+            ("status 500 echoing the key", _http(b"500 Internal Server Error", SENTINEL.encode("ascii") + secret)),
+            ("body echoing the key", _http(b"200 OK", json.dumps({"model": SENTINEL}).encode("ascii"))),
+        )
+        for name, raw in replies:
+            with self.subTest(reply=name):
+                with _canned_https([raw]) as seen:
+                    code, stdout, err = _cli_traced(argv)
+                self.assertEqual(code, 2)
+                self.assertEqual(len(seen), 1)
+                self._clean(stdout, err, _tree(out))
+                self.assertEqual(sum(1 for line in err.splitlines() if "error:" in line), 1)
+                for filename, text in before.items():
+                    self.assertEqual(_read(os.path.join(out, filename)), text)
 
 
 class ReportTests(JevTest):
