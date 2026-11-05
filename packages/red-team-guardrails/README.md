@@ -70,4 +70,10 @@ python3 -c 'import json; d=json.load(open("reports/guardrails.json")); by={s["na
 
 ## Assignment 3: Jev
 
-**Not done yet.** It needs a hosted service, so it is its own step, and the owner enables it first (ruling 2). The plan says what happens if the owner says no: this package records Assignment 3 as not done and why, and no local stand-in is called Jev.
+**Started, not done.** It needs a hosted service, so it is its own step, and the owner enabled it first (ruling 2). The plan says what happens if the owner says no: this package records Assignment 3 as not done and why, and no local stand-in is called Jev.
+
+| Acceptance item | File | Note |
+|---|---|---|
+| Jev scorer created in Braintrust (built-in Jev enabled) and passing 5/5 UI test cases | `assignment-3/ui_test.md` | Five of five, on Thu 5 Nov 2026. Built-in Jev was enabled but did not appear in the scorer's model picker, so the scorer reaches Jev through the owner's TypeSafe key (ruling 62). The PM seat built and ran it in the owner's browser |
+
+The other items wait for step 9: the adapter, the 40, the side-by-side, the diagram and the verdict. `docs/guardrail-spec.md` has their contracts.
