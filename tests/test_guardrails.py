@@ -1035,6 +1035,17 @@ class ScoreTests(unittest.TestCase):
         self.assertIn("1 of 2", shown)
         self.assertIn("[", shown)
 
+    def test_wilson_in_the_report_is_stats_wilson_and_stays_inside_zero_and_one(self):
+        # Against stats.wilson itself, so k and n cannot trade places unseen.
+        for k, n in ((1, 4), (3, 5), (0, 20), (20, 20), (17, 20)):
+            low, high = wilson(k, n)
+            self.assertEqual(_rate(k, n)["wilson"], [round(max(low, 0.0), 6), round(min(high, 1.0), 6)])
+        zero = _fmt_rate(_rate(0, 20), "over-block")
+        self.assertIn("0 of 20 [0.000000, ", zero)
+        self.assertNotIn("-0.", zero)
+        self.assertEqual(_rate(0, 20)["wilson"][0], 0.0)
+        self.assertEqual(_rate(20, 20)["wilson"][1], 1.0)
+
     def test_a_differing_digest_is_refused(self):
         root = _scratch("digest")
         self._write_slice(root, "sha256:one", "sha256:two")
@@ -1472,6 +1483,75 @@ def _fresh(args_path):
         if not os.path.isfile(target) or _read(target) != text:
             return False
     return True
+
+
+class RefusalTests(unittest.TestCase):
+    """Valid JSON of the wrong shape is a usage error: status 2, one message, no traceback, nothing written."""
+
+    def test_a_case_without_a_legs_list_is_refused(self):
+        root = _scratch("shape")
+        _json(os.path.join(root, "nolegs.json"), [{"case_id": "S1"}])
+        _json(os.path.join(root, "legstr.json"), [{"case_id": "S1", "legs": ["x"]}])
+        for name in ("nolegs.json", "legstr.json"):
+            code, err = _cli([
+                "decide-input", "--cases", os.path.join(root, name),
+                "--guardrails", "g1", "--out", os.path.join(root, "out"),
+            ])
+            self.assertEqual(code, 2, name)
+            self.assertNotIn("Traceback", err)
+            self.assertIn("S1", err)
+            self.assertFalse(os.path.exists(os.path.join(root, "out")))
+
+    def test_a_spec_row_that_is_not_an_object_is_refused_and_the_output_kept(self):
+        root = _scratch("tsrow")
+        _json(os.path.join(root, "spec.json"), ["A"])
+        _jsonl(os.path.join(root, "labels.jsonl"), [{"case_id": "A", "kind": "attack"}])
+        _write(os.path.join(root, "out.md"), "kept\n")
+        code, err = _cli([
+            "test-set", "--spec", os.path.join(root, "spec.json"),
+            "--labels", os.path.join(root, "labels.jsonl"), "--md", os.path.join(root, "out.md"),
+        ])
+        self.assertEqual(code, 2)
+        self.assertNotIn("Traceback", err)
+        self.assertEqual(_read(os.path.join(root, "out.md")), "kept\n")
+
+    def test_a_thresholds_file_missing_a_bar_is_refused_on_any_section(self):
+        root = _scratch("bars")
+        ScoreTests()._write_slice(root, "sha256:one", "sha256:one")
+        argv = [
+            "report", "--cases", os.path.join(root, "tiny-cases.json"),
+            "--labels", os.path.join(root, "labels.jsonl"), "--decisions", os.path.join(root, "decisions"),
+            "--unguarded", os.path.join(root, "unguarded"), "--twins", os.path.join(root, "twins"),
+            "--thresholds", os.path.join(root, "thresholds.json"), "--readings", os.path.join(root, "readings.json"),
+            "--statement", os.path.join(root, "statement.txt"), "--md", os.path.join(root, "out.md"),
+        ]
+        bad = [
+            ({"guardrails": {"g1": {"min_caught": 15}}}, "max_overblocked"),
+            ({"guardrails": {"g1": {"min_caught": 15, "max_overblocked": "1"}}}, "max_overblocked"),
+            ({"guardrails": {"g1": {"min_caught": 15, "max_overblocked": 1}},
+              "stacks": {"s": {"min_caught": 17, "max_overblocked": 2}}}, "members"),
+            ({"guardrails": [], "stacks": {}}, "guardrails"),
+            ({"guardrails": {"g1": {"min_caught": 15, "max_overblocked": 1}}, "max_flip_misses": "0"}, "max_flip_misses"),
+        ]
+        for data, word in bad:
+            _json(os.path.join(root, "thresholds.json"), data)
+            code, err = _cli(argv)
+            self.assertEqual(code, 2, data)
+            self.assertNotIn("Traceback", err)
+            self.assertIn(word, err)
+            self.assertFalse(os.path.exists(os.path.join(root, "out.md")))
+        # The real thresholds file passes the shape check; the tiny slice then lacks the stack's members.
+        _json(os.path.join(root, "thresholds.json"), _data(THRESHOLDS))
+        code, err = _cli(argv)
+        self.assertEqual(code, 2)
+        self.assertIn("stack g3_g4 is missing", err)
+        _json(os.path.join(root, "thresholds.json"), {
+            "guardrails": {"g1": {"min_caught": 15, "max_overblocked": 1}},
+            "g3_max_model_share": 0.5, "max_flip_misses": 0,
+        })
+        code, err = _cli(argv)
+        self.assertEqual(code, 0, err)
+        self.assertTrue(os.path.exists(os.path.join(root, "out.md")))
 
 
 class ScanTests(unittest.TestCase):

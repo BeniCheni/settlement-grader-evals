@@ -510,6 +510,9 @@ def _cases_rows(path):
     for index, row in enumerate(rows):
         if not isinstance(row, dict) or not isinstance(row.get("case_id"), str) or row["case_id"] == "":
             raise JudgeError("cases file row %s has no case id" % index)
+        legs = row.get("legs")
+        if not isinstance(legs, list) or not all(isinstance(leg, dict) for leg in legs):
+            raise JudgeError("cases file row %s has no legs list" % row["case_id"])
         ids.append(row["case_id"])
     if len(ids) != len(set(ids)):
         raise JudgeError("cases file holds a case id twice")
@@ -919,7 +922,9 @@ def _round_wilson(k, n):
     if n == 0:
         return None
     low, high = wilson(k, n)
-    return [round(low, 6), round(high, 6)]
+    # A proportion's interval lies in [0, 1]. Floating point can put the lower
+    # bound of 0 of n a hair below zero, which printed as -0.000000.
+    return [round(min(max(low, 0.0), 1.0), 6) + 0.0, round(min(max(high, 0.0), 1.0), 6) + 0.0]
 
 
 def _rate(k, n):
@@ -1487,6 +1492,34 @@ def _check_digest(runs):
             raise JudgeError("runs differ in model digest or Ollama version")
 
 
+def _check_thresholds(data):
+    """The plan's bars as data. A missing bar is a validation error on every section.
+
+    The bars are judged only on a section of 20 and 20, so a key missing from
+    the file surfaced as a traceback there and as nothing anywhere else.
+    """
+    if not isinstance(data, dict):
+        raise JudgeError("thresholds file is refused")
+    for group in ("guardrails", "stacks"):
+        entries = data.get(group, {})
+        if not isinstance(entries, dict):
+            raise JudgeError("thresholds %s is refused" % group)
+        for name, bars in entries.items():
+            if not isinstance(bars, dict):
+                raise JudgeError("thresholds %s %s is refused" % (group, name))
+            for key in ("min_caught", "max_overblocked"):
+                if isinstance(bars.get(key), bool) or not isinstance(bars.get(key), int):
+                    raise JudgeError("thresholds %s %s lacks %s" % (group, name, key))
+            if group == "stacks":
+                members = bars.get("members")
+                if not isinstance(members, list) or not members or not all(
+                        isinstance(member, str) for member in members):
+                    raise JudgeError("thresholds stack %s lacks members" % name)
+    for key in ("g3_max_model_share", "max_flip_misses"):
+        if key in data and (isinstance(data[key], bool) or not isinstance(data[key], (int, float))):
+            raise JudgeError("thresholds %s is refused" % key)
+
+
 def _load_readings(path):
     rel = relative_path(path, "readings")
     try:
@@ -1584,8 +1617,7 @@ def build_report(slice_args, unguarded_path, twins_path, guarded_path, variants,
         variant_runs[vname] = records
     _check_digest(runs)
     thresholds = load_json(relative_path(thresholds_path, "thresholds"))
-    if not isinstance(thresholds, dict):
-        raise JudgeError("thresholds file is refused")
+    _check_thresholds(thresholds)
     readings = _load_readings(readings_path)
     statement = read_text(relative_path(statement_path, "statement"))
     if statement.strip() == "":
@@ -1752,7 +1784,7 @@ def test_set_markdown(spec_path, labels_path):
         raise JudgeError("spec and labels do not pair")
     lines = ["# Test set", ""]
     for spec_row, label in zip(spec, labels):
-        if spec_row.get("case_id") != label.get("case_id"):
+        if not isinstance(spec_row, dict) or spec_row.get("case_id") != label.get("case_id"):
             raise JudgeError("spec and labels do not pair")
         if label["kind"] not in ("attack", "legitimate"):
             continue
