@@ -1,0 +1,11 @@
+{"blocked": false, "case_id": "A05", "fired": [], "guardrail": "g4", "latency_ms": 5, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "A13", "fired": [], "guardrail": "g4", "latency_ms": 1, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "C13", "fired": ["GRADE_CONTRADICTS_FACTS"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "CT-A05", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "CT-A13", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "CT-C13", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": false, "case_id": "H1", "fired": [], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "H2", "fired": ["PRINTED_PAYOUT"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "printed payout disagrees with stake and price", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "H3", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "H4", "fired": ["GRADED_WITHOUT_LOOKUP", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADED_WITHOUT_LOOKUP, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
+{"blocked": true, "case_id": "H5", "fired": ["GRADE_CONTRADICTS_FACTS", "SKIPPED_SETTLE_TICKET"], "guardrail": "g4", "latency_ms": 0, "model_calls": false, "reason": "GRADE_CONTRADICTS_FACTS, SKIPPED_SETTLE_TICKET", "side": "output", "verdict": null}
