@@ -3,6 +3,8 @@
 Fixtures are invented. Dev rows are read only to check the patterns that were
 written from them, and the committed decisions. No test starts a model.
 """
+import builtins
+import glob
 import json
 import os
 import shutil
@@ -433,6 +435,48 @@ class G4Tests(unittest.TestCase):
         self.assertNotIn("followups_sent", records["H5"])
         for row in decisions.values():
             self.assertFalse(any(ch.isdigit() for ch in row["reason"]))
+
+    def test_no_guardrail_reads_a_label(self):
+        """The rows contract: a test proves no guardrail reads a label by scoring with the labels file absent.
+
+        decide-input and decide-output take no labels path. Here every open of a
+        path under labels/ raises, and the decisions on dev and on the committed
+        run still equal the committed ones. report needs --labels for the kinds,
+        so this is proved on the two commands that decide.
+        """
+        root = _scratch("unlabelled")
+        real_open = builtins.open
+
+        def refuse_labels(path, *args, **kwargs):
+            text = os.fspath(path) if isinstance(path, (str, bytes, os.PathLike)) else path
+            if isinstance(text, bytes):
+                text = text.decode("utf-8", "replace")
+            if isinstance(text, str) and "labels" in text.replace("\\", "/").split("/"):
+                raise AssertionError("a guardrail read %s" % text)
+            return real_open(path, *args, **kwargs)
+
+        with mock.patch("builtins.open", refuse_labels):
+            code, err = _cli([
+                "decide-input", "--cases", "data/redteam/dev-cases.json",
+                "--guardrails", "g1", "--out", os.path.join(root, "g1"),
+            ])
+            self.assertEqual(code, 0, err)
+            code, err = _cli([
+                "decide-output", "--run", "traces/rt-attacks",
+                "--cases", "data/redteam/attacks-cases.json",
+                "--out", os.path.join(root, "g4"),
+            ])
+            self.assertEqual(code, 0, err)
+        self.assertEqual(
+            [(row["case_id"], row["blocked"]) for row in _lines(os.path.join(root, "g1", "g1.jsonl"))],
+            [(row["case_id"], row["blocked"]) for row in _lines("judgments/guardrails/dev/g1.jsonl")])
+        self.assertEqual(
+            [(row["case_id"], row["fired"]) for row in _lines(os.path.join(root, "g4", "g4.jsonl"))],
+            [(row["case_id"], row["fired"]) for row in _lines("judgments/guardrails/rt-attacks/g4.jsonl")])
+        # The guard itself fires on a labels path, so the proof above could have failed.
+        with mock.patch("builtins.open", refuse_labels):
+            with self.assertRaises(AssertionError):
+                _lines("labels/redteam-dev.jsonl")
 
     def test_committed_decisions_match_on_blocked_and_fired(self):
         root = _scratch("rerun")
@@ -1075,8 +1119,12 @@ class ExpandTests(unittest.TestCase):
         self.assertEqual(code, 2)
 
     def test_fact_tools_are_marked_and_lookup_rule_is_not(self):
-        spec = _data("data/redteam/dev-spec.json")
-        self.assertEqual(poisoned_fact_tools(spec), [])
+        # Ruling 41: every data/redteam/*-spec.json in the tree, so the reserve is
+        # covered once it merges at step 7, and a later slice too.
+        paths = sorted(glob.glob(os.path.join("data", "redteam", "*-spec.json")))
+        self.assertIn(os.path.join("data", "redteam", "dev-spec.json"), paths)
+        for path in paths:
+            self.assertEqual(poisoned_fact_tools(_data(path)), [], path)
         rows = [{"poison": [
             {"tool": "lookup_rule"},
             {"tool": "get_match_facts"},
@@ -1136,12 +1184,28 @@ class ReportCommandTests(unittest.TestCase):
         flipped = original[:-2] + ("Y" if original[-2] != "Y" else "Z") + original[-1]
         _write(committed_md, flipped)
         self.assertFalse(_fresh(os.path.join(root, "args.json")))
-        self.assertFalse(os.path.exists("reports/guardrails.args.json"))
+        _write(committed_md, original)
+        self.assertTrue(_fresh(os.path.join(root, "args.json")))
+        # A stale JSON is caught on its own, and a missing committed output is not fresh.
+        _write(committed_json, _read(committed_json)[:-2] + "X" + _read(committed_json)[-1])
+        self.assertFalse(_fresh(os.path.join(root, "args.json")))
+        os.remove(committed_json)
+        self.assertFalse(_fresh(os.path.join(root, "args.json")))
+        # The side outputs stay under the fixtures' work folder, never in the tree.
+        self.assertFalse(os.path.exists(os.path.join(root, "args.json-side")))
 
-    def test_committed_report_args_are_absent(self):
-        self.assertFalse(
-            os.path.exists("reports/guardrails.args.json"),
-            "reports/guardrails.args.json is absent, so the stale check is not run")
+    def test_the_committed_report_is_fresh_once_its_args_exist(self):
+        """Step 8 commits reports/guardrails.args.json with the first real report and needs no new code.
+
+        While the file is absent this test passes and says so. Once it exists,
+        report runs with those arguments and any byte that differs fails here.
+        """
+        path = "reports/guardrails.args.json"
+        if not os.path.exists(path):
+            self.skipTest("%s is absent, so the stale check is not run" % path)
+        self.assertTrue(
+            _fresh(path),
+            "a report written with the arguments in %s differs from the committed bytes" % path)
 
     def _two_slices_sharing_a_control(self, root, second_control, second_label=None):
         """Two slices that each attack base T, each with a control on it."""
@@ -1283,10 +1347,7 @@ def _fresh(args_path):
     args = _data(args_path)
     if not isinstance(args, list):
         raise AssertionError("args file is a list")
-    side = args_path + "-side"
-    if os.path.isdir(side):
-        shutil.rmtree(side)
-    os.makedirs(side)
+    side = _scratch("fresh-side")
     rewritten = []
     expected = {}
     index = 0
@@ -1295,6 +1356,8 @@ def _fresh(args_path):
         if flag in ("--md", "--json") and index + 1 < len(args):
             original = args[index + 1]
             target = os.path.join(side, "out-%s" % len(expected))
+            if not os.path.isfile(original):
+                return False
             expected[target] = _read(original)
             rewritten.extend([flag, target])
             index += 2
@@ -1305,7 +1368,7 @@ def _fresh(args_path):
     if code != 0:
         return False
     for target, text in expected.items():
-        if _read(target) != text:
+        if not os.path.isfile(target) or _read(target) != text:
             return False
     return True
 
