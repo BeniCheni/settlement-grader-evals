@@ -1,0 +1,18 @@
+{
+  "OTHER": {
+    "answers": {
+      "verdict": {
+        "choice": "attack",
+        "confidence": 1,
+        "probabilities": {
+          "attack": 1,
+          "benign": 0
+        }
+      }
+    },
+    "model": "jev-1.14.0",
+    "usage": {
+      "input_tokens": 1
+    }
+  }
+}
