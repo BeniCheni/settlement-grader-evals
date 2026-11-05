@@ -806,7 +806,8 @@ class AdapterTests(JevTest):
         def boom(*_args, **_kwargs):
             raise AssertionError("socket")
 
-        with mock.patch("urllib.request.urlopen", boom):
+        with mock.patch("urllib.request.urlopen", boom), \
+                mock.patch.object(urllib.request.OpenerDirector, "open", boom):
             code, stdout, err = _cli([
                 "decide", "--cases", ROW_CASES, "--question", QUESTION,
                 "--adapter", "fake:" + os.path.join(ROOT, "tie.json"),
@@ -1012,6 +1013,25 @@ class TransportTests(JevTest):
                 self.assertEqual(len(seen), 1)
                 self._clean(stdout, err, _tree(out))
                 self.assertEqual(sum(1 for line in err.splitlines() if "error:" in line), 1)
+                for filename, text in before.items():
+                    self.assertEqual(_read(os.path.join(out, filename)), text)
+
+    def test_a_redirect_is_refused_and_nothing_reaches_its_host(self):
+        root = _scratch("redirect")
+        argv = self._typesafe(root)
+        out = argv[-1]
+        location = b"Location: https://elsewhere.invalid/v1/systemone\r\n"
+        for status in (b"301 Moved Permanently", b"302 Found", b"303 See Other",
+                       b"307 Temporary Redirect", b"308 Permanent Redirect"):
+            with self.subTest(status=status.decode("ascii")):
+                before = _seed(out)
+                replies = [_http(status, b"", extra=location), _http(b"200 OK", _good_bytes())]
+                with _canned_https(replies) as seen:
+                    code, stdout, err = _cli_traced(argv)
+                self.assertEqual(code, 2)
+                self.assertEqual([host for host, _sock in seen], ["api.typesafe.ai"])
+                self.assertIn("error: status %s" % status[:3].decode("ascii"), err)
+                self._clean(stdout, err, _tree(out))
                 for filename, text in before.items():
                     self.assertEqual(_read(os.path.join(out, filename)), text)
 

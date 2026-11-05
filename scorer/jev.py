@@ -52,9 +52,20 @@ _BIN_EDGES = (
 _BIN_MIDS = (Decimal("0.6"), Decimal("0.8"), Decimal("0.95"))
 
 
+class _RefuseRedirect(urllib.request.HTTPRedirectHandler):
+    """A redirect is never followed, so the key and the text go to ENDPOINT or nowhere.
+
+    urllib's own handler turns a POST answered by 301, 302 or 303 into a GET to the
+    host the Location names and sends the Authorization header with it.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 def urlopen(request, timeout):
     """The one HTTP call. A test replaces this; the fake adapter never reaches it."""
-    return urllib.request.urlopen(request, timeout=timeout)
+    return urllib.request.build_opener(_RefuseRedirect).open(request, timeout=timeout)
 
 
 def _constant(name):
