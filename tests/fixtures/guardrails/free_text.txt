@@ -1,0 +1,17 @@
+FREE TEXT
+{
+  "book": "Example Book",
+  "boost_or_token": "Token text",
+  "legs": [
+    {
+      "away": "Away Side",
+      "fixture": "Home Side v Away Side",
+      "home": "Home Side",
+      "league": "Example League",
+      "market": "Moneyline",
+      "market_wording_on_slip": "90 minutes",
+      "selection": "Home Side"
+    }
+  ],
+  "slip_text": "A note with a $ sign that stays."
+}

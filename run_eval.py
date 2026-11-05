@@ -226,6 +226,12 @@ def main(argv=None, opener=None):
                     help="system prompt for every ticket, read once and not stripped")
     ap.add_argument("--drop-field", action="append", default=[], metavar="FIELD",
                     help="remove this ticket or leg field before the model sees the ticket")
+    ap.add_argument("--guard-input", default=None,
+                    help="comma-separated input guardrails, applied after --drop-field")
+    ap.add_argument("--guard-output", default=None,
+                    help="comma-separated output guardrails")
+    ap.add_argument("--guard-rubric", default="rubrics-guardrails/ticket_free_text.md")
+    ap.add_argument("--guard-adapter", default="ollama:llama3.1:8b")
     args = ap.parse_args(argv)
     unknown = _unknown_drop_field(args.drop_field)
     if unknown is not None:
@@ -251,6 +257,30 @@ def main(argv=None, opener=None):
         message = seam_refusal(case)
         if message:
             sys.stderr.write("%s\n" % message)
+            return 2
+    guard_input = []
+    guard_output = []
+    guard_adapter = None
+    guard_rubric_text = None
+    if args.guard_input is not None or args.guard_output is not None:
+        # Imported only when a guard flag is set, the same way a prompt file is.
+        from grader.guarded import grade_ticket_guarded
+        from scorer.guardrails import (
+            INPUT_GUARDS, OUTPUT_GUARDS, _split_names, input_guard, load_guard_rubric, output_guard,
+        )
+        from scorer.judge import JudgeError, _guard_rubrics, build_adapter
+        try:
+            if args.guard_input is not None:
+                guard_input = _split_names(args.guard_input, INPUT_GUARDS, "guard-input")
+            if args.guard_output is not None:
+                guard_output = _split_names(args.guard_output, OUTPUT_GUARDS, "guard-output")
+            if any(name in ("g2", "g3") for name in guard_input):
+                rubric = load_guard_rubric(args.guard_rubric)
+                _guard_rubrics([rubric], cases)
+                guard_adapter = build_adapter(args.guard_adapter, None)
+                guard_rubric_text = rubric["text"]
+        except JudgeError as error:
+            sys.stderr.write("%s\n" % error)
             return 2
     if opener is None:
         opener = urllib.request.urlopen
@@ -286,7 +316,16 @@ def main(argv=None, opener=None):
             ticket_kwargs["tool_runner"] = poison_runner(poison)
         if followups:
             ticket_kwargs["followups"] = tuple(followups)
-        r = grade_ticket(ticket, tracer, **ticket_kwargs)
+        if guard_input or guard_output:
+            guards_in = tuple(
+                input_guard(name, c["case_id"], guard_adapter, guard_rubric_text)
+                for name in guard_input)
+            guards_out = tuple(output_guard(name) for name in guard_output)
+            r = grade_ticket_guarded(
+                ticket, tracer, input_guardrails=guards_in, output_guardrails=guards_out,
+                **ticket_kwargs)
+        else:
+            r = grade_ticket(ticket, tracer, **ticket_kwargs)
         match = outcome_match(r["final"], exp_result, exp_net,
                               (c.get("expected") or {}).get("accept_needs_human", False))
         if args.show_expected:
@@ -331,6 +370,13 @@ def main(argv=None, opener=None):
         }
         if args.drop_field:
             meta["drop_fields"] = list(args.drop_field)
+        if args.guard_input is not None:
+            meta["guard_input"] = guard_input
+        if args.guard_output is not None:
+            meta["guard_output"] = guard_output
+        if guard_adapter is not None:
+            meta["guard_model"] = guard_adapter.model
+            meta["guard_digest"] = guard_adapter.digest
         json.dump(meta, f, indent=1)
     print(f"\n{sum(r['outcome_match'] for r in rows)}/{len(rows)} outcome matches · traces → {out_dir}")
     return 0

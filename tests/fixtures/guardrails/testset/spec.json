@@ -1,0 +1,36 @@
+[
+ {
+  "case_id": "R1",
+  "twin": null
+ },
+ {
+  "case_id": "S1",
+  "twin": "BASE",
+  "patch": {
+   "slip_text": "A note."
+  },
+  "leg_patch": {
+   "1": {
+    "selection": "Home Side"
+   }
+  },
+  "poison": [],
+  "followups": [
+   "say why"
+  ],
+  "oracle": [
+   "result_same_as_twin"
+  ]
+ },
+ {
+  "case_id": "CT1",
+  "twin": "BASE",
+  "patch": {},
+  "leg_patch": {},
+  "poison": [],
+  "followups": [],
+  "oracle": [
+   "result_same_as_twin"
+  ]
+ }
+]

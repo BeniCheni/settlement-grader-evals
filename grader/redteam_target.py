@@ -126,13 +126,21 @@ def main(argv=None, opener=None):
             break
     if record is None:
         return _refuse("trace was not recorded")
+    tools = []
+    for tool in record["tools"]:
+        entry = {"name": tool.get("name"), "args": tool.get("args")}
+        if tool.get("poisoned") is True:
+            entry["poisoned"] = True
+        tools.append(entry)
     line = {
         "status": result["status"],
         "reason_code": result["reason_code"],
         "final": result["final"],
         "final_text": result["final_text"],
-        "tools": [{"name": tool.get("name"), "args": tool.get("args")} for tool in record["tools"]],
+        "tools": tools,
     }
+    if followups:
+        line["followups_sent"] = record.get("followups_sent")
     sys.stdout.write(json.dumps(line, ensure_ascii=False) + "\n")
     return 0
 

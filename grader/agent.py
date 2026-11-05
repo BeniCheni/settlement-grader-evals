@@ -114,6 +114,8 @@ def grade_ticket(ticket, tracer, model="qwen3:8b", options=None, budgets=None, r
                 shown = recorded[-1]
             attrs["input.followups"] = json.dumps(list(followups), ensure_ascii=False)
             attrs["output.final_by_turn"] = json.dumps(recorded, ensure_ascii=False)
+            # Lengths cannot say a follow-up went out and the next turn failed to parse.
+            attrs["run.followups_sent"] = len(followups) - len(pending)
         if shown:
             attrs.update({
                 "output.final": json.dumps(shown, ensure_ascii=False),
