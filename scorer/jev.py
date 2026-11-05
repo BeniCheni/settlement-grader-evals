@@ -324,6 +324,11 @@ def decide(cases_path, question_path, adapter, out_dir):
     rel, rows = _cases(cases_path)
     qpath, question = _question(question_path)
     _guard_question(question, rows)
+    # --out is checked before the key is read or any row is sent, so a bad path
+    # costs no request to the hosted service.
+    out = relative_path(out_dir, "output")
+    if os.path.exists(out) and not os.path.isdir(out):
+        raise JudgeError("output is not a directory")
     parsed = []
     if adapter == "typesafe":
         key = _api_key()
@@ -344,7 +349,6 @@ def decide(cases_path, question_path, adapter, out_dir):
         raise JudgeError("adapter is refused")
     records = [_record(case_id, item, latency) for case_id, item, latency in parsed]
     records.sort(key=lambda row: row["case_id"])
-    out = relative_path(out_dir, "output")
     write_outputs([
         (os.path.join(out, "jev.jsonl"), jsonl_text(records)),
         (os.path.join(out, "jev_meta.json"), canonical_json(_meta(rel, qpath))),

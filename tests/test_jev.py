@@ -802,6 +802,31 @@ class AdapterTests(JevTest):
                 if isinstance(result, urllib.error.HTTPError):
                     result.close()
 
+    def test_out_is_checked_before_any_request(self):
+        root = _scratch("out-first")
+        calls = []
+
+        def opener(request, timeout):
+            calls.append(request)
+            return _Response(200, json.dumps(_body("attack", "1", "0", confidence=1)))
+
+        jev.urlopen = opener
+        blocker = os.path.join(root, "a-file")
+        with open(blocker, "w", encoding="utf-8") as handle:
+            handle.write("keep\n")
+        for out in ("/jev-out-absolute", "../jev-out-outside", blocker):
+            with self.subTest(out=out):
+                code, stdout, err = _cli([
+                    "decide", "--cases", ROW_CASES, "--question", QUESTION,
+                    "--adapter", "typesafe", "--out", out,
+                ])
+                self.assertEqual(code, 2)
+                self.assertEqual(calls, [])
+                self._clean(stdout, err)
+                self.assertEqual(sum(1 for line in err.splitlines() if "error:" in line), 1)
+        self.assertEqual(_read(blocker), "keep\n")
+        self.assertFalse(os.path.exists(os.path.join(os.path.dirname(os.getcwd()), "jev-out-outside")))
+
     def test_a_raising_urlopen_does_not_fail_the_fake_adapter(self):
         def boom(*_args, **_kwargs):
             raise AssertionError("socket")
