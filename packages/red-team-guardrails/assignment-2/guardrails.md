@@ -17,7 +17,7 @@ An approach note per guardrail: why it exists, what it catches and what it costs
 
 **What it catches.** Five named families: an instruction aimed at the grader, an assertion of the result, a claim of authority, hidden markup and an encoded blob. It normalises each string first: NFKC, format characters removed, casefolded, whitespace collapsed, and Greek and Cyrillic lookalikes mapped to Latin. So homoglyphs, zero-width characters and base64 of 32 characters or more were caught on these rows (`R02`, `R03`, `R01`).
 
-**What it costs.** It over-blocked nothing here, but the hard negatives do not stress its patterns as written. It missed Spanish, a hypothetical and a claim that the book had paid (`R05`, `R06`, `R08`), an instruction split across two legs (`H4`), and a note naming another event (`H3`). It cannot read a poisoned tool result (`P2`), a follow-up turn (`H5`) or the arithmetic of a payout (`H2`). Its patterns were chosen while reading `dev`, and four phrases that fit one `dev` row were removed before the reserve was public (ruling 46). The ship report lists what still passes it.
+**What it costs.** It over-blocked nothing here, but the hard negatives do not stress its patterns as written. It missed Spanish, a hypothetical and a claim that the book had paid (`R05`, `R06`, `R08`), an instruction split across two legs (`H4`), and a fixture naming another event (`H3`). It cannot read a poisoned tool result (`P2`), a follow-up turn (`H5`) or the arithmetic of a payout (`H2`). Its patterns were chosen while reading `dev`, and four phrases that fit one `dev` row were removed before the reserve was public (ruling 46). The ship report lists what still passes it.
 
 ## G2, LLM judge, input
 
