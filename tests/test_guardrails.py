@@ -504,30 +504,52 @@ class G4Tests(unittest.TestCase):
         self.assertNotIn("Traceback", err)
         self.assertFalse(os.path.exists(os.path.join(root, "out", "g4.jsonl")))
 
-    def test_duplicate_or_blocked_or_a_different_id_exits_2(self):
+    def _decide_output(self, root, run_name):
+        return _cli([
+            "decide-output", "--run", os.path.join(root, run_name),
+            "--cases", os.path.join(root, "cases.json"), "--out", os.path.join(root, "out"),
+        ])
+
+    def test_a_duplicate_anywhere_or_a_blocked_decided_row_exits_2(self):
         root = _scratch("ids")
         _json(os.path.join(root, "cases.json"), [{"case_id": "S1", "legs": []}])
         _run_dir(os.path.join(root, "twice"), [_quiet_record("S1"), _quiet_record("S1")])
-        code, err = _cli([
-            "decide-output", "--run", os.path.join(root, "twice"),
-            "--cases", os.path.join(root, "cases.json"), "--out", os.path.join(root, "out"),
-        ])
+        code, err = self._decide_output(root, "twice")
         self.assertEqual(code, 2, err)
         self.assertFalse(os.path.exists(os.path.join(root, "out", "g4.jsonl")))
-        other = _quiet_record("S1")
-        other["status"] = "blocked"
-        _run_dir(os.path.join(root, "held"), [other])
-        code, _err = _cli([
-            "decide-output", "--run", os.path.join(root, "held"),
-            "--cases", os.path.join(root, "cases.json"), "--out", os.path.join(root, "out"),
-        ])
-        self.assertEqual(code, 2)
-        _run_dir(os.path.join(root, "other"), [_quiet_record("NOPE")])
-        code, _err = _cli([
-            "decide-output", "--run", os.path.join(root, "other"),
-            "--cases", os.path.join(root, "cases.json"), "--out", os.path.join(root, "out"),
-        ])
-        self.assertEqual(code, 2)
+        # A case id twice anywhere in the run, even one the cases file does not name.
+        _run_dir(os.path.join(root, "twice-other"), [
+            _quiet_record("S1"), _quiet_record("NOPE"), _quiet_record("NOPE")])
+        code, err = self._decide_output(root, "twice-other")
+        self.assertEqual(code, 2, err)
+        self.assertIn("NOPE", err)
+        held = _quiet_record("S1")
+        held["status"] = "blocked"
+        _run_dir(os.path.join(root, "held"), [held])
+        code, err = self._decide_output(root, "held")
+        self.assertEqual(code, 2, err)
+        self.assertIn("blocked", err)
+        self.assertFalse(os.path.exists(os.path.join(root, "out", "g4.jsonl")))
+
+    def test_one_run_may_hold_other_rows_and_every_named_case_needs_a_record(self):
+        # Step 8's one unguarded run holds every slice's rows, so a cases file
+        # names a subset. The rest are neither decided nor read for their status.
+        root = _scratch("subset")
+        _json(os.path.join(root, "cases.json"), [{"case_id": "S1", "legs": []}])
+        other_held = _quiet_record("OTHER")
+        other_held["status"] = "blocked"
+        _run_dir(os.path.join(root, "wider"), [_quiet_record("S1", calls=0), other_held, _quiet_record("MORE")])
+        code, err = self._decide_output(root, "wider")
+        self.assertEqual(code, 0, err)
+        rows = _lines(os.path.join(root, "out", "g4.jsonl"))
+        self.assertEqual([row["case_id"] for row in rows], ["S1"])
+        self.assertEqual(rows[0]["fired"], ["GRADED_WITHOUT_LOOKUP"])
+        # The other direction: a named case with no record is refused.
+        _run_dir(os.path.join(root, "narrower"), [_quiet_record("NOPE")])
+        code, err = self._decide_output(root, "narrower")
+        self.assertEqual(code, 2, err)
+        self.assertIn("S1", err)
+        self.assertFalse(os.path.exists(os.path.join(root, "out2")))
 
     def test_urlopen_raising_does_not_fail_g4_or_the_fake_adapter(self):
         record = _quiet_record("S1")

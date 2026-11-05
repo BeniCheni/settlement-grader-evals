@@ -544,14 +544,21 @@ def decide_input(cases_path, names, rubric_path, adapter_spec):
 
 
 def decide_output(run_dir, cases_path):
-    """G4 rows for an unguarded run. A blocked record or a raising check is an error."""
+    """G4 rows for the cases named, read from one unguarded run.
+
+    Step 8 runs every slice's rows in one session, so the run may hold rows
+    the cases file does not name: those are neither decided nor read for
+    their status. Every case id in the cases file has exactly one record, or
+    the command exits with status 2. A case id twice anywhere in the run is
+    refused, and so is a blocked record among the rows decided, because a held
+    final is not the grader's answer. A raising check is an error too.
+    """
     rel, cases = _cases_rows(cases_path)
     run = relative_path(run_dir, "a run")
     try:
         records = load_run(run)
     except (OSError, ValueError, json.JSONDecodeError, UnicodeError):
         raise JudgeError("run %s is unreadable" % run) from None
-    ids = []
     by_id = {}
     for record in records:
         case_id = record.get("case_id")
@@ -559,13 +566,13 @@ def decide_output(run_dir, cases_path):
             raise JudgeError("run %s has a record with no case id" % run)
         if case_id in by_id:
             raise JudgeError("run %s holds case id %s twice" % (run, case_id))
-        if record.get("status") == "blocked":
-            raise JudgeError("run %s case %s is blocked" % (run, case_id))
         by_id[case_id] = record
-        ids.append(case_id)
     case_ids = [case["case_id"] for case in cases]
-    if set(ids) != set(case_ids):
-        raise JudgeError("run case ids differ from the cases file")
+    for case_id in case_ids:
+        if case_id not in by_id:
+            raise JudgeError("run %s has no record for %s" % (run, case_id))
+        if by_id[case_id].get("status") == "blocked":
+            raise JudgeError("run %s case %s is blocked" % (run, case_id))
     rows = []
     for case_id in sorted(case_ids):
         started = time.perf_counter()
