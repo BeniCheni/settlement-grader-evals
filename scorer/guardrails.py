@@ -618,7 +618,7 @@ def decide_output(run_dir, cases_path):
     run = relative_path(run_dir, "a run")
     try:
         records = load_run(run)
-    except (OSError, ValueError, json.JSONDecodeError, UnicodeError):
+    except (OSError, ValueError, TypeError, AttributeError, json.JSONDecodeError, UnicodeError):
         raise JudgeError("run %s is unreadable" % run) from None
     by_id = {}
     for record in records:
@@ -1521,7 +1521,7 @@ def _load_run_map(path):
     rel = relative_path(path, "a run")
     try:
         records = load_run(rel)
-    except (OSError, ValueError, json.JSONDecodeError, UnicodeError):
+    except (OSError, ValueError, TypeError, AttributeError, json.JSONDecodeError, UnicodeError):
         raise JudgeError("run %s is unreadable" % rel) from None
     by_id = {}
     for record in records:

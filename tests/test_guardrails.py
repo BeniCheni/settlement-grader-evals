@@ -1823,6 +1823,35 @@ def _fresh(args_path):
 class RefusalTests(unittest.TestCase):
     """Valid JSON of the wrong shape is a usage error: status 2, one message, no traceback, nothing written."""
 
+    def test_malformed_run_shapes_are_status_2_and_keep_existing_outputs(self):
+        root = _scratch("run-shape")
+        ScoreTests()._write_slice(root, "sha256:one", "sha256:one")
+        out = os.path.join(root, "out")
+        for name in ("g4.jsonl", "guard_meta.json"):
+            _write(os.path.join(out, name), "keep\n")
+        _write(os.path.join(root, "report.md"), "keep-md\n")
+        _write(os.path.join(root, "report.json"), "keep-json\n")
+        run = os.path.join(root, "unguarded")
+        for shape in ([], {"resourceSpans": [None]}, {"resourceSpans": "x"}):
+            _json(os.path.join(run, "settlement-traces.json"), shape)
+            for argv in (
+                ["decide-output", "--run", run, "--cases", os.path.join(root, "tiny-cases.json"), "--out", out],
+                ["report", "--cases", os.path.join(root, "tiny-cases.json"),
+                 "--labels", os.path.join(root, "labels.jsonl"), "--decisions", os.path.join(root, "decisions"),
+                 "--unguarded", run, "--twins", os.path.join(root, "twins"),
+                 "--thresholds", os.path.join(root, "thresholds.json"), "--readings", os.path.join(root, "readings.json"),
+                 "--statement", os.path.join(root, "statement.txt"), "--md", os.path.join(root, "report.md"),
+                 "--json", os.path.join(root, "report.json")],
+            ):
+                code, err = _cli(argv)
+                self.assertEqual(code, 2)
+                self.assertNotIn("Traceback", err)
+                self.assertEqual(sum("error:" in line for line in err.splitlines()), 1)
+                self.assertEqual(_read(os.path.join(out, "g4.jsonl")), "keep\n")
+                self.assertEqual(_read(os.path.join(out, "guard_meta.json")), "keep\n")
+                self.assertEqual(_read(os.path.join(root, "report.md")), "keep-md\n")
+                self.assertEqual(_read(os.path.join(root, "report.json")), "keep-json\n")
+
     def test_a_case_without_a_legs_list_is_refused(self):
         root = _scratch("shape")
         _json(os.path.join(root, "nolegs.json"), [{"case_id": "S1"}])
