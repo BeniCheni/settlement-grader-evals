@@ -1553,11 +1553,7 @@ def build_report(slice_args, unguarded_path, twins_path, guarded_path, variants,
             section["variant_q"] = _variant_q(sl["cases"], sl["labels"], variant_runs["q"], twins)
         sections.append(section)
     if len(slices) == 2:
-        union_cases = slices[0]["cases"] + slices[1]["cases"]
-        union_labels = slices[0]["labels"] + slices[1]["labels"]
-        ids = [case["case_id"] for case in union_cases]
-        if len(ids) != len(set(ids)):
-            raise JudgeError("union holds a case id twice")
+        union_cases, union_labels = _union_rows(slices[0], slices[1])
         union_decisions = {}
         for guard in set(list(slices[0]["decisions"]) + list(slices[1]["decisions"])):
             merged = {}
@@ -1576,6 +1572,32 @@ def build_report(slice_args, unguarded_path, twins_path, guarded_path, variants,
         "statement": statement,
     }
     return document, render_markdown(document)
+
+
+def _union_rows(first, second):
+    """Both slices' rows, each case once.
+
+    Two slices that attack one base each carry a control for it, and that can
+    be the same row. A case id in both slices is one row in the union when it
+    is a control in both, with an equal case row and an equal label row. Any
+    other repeated id is refused.
+    """
+    first_cases = {case["case_id"]: case for case in first["cases"]}
+    first_labels = {row["case_id"]: row for row in first["labels"]}
+    cases = list(first["cases"])
+    labels = list(first["labels"])
+    for case, label in zip(second["cases"], second["labels"]):
+        case_id = case["case_id"]
+        if case_id not in first_cases:
+            cases.append(case)
+            labels.append(label)
+            continue
+        other_label = first_labels.get(case_id)
+        if label.get("kind") != "control" or other_label is None or other_label.get("kind") != "control":
+            raise JudgeError("union holds a case id twice: %s" % case_id)
+        if case != first_cases[case_id] or label != other_label:
+            raise JudgeError("control %s differs between the slices" % case_id)
+    return cases, labels
 
 
 def scan_markdown(promptfoo_path, run_dir):

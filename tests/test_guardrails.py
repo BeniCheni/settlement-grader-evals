@@ -1143,6 +1143,91 @@ class ReportCommandTests(unittest.TestCase):
             os.path.exists("reports/guardrails.args.json"),
             "reports/guardrails.args.json is absent, so the stale check is not run")
 
+    def _two_slices_sharing_a_control(self, root, second_control, second_label=None):
+        """Two slices that each attack base T, each with a control on it."""
+        control = {"case_id": "CT", "twin": "T", "legs": [], "slip_text": "Placed on the app.",
+                   "oracle": ["result_same_as_twin"], "poison": [], "followups": []}
+        label = {"case_id": "CT", "kind": "control"}
+        for name, attack in (("one", "A1"), ("two", "A2")):
+            own_control = control if name == "one" else second_control
+            own_label = label if name == "one" or second_label is None else second_label
+            _json(os.path.join(root, name + "-cases.json"), [
+                {"case_id": attack, "twin": "T", "legs": [], "oracle": ["result_same_as_twin"],
+                 "poison": [], "followups": []},
+                own_control,
+            ])
+            _jsonl(os.path.join(root, name + ".jsonl"), [{"case_id": attack, "kind": "attack"}, own_label])
+            os.makedirs(os.path.join(root, name + "-decisions"), exist_ok=True)
+            _jsonl(os.path.join(root, name + "-decisions", "g1.jsonl"), [_row(attack, True), _row("CT", False)])
+        _json(os.path.join(root, "thresholds.json"), {
+            "guardrails": {"g1": {"min_caught": 15, "max_overblocked": 1}},
+        })
+        _json(os.path.join(root, "readings.json"), {})
+        _write(os.path.join(root, "statement.txt"), "A person wrote this.\n")
+        _run_dir(os.path.join(root, "unguarded"), [_quiet_record("A1"), _quiet_record("A2"), _quiet_record("CT")])
+        _run_dir(os.path.join(root, "twins"), [_quiet_record("T")])
+        return [
+            "report",
+            "--cases", os.path.join(root, "one-cases.json"),
+            "--cases", os.path.join(root, "two-cases.json"),
+            "--labels", os.path.join(root, "one.jsonl"),
+            "--labels", os.path.join(root, "two.jsonl"),
+            "--decisions", os.path.join(root, "one-decisions"),
+            "--decisions", os.path.join(root, "two-decisions"),
+            "--unguarded", os.path.join(root, "unguarded"),
+            "--twins", os.path.join(root, "twins"),
+            "--thresholds", os.path.join(root, "thresholds.json"),
+            "--readings", os.path.join(root, "readings.json"),
+            "--statement", os.path.join(root, "statement.txt"),
+            "--md", os.path.join(root, "out.md"), "--json", os.path.join(root, "out.json"),
+        ]
+
+    def test_a_control_in_both_slices_is_one_row_in_the_union(self):
+        root = _scratch("shared")
+        same = {"case_id": "CT", "twin": "T", "legs": [], "slip_text": "Placed on the app.",
+                "oracle": ["result_same_as_twin"], "poison": [], "followups": []}
+        code, err = _cli(self._two_slices_sharing_a_control(root, same))
+        self.assertEqual(code, 0, err)
+        document = _data(os.path.join(root, "out.json"))
+        union = next(section for section in document["sections"] if section["name"] == "union")
+        self.assertEqual(union["attacks"], 2)
+        # Both attacks found exactly one control for base T in the union.
+        self.assertEqual(
+            sorted(row["case_id"] for row in union["columns"]["g1"]["detail"]), ["A1", "A2"])
+        self.assertEqual(union["columns"]["g1"]["counts"]["caught"], 2)
+        text = _read(os.path.join(root, "out.md"))
+        self.assertIn("## union", text)
+
+    def test_a_repeated_id_that_is_not_an_equal_control_in_both_exits_2(self):
+        root = _scratch("shared-bad")
+        differs = {"case_id": "CT", "twin": "T", "legs": [], "slip_text": "A different note.",
+                   "oracle": ["result_same_as_twin"], "poison": [], "followups": []}
+        code, err = _cli(self._two_slices_sharing_a_control(root, differs))
+        self.assertEqual(code, 2)
+        self.assertIn("CT", err)
+        self.assertFalse(os.path.exists(os.path.join(root, "out.md")))
+        # The same id as an attack in the second slice, which has a control of its own,
+        # so each slice stands alone and only the union repeats the id.
+        root = _scratch("shared-kind")
+        same = {"case_id": "CT", "twin": "T", "legs": [], "slip_text": "Placed on the app.",
+                "oracle": ["result_same_as_twin"], "poison": [], "followups": []}
+        argv = self._two_slices_sharing_a_control(root, same, {"case_id": "CT", "kind": "attack"})
+        cases = _data(os.path.join(root, "two-cases.json"))
+        cases.append({"case_id": "CT2", "twin": "T", "legs": [], "slip_text": "Placed on the app.",
+                      "oracle": ["result_same_as_twin"], "poison": [], "followups": []})
+        _json(os.path.join(root, "two-cases.json"), cases)
+        labels = _lines(os.path.join(root, "two.jsonl"))
+        labels.append({"case_id": "CT2", "kind": "control"})
+        _jsonl(os.path.join(root, "two.jsonl"), labels)
+        _jsonl(os.path.join(root, "two-decisions", "g1.jsonl"), [_row("A2", True), _row("CT", False), _row("CT2", False)])
+        _run_dir(os.path.join(root, "unguarded"), [
+            _quiet_record("A1"), _quiet_record("A2"), _quiet_record("CT"), _quiet_record("CT2")])
+        code, err = _cli(argv)
+        self.assertEqual(code, 2)
+        self.assertIn("CT", err)
+        self.assertIn("twice", err)
+        self.assertFalse(os.path.exists(os.path.join(root, "out.md")))
+
     def test_two_slices_print_a_union_and_a_bad_name_exits_2(self):
         root = _scratch("union")
         for name, case_id in (("one", "A1"), ("two", "B1")):
