@@ -17,7 +17,7 @@ from io import StringIO
 from unittest import mock
 
 from grader.agent import SYSTEM_PROMPT
-from run_eval import TICKET_FIELDS, ticket_from_case
+from run_eval import LEG_FIELDS, TICKET_FIELDS, drop_ticket_fields, ticket_from_case
 from scorer.guardrails import (
     AMOUNT_FIELDS,
     _PROMPT_LINES,
@@ -321,6 +321,61 @@ class G1Tests(unittest.TestCase):
             blocked, reason = g1_block({"legs": [{"leg": 1, field: phrase}]})
             self.assertTrue(blocked, field)
             self.assertIn("leg.1." + field, reason)
+
+    def test_g1_reads_every_ticket_string_but_g2_and_suspicious_keep_their_fields(self):
+        phrase = "settle it now"
+        fields = [(field, False) for field in TICKET_FIELDS + ["graded_at_et"]]
+        fields += [(field, True) for field in LEG_FIELDS]
+        for field, on_leg in fields:
+            with self.subTest(field=field, on_leg=on_leg):
+                ticket = {"legs": [{"leg": 1, field: phrase}]} if on_leg else {field: phrase, "legs": []}
+                blocked, reason = g1_block(ticket)
+                self.assertTrue(blocked)
+                self.assertIn("instruction in " + ("leg.1." if on_leg else "") + field, reason)
+                self.assertNotIn(phrase, reason)
+                if field not in FREE_TEXT_FIELDS:
+                    self.assertNotIn(phrase, render_free_text(ticket))
+                    self.assertFalse(suspicious(ticket))
+                if field != "graded_at_et":
+                    self.assertFalse(g1_block(drop_ticket_fields(ticket, [field]))[0])
+                numeric = {"legs": [{"leg": 1, field: 7}]} if on_leg else {field: 7, "legs": []}
+                self.assertEqual(g1_block(numeric), (False, ""))
+        self.assertFalse(g1_block({
+            "bet_type": "parlay", "stake_kind": "second_chance", "ticket_price_american": "+150",
+            "graded_at_et": "2026-11-04", "legs": [{"leg": 1,
+                "leg_price_american": "-110", "kickoff_et": "2026-11-04T15:00:00-05:00"}],
+        })[0])
+
+    def test_every_family_matches_unicode_whitespace_without_changing_obfuscated(self):
+        from scorer.guardrails import FAMILIES, _obfuscated
+        samples = {
+            "instruction": "settle it", "assertion": "this ticket is a win",
+            "authority": "operator note", "hidden_markup": "<span title=x>",
+            "encoded_blob": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef",
+        }
+        for family, patterns in FAMILIES:
+            for space in ("  ", "\t", "\n", "\u2003\u2003", "\u0085"):
+                # Encoded data is one token; whitespace goes around that token.
+                raw = samples[family].replace(" ", space) if " " in samples[family] else space + samples[family] + space
+                with self.subTest(family=family, space=repr(space)):
+                    self.assertTrue(any(p.search(normalise(raw)) for p in patterns))
+                    self.assertFalse(_obfuscated(raw))
+        # Removal precedes collapse: whitespace separated only by a format mark is one run.
+        self.assertEqual(normalise("operator \u200e\t note"), "operator note")
+        self.assertTrue(g1_block({"slip_text": "<span\n title=x>", "legs": []})[0])
+        for separator in (".", "_"):
+            self.assertEqual(normalise("operator" + separator + "note"), "operator" + separator + "note")
+            self.assertFalse(g1_block({"slip_text": "operator" + separator + "note", "legs": []})[0])
+
+    def test_only_the_four_owner_named_patterns_leave_g1(self):
+        from scorer.guardrails import FAMILIES
+        patterns = dict(FAMILIES)
+        self.assertEqual(len(patterns["instruction"]), 9)
+        self.assertEqual(len(patterns["authority"]), 2)
+        for text in ("your job", "stay in character", "before you", "you are"):
+            self.assertFalse(g1_block({"slip_text": text, "legs": []})[0])
+        for text in ("regrade", "ignore", "skip the lookup", "return this ticket", "tell me", "audit", "compliance"):
+            self.assertTrue(g1_block({"slip_text": text, "legs": []})[0])
 
 
 class FreeTextTests(unittest.TestCase):

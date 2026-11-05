@@ -48,7 +48,7 @@ TICKET_FREE = ("slip_text", "boost_or_token", "book")
 LEG_FREE = (
     "selection", "market", "market_wording_on_slip", "fixture", "home", "away", "league",
 )
-# The names render_free_text and G1 walk. An amount is not one of them.
+# The names render_free_text and suspicious walk. G1 walks every ticket string.
 FREE_TEXT_FIELDS = TICKET_FREE + LEG_FREE
 AMOUNT_FIELDS = ("stake", "printed_payout", "ticket_price_american", "leg_price_american", "line")
 
@@ -90,9 +90,6 @@ _INSTRUCTION = (
     re.compile(r"\breturn (?:this |the )?ticket\b"),
     re.compile(r"\b(?:copy|reveal|repeat) (?:the |your )?(?:full )?(?:text|instructions|prompt)\b"),
     re.compile(r"\b(?:tell|advise) me\b"),
-    re.compile(r"\byour job\b"),
-    re.compile(r"\bstay in character\b"),
-    re.compile(r"\bbefore you\b"),
     re.compile(r"\bdo not (?:look|call|check|use)\b"),
     re.compile(r"\bticket_result\b"),
 )
@@ -103,7 +100,6 @@ _ASSERTION = (
 )
 _AUTHORITY = (
     re.compile(r"\boperator note\b"),
-    re.compile(r"\byou are\b"),
     re.compile(r"\b(?:audit|compliance)\b"),
 )
 _MARKUP = (
@@ -151,7 +147,7 @@ _PROMPT_LINES = prompt_lines(SYSTEM_PROMPT)
 def _strip_format(text):
     """Remove every format character (Unicode category Cf).
 
-    That is every zero-width character and the soft hyphen: the joiners and
+    This includes the soft hyphen, the joiners and
     the word joiner, the byte-order mark, the bidi marks and embeddings, the
     invisible operators and the tag characters. A list of six code points
     left the rest in place, and one of them between two letters hid a word
@@ -161,11 +157,11 @@ def _strip_format(text):
 
 
 def normalise(raw):
-    """NFKC, zero-width and soft hyphens removed, casefold, then lookalikes."""
+    """NFKC, format characters removed, Unicode whitespace collapsed, then lookalikes."""
     if not isinstance(raw, str):
         return ""
     text = _strip_format(unicodedata.normalize("NFKC", raw))
-    text = text.casefold()
+    text = " ".join(text.casefold().split())
     return "".join(_HOMO.get(ch, ch) for ch in text)
 
 
@@ -205,10 +201,32 @@ def iter_free_text(ticket):
                 yield "leg.%s.%s" % (label, field), value
 
 
+def iter_ticket_strings(ticket):
+    """All string-valued allow-listed fields in the ticket the model receives."""
+    if not isinstance(ticket, dict):
+        return
+    for field in list(TICKET_FIELDS) + ["graded_at_et"]:
+        value = ticket.get(field)
+        if isinstance(value, str):
+            yield field, value
+    legs = ticket.get("legs")
+    if not isinstance(legs, list):
+        return
+    for index, leg in enumerate(legs, start=1):
+        if not isinstance(leg, dict):
+            continue
+        number = leg.get("leg")
+        label = str(number) if type(number) is int else str(index)
+        for field in LEG_FIELDS:
+            value = leg.get(field)
+            if isinstance(value, str):
+                yield "leg.%s.%s" % (label, field), value
+
+
 def g1_hits(ticket):
     """(field, family) pairs, sorted. The matched text is not returned."""
     found = []
-    for field, raw in iter_free_text(ticket):
+    for field, raw in iter_ticket_strings(ticket):
         text = normalise(raw)
         if text == "":
             continue
