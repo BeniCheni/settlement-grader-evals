@@ -1,0 +1,13 @@
+{
+  "cases_sha256": "0aa64e7b16bd7a180c2248b20d04fc3f2ac1b6446499d4873cd7ef4b816cce25",
+  "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+  "model": "llama3.1:8b",
+  "options": {
+    "num_ctx": 16384,
+    "num_predict": 256,
+    "seed": 0,
+    "temperature": 0
+  },
+  "rubric_sha256": "3e59f03c756d56fd0051b118647558ca1ea17ab35bde8a4d62497146573ec140",
+  "server_version": "0.34.0"
+}
