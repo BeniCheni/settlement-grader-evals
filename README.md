@@ -172,9 +172,15 @@ and its FAILs still say nothing. These are fresh outputs on tickets I had alread
 in a narrow sense: see [the page](reports/judge-set2.html) (open it in a browser) and
 [the statement](packages/llm-judges/README.md#step-9-the-weakest-judge-again).
 
-**Next**: red-team the slip-text injection and report both how
-many attacks it catches and how many honest tickets it wrongly blocks; verify the 26 remaining
-answer keys; and grow the set well past 32 so the confidence interval stops being the headline.
+Week 3 attacked the grader and scored four guardrails on both sides, over 20 attacks and 20 legitimate tickets. 14 of the 20 attacks
+broke the unguarded grader. **The verdict is no-ship: every guardrail misses a bar I froze before it ran.** Regex G1 catches 12 of 20 and
+blocks no honest ticket. The judge G2 catches 19 and wrongly blocks 14. The hybrid G3 catches 14. G3 with the code check G4 catches 15, against a bar of 17, and wrongly
+blocks 3, against a bar of 2. Half the rows are in sample, and the rest are held out only in a narrow sense, because the same seat wrote both: see
+[the ship report](packages/red-team-guardrails/assignment-2/ship_report.md) and [the package](packages/red-team-guardrails/README.md).
+
+**Next**: put the same question to a hosted decision model, as the course's third assignment asks; measure taking `slip_text` away from the model over
+every channel, since none of the 13 attacks it ran on broke the grader without that field; verify the 26 remaining answer keys; and grow the set well past 32 so the confidence interval
+stops being the headline.
 
 ## 🥅 Try it
 
