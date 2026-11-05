@@ -1083,6 +1083,7 @@ def score_column(name, cases, labels, decisions, readings, unguarded, twins, cas
             "control": control,
             "control_status": control_status,
             "has_reading": _has_reading(readings, name, case_id),
+            "input_blocked": input_blocked,
             "kind": kind,
             "new": new,
             "reading": reading,
@@ -1409,7 +1410,8 @@ def render_markdown(document):
                 if row["bucket"] in ("missed", "overblocked"):
                     lines.append("listed %s %s reading %s" % (
                         row["bucket"], row["case_id"], "yes" if row["has_reading"] else "no"))
-                if row["bucket"] == "caught" and row["new"] and (name == "g4" or name in document.get("stack_names", [])):
+                if (row["bucket"] == "caught" and row["new"] and not row.get("input_blocked", False)
+                        and (name == "g4" or name in document.get("stack_names", []))):
                     lines.append("g4 catch %s new %s twin %s %s control %s %s reading %s" % (
                         row["case_id"], ",".join(row["new"]),
                         row.get("twin") or "none", row.get("twin_status") or "none",
@@ -1652,7 +1654,8 @@ def _guarded_matches(meta, records, cases, decisions):
         got_input = record.get("reason") == "GUARDRAIL_INPUT"
         if got_input != expected_input:
             raise JudgeError("guarded input block differs for %s" % case_id)
-        if "g4" in outputs:
+        # An input-held row never reached the output guardrail in this session.
+        if "g4" in outputs and not got_input:
             if record.get("status") != "blocked":
                 try:
                     fired = g4_fired(record)
