@@ -1,7 +1,7 @@
 # RAG spec: the retrieval seams, the golden set, the four scorers and the harness
 
 Written Fri 6 Nov 2026 by the PM seat, for steps 3, 4, 6, 7 and 8 of `docs/week-4-package.md`, and revised the same day to
-close Cursor's cold read under the owner's rulings 20 to 27. It is the spec of record for
+close Cursor's cold read under the owner's rulings 20 to 29. It is the spec of record for
 their build prompts, which follow its merge. `AGENTS.md` outranks it on process, and no line here loosens it. Within that,
 precedence runs: the owner's rulings in the plan, then this spec, then the build prompts, then the plan. Where this spec
 says "contract" the name, format or behaviour is fixed, because a row, a run or a report depends on it; elsewhere the builder
@@ -46,7 +46,7 @@ python3 -c 'import json; from grader import espn; f=json.load(open("data/espn_fr
 
 Cursor's cold read of PR #50 left six high and two medium contract findings and asked seven questions; the PM seat added an
 eighth. The owner accepted the PM seat's answers on Fri 6 Nov 2026, the plan's table records them, and the contracts below
-carry them.
+carry them. Cursor's second read asked 28 and 29, and the owner answered both as the PM seat recommended, the same day.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -58,6 +58,8 @@ carry them.
 | 25 | Does the early-payout market stay on `moneyline_3way`? | Yes | It is on `C14`, whose match was postponed and is in no frozen file. A real leg with no frozen event needs no event, and also needs `void_postponed` when its key is `VOID` |
 | 26 | Is a leg whose key is `None` left out of the faithfulness rate? | Yes, and counted | It leaves the numerator and the denominator, and the report prints how many legs left |
 | 27 | Does ruling 17 change to: no synthetic `void_postponed` rows in v1, with `C14` as its one row? | Yes | `C14` is real, its key is verified `VOID`, and under ruling 25 it needs `void_postponed`, so ruling 17's "no rows" was wrong. `dataset.md` names the thin coverage |
+| 28 | Is an unknown key inside `variants.a` refused? | Yes | Each variant object holds `rule_match` alone. A stray key there is how a second setting could differ between A and B unseen, so the A/B's one change depends on the refusal |
+| 29 | Does that refusal also apply inside `langsmith_version` and `braintrust_experiments` once they are objects? | Yes | Each is null or exactly its written keys, so a misspelt key in a recorded version is refused, not kept |
 
 ## Step 3: the retrieval seams
 
@@ -394,7 +396,9 @@ JSON syntax, which is valid YAML 1.2 (ruling 8). Keys, and no others: `dataset`,
 "outcome_fall_hi_at_most": 0.05}`, the three above), `statement` (`reports/rag-statement.md`), `report`
 (`packages/rag-eval/assignment-2/report.md`), `json` (`reports/rag.json`), `langsmith_version` and `braintrust_experiments`,
 each null until the owner fills it: `langsmith_version` as `{"dataset_id", "as_of"}`, and `braintrust_experiments` as
-`{"a", "b"}`. An unknown or missing key is refused, at the top level and inside `variants`, `runs`, `bootstrap` and `bars`.
+`{"a", "b"}`. Every object in the config holds exactly its written keys, at every depth: an unknown or missing key is
+refused at the top level; inside `variants`, `runs`, `bootstrap` and `bars`; inside `variants.a` and `variants.b`, which hold
+`rule_match` alone (ruling 28); and inside `langsmith_version` and `braintrust_experiments` once they are not null (ruling 29).
 
 ### The commands (contract)
 
@@ -435,8 +439,9 @@ config's `braintrust_experiments` (ruling 7).
    relevancy's numbering test and fails its first.
 4. At least three mutations named, each turning the suite red for the right reason, among them: recall counting `find_match`
    candidates, faithfulness passing a grade made with no facts, and the bootstrap reusing one index.
-5. The config's refusals, an unknown or missing key in `bars` among them, `run`'s refusals, `report`'s refusals, and a
-   byte-stable report from fixture runs.
+5. The config's refusals, among them an unknown or missing key in `bars`, an extra key in `variants.a`, and an extra key in a
+   filled `langsmith_version` or `braintrust_experiments`; `run`'s refusals, `report`'s refusals, and a byte-stable report from
+   fixture runs.
 6. `uploaders/` compiles, and no test imports it or reads a key.
 7. The suite and `compileall` on 3.9 and 3.14, the existing tests unmodified, and the privacy sweep.
 

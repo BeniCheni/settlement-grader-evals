@@ -280,7 +280,8 @@ packages/rag-eval/
 
 The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13. `docs/rag-spec.md` asked rulings 14 to
 18, and the owner accepted each as recommended the same day, then set ruling 19. Cursor's cold read of PR #50 asked seven
-questions and the PM seat added an eighth; the owner accepted the PM seat's answers the same day as rulings 20 to 27.
+questions and the PM seat added an eighth; the owner accepted the PM seat's answers the same day as rulings 20 to 27. Cursor's second read asked two more, and the
+owner answered both as the PM seat recommended, as rulings 28 and 29.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -311,3 +312,5 @@ questions and the PM seat added an eighth; the owner accepted the PM seat's answ
 | 25 | Does the early-payout market stay on `moneyline_3way`? | Yes | It is on `C14`, whose match was postponed and is in no frozen file. A real leg with no frozen event needs no event, and also needs `void_postponed` when its key is `VOID` |
 | 26 | Is a leg whose key is `None` left out of the faithfulness rate? | Yes, and counted | It leaves the numerator and the denominator, and the report prints how many legs left |
 | 27 | Does ruling 17 change to: no synthetic `void_postponed` rows in v1, with `C14` as its one row? | Yes | `C14` is real, its key is verified `VOID`, and under ruling 25 it needs `void_postponed`, so ruling 17's "no rows" was wrong. `dataset.md` names the thin coverage |
+| 28 | Is an unknown key inside `variants.a` refused? | Yes | Each variant object holds `rule_match` alone. A stray key there is how a second setting could differ between A and B unseen, so the A/B's one change depends on the refusal |
+| 29 | Does that refusal also apply inside `langsmith_version` and `braintrust_experiments` once they are objects? | Yes | Each is null or exactly its written keys, so a misspelt key in a recorded version is refused, not kept |
