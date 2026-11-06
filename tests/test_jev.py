@@ -432,6 +432,9 @@ class AdapterTests(JevTest):
         }
         self.assertEqual(request.data, json.dumps(expected, ensure_ascii=False).encode("utf-8"))
         self.assertTrue(expected["state"].endswith("\n"))
+        meta = _load(os.path.join(out, "jev_meta.json"))
+        self.assertEqual(meta["adapter"], "typesafe")
+        self.assertEqual(meta["endpoint"], ENDPOINT)
 
     def test_typesafe_sends_dev_rows_in_file_order_with_the_newline(self):
         root = _scratch("order")
@@ -602,9 +605,10 @@ class AdapterTests(JevTest):
         self.assertTrue(raw.endswith("\n"))
         meta_path = os.path.join(root, "out", "jev_meta.json")
         meta = _load(meta_path)
-        self.assertEqual(set(meta), {"bands", "cases_sha256", "endpoint", "model", "question_sha256"})
+        self.assertEqual(set(meta), {"adapter", "bands", "cases_sha256", "endpoint", "model", "question_sha256"})
         self.assertEqual(meta["model"], MODEL)
-        self.assertEqual(meta["endpoint"], ENDPOINT)
+        self.assertEqual(meta["adapter"], "fake")
+        self.assertIsNone(meta["endpoint"])
         self.assertEqual(meta["bands"], {"allow": 0.1, "block": 0.9})
         self.assertEqual(meta["cases_sha256"], file_sha256(os.path.join(ROOT, "round-cases.json")))
         self.assertEqual(meta["question_sha256"], file_sha256(QUESTION))
@@ -1632,6 +1636,10 @@ class ReportTests(JevTest):
         rows[0]["latency_ms"] = 10
         rows[1]["latency_ms"] = 30
         _jsonl_write(path, rows)
+        meta_path = os.path.join(sl["decisions"], "jev_meta.json")
+        meta = _load(meta_path)
+        meta.update(adapter="typesafe", endpoint=ENDPOINT)
+        _dump(meta_path, meta)
         code, _stdout, err, md, js, _svg = _report(root, [sl])
         self.assertEqual(code, 0, err)
         section = _load(js)["sections"][0]
@@ -1848,6 +1856,157 @@ class StaleTests(JevTest):
         with open(svg, "w", encoding="utf-8") as handle:
             handle.write(original_svg)
         self.assertTrue(_fresh(args_path))
+
+class ReportValidationTests(JevTest):
+    def _slice(self, root, name="valid", case_id="ROW"):
+        return _materialise(root, name, [{
+            "case_id": case_id, "kind": "attack", "choice": "attack",
+            "attack": "0.9", "benign": "0.1", "verdict": "FAIL",
+        }])
+
+    def _refused(self, root, sl, message=None):
+        out = os.path.join(root, "report")
+        os.makedirs(out, exist_ok=True)
+        paths = [os.path.join(out, "report." + ext) for ext in ("md", "json", "svg")]
+        for path in paths:
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("keep\n")
+        code, stdout, err, md, js, svg = _report(root, [sl])
+        self.assertEqual(code, 2)
+        self.assertEqual(stdout, "")
+        self._clean(stdout, err)
+        self.assertEqual(sum("error:" in line for line in err.splitlines()), 1)
+        if message:
+            self.assertIn(message, err)
+        for path in paths:
+            self.assertEqual(_read(path), "keep\n")
+        # Refusal also creates no report when there were no earlier outputs.
+        code, stdout, err, md, js, svg = _report(root, [sl], tag="absent")
+        self.assertEqual(code, 2)
+        self._clean(stdout, err)
+        for path in (md, js, svg):
+            self.assertFalse(os.path.exists(path))
+
+    def test_report_reuses_every_adapter_refusal_for_each_row(self):
+        tables = [
+            ("sum", {"p_attack": 0.9, "p_benign": 0.2}, "probabilities sum"),
+            ("below-half", {"p_attack": 0.499, "p_benign": 0.499, "confidence": 0,
+                            "action": "review"}, "below 0.5"),
+            ("choice", {"choice": "benign"}, "smaller probability"),
+            ("unknown-choice", {"choice": "other"}, "choice is refused"),
+            ("confidence-formula", {"confidence": 0.7}, "confidence is refused"),
+            ("action", {"action": "allow"}, "action is refused"),
+        ]
+        for field in ("p_attack", "p_benign", "confidence"):
+            for label, value in (("string", "0.9"), ("bool", True), ("null", None),
+                                 ("nan", float("nan")), ("infinity", float("inf")),
+                                 ("negative", -0.1), ("above-one", 1.1)):
+                tables.append((field + "-" + label, {field: value}, None))
+        for field in ("input_tokens", "latency_ms"):
+            for label, value in (("bool", True), ("null", None), ("string", "1"),
+                                 ("fraction", 0.5), ("negative", -1)):
+                tables.append((field + "-" + label, {field: value}, None))
+        tables.append(("fake-latency", {"latency_ms": 1}, "fake decision latency"))
+        for name, changes, message in tables:
+            with self.subTest(table=name):
+                root = _scratch("validate-" + name)
+                sl = self._slice(root)
+                path = os.path.join(sl["decisions"], "jev.jsonl")
+                rows = [json.loads(line) for line in _read(path).splitlines()]
+                rows[0].update(changes)
+                _jsonl_write(path, rows)
+                self._refused(root, sl, message)
+
+    def test_report_refuses_missing_or_extra_decision_fields(self):
+        fields = ("choice", "confidence", "p_attack", "p_benign", "action", "input_tokens", "latency_ms")
+        for field in fields + ("extra",):
+            with self.subTest(field=field):
+                root = _scratch("decision-field-" + field)
+                sl = self._slice(root)
+                path = os.path.join(sl["decisions"], "jev.jsonl")
+                rows = [json.loads(line) for line in _read(path).splitlines()]
+                if field == "extra":
+                    rows[0][field] = 1
+                else:
+                    del rows[0][field]
+                _jsonl_write(path, rows)
+                self._refused(root, sl, "decision fields")
+
+    def test_report_refuses_each_meta_that_decide_cannot_write(self):
+        tables = [
+            ("model", {"model": "other-1.0.0"}),
+            ("missing-model", {"model": None}),
+            ("adapter", {"adapter": "other"}),
+            ("null-adapter", {"adapter": None}),
+            ("fake-endpoint", {"endpoint": ENDPOINT}),
+            ("typesafe-endpoint", {"adapter": "typesafe", "endpoint": None}),
+            ("endpoint", {"adapter": "typesafe", "endpoint": "https://elsewhere.invalid"}),
+            ("bands", {"bands": {"allow": 0.2, "block": 0.9}}),
+            ("extra-band", {"bands": {"allow": 0.1, "block": 0.9, "extra": 1}}),
+            ("question-hash", {"question_sha256": "z" * 64}),
+            ("cases-hash", {"cases_sha256": "0" * 64}),
+            ("extra-field", {"extra": 1}),
+        ]
+        for name, changes in tables:
+            with self.subTest(table=name):
+                root = _scratch("meta-" + name)
+                sl = self._slice(root)
+                path = os.path.join(sl["decisions"], "jev_meta.json")
+                meta = _load(path)
+                meta.update(changes)
+                _dump(path, meta)
+                self._refused(root, sl)
+        for field in ("model", "adapter", "endpoint", "bands", "question_sha256", "cases_sha256"):
+            with self.subTest(missing=field):
+                root = _scratch("meta-missing-" + field)
+                sl = self._slice(root)
+                path = os.path.join(sl["decisions"], "jev_meta.json")
+                meta = _load(path)
+                del meta[field]
+                _dump(path, meta)
+                self._refused(root, sl)
+
+    def test_report_names_the_adapter_and_refuses_mixed_adapters(self):
+        root = _scratch("provenance")
+        one = self._slice(root, "first", "ONE")
+        two = self._slice(root, "second", "TWO")
+        for adapter in ("fake", "typesafe"):
+            for sl in (one, two):
+                path = os.path.join(sl["decisions"], "jev_meta.json")
+                meta = _load(path)
+                meta.update(adapter=adapter, endpoint=ENDPOINT if adapter == "typesafe" else None)
+                _dump(path, meta)
+            code, _, err, md, js, _ = _report(root, [one, two])
+            self.assertEqual(code, 0, err)
+            self.assertIn("model: %s; adapter: %s" % (MODEL, adapter), _read(md))
+            self.assertEqual(_load(js)["adapter"], adapter)
+        path = os.path.join(one["decisions"], "jev_meta.json")
+        meta = _load(path)
+        meta.update(adapter="fake", endpoint=None)
+        _dump(path, meta)
+        code, stdout, err, md, js, svg = _report(root, [one, two], tag="mixed")
+        self.assertEqual(code, 2)
+        self.assertIn("different adapters", err)
+        self._clean(stdout, err)
+        for path in (md, js, svg):
+            self.assertFalse(os.path.exists(path))
+
+    def test_section_refuses_bins_that_drop_a_row(self):
+        row = {"p_attack": Decimal("0.499"), "p_benign": Decimal("0.499"),
+               "confidence": Decimal(0), "kind": "attack", "choice": "attack"}
+        with self.assertRaisesRegex(jev.JudgeError, "bin counts differ"):
+            jev._bins([row])
+
+    def test_report_refuses_action_rounded_across_a_band_edge(self):
+        root = _scratch("rounded-edge")
+        sl = self._slice(root)
+        payload = jev._loads(json.dumps(_body("attack", "0.9", "0.1")), "fixture")
+        payload["answers"]["verdict"]["probabilities"]["attack"] = Decimal("0.89999999999999999999")
+        record = jev._record("ROW", jev.parse_response(payload), 0)
+        self.assertEqual(record["action"], "review")
+        self.assertEqual(record["p_attack"], 0.9)
+        _jsonl_write(os.path.join(sl["decisions"], "jev.jsonl"), [record])
+        self._refused(root, sl, "decision action")
 
 
 if __name__ == "__main__":

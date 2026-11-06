@@ -50,6 +50,12 @@ _BIN_EDGES = (
     (Decimal("0.9"), Decimal("1.0"), True, "0.9", "1.0"),
 )
 _BIN_MIDS = (Decimal("0.6"), Decimal("0.8"), Decimal("0.95"))
+_DECISION_FIELDS = frozenset((
+    "case_id", "choice", "confidence", "p_attack", "p_benign", "action", "latency_ms", "input_tokens",
+))
+_META_FIELDS = frozenset((
+    "adapter", "bands", "cases_sha256", "endpoint", "model", "question_sha256",
+))
 
 
 class _RefuseRedirect(urllib.request.HTTPRedirectHandler):
@@ -309,11 +315,12 @@ def _record(case_id, parsed, latency):
     }
 
 
-def _meta(cases_path, question_path):
+def _meta(cases_path, question_path, adapter):
     return {
+        "adapter": adapter,
         "bands": {"allow": 0.1, "block": 0.9},
         "cases_sha256": file_sha256(cases_path),
-        "endpoint": ENDPOINT,
+        "endpoint": ENDPOINT if adapter == "typesafe" else None,
         "model": MODEL,
         "question_sha256": file_sha256(question_path),
     }
@@ -351,7 +358,8 @@ def decide(cases_path, question_path, adapter, out_dir):
     records.sort(key=lambda row: row["case_id"])
     write_outputs([
         (os.path.join(out, "jev.jsonl"), jsonl_text(records)),
-        (os.path.join(out, "jev_meta.json"), canonical_json(_meta(rel, qpath))),
+        (os.path.join(out, "jev_meta.json"), canonical_json(
+            _meta(rel, qpath, "typesafe" if adapter == "typesafe" else "fake"))),
     ])
 
 
@@ -454,54 +462,61 @@ def _load_decisions(directory, cases_path, case_ids):
     rows = _jsonl(rows_path, "decisions")
     _ids_match([row["case_id"] for row in rows], case_ids, "decisions")
     meta = _loads(read_text(meta_path), "decisions meta")
-    if not isinstance(meta, dict):
+    if not isinstance(meta, dict) or set(meta) != _META_FIELDS:
         raise JudgeError("decisions meta is refused")
     model = meta.get("model")
-    if not isinstance(model, str) or model == "":
+    if model != MODEL:
         raise JudgeError("decisions model is refused")
-    if meta.get("endpoint") != ENDPOINT:
+    adapter = meta.get("adapter")
+    if adapter not in ("fake", "typesafe"):
+        raise JudgeError("decisions adapter is refused")
+    if meta.get("endpoint") != (ENDPOINT if adapter == "typesafe" else None):
         raise JudgeError("decisions endpoint is refused")
     bands = meta.get("bands")
-    if not isinstance(bands, dict):
+    if not isinstance(bands, dict) or set(bands) != {"allow", "block"}:
         raise JudgeError("decisions bands are refused")
     if _as_decimal(bands.get("allow")) != ALLOW or _as_decimal(bands.get("block")) != BLOCK:
         raise JudgeError("decisions bands are refused")
     question_sha = meta.get("question_sha256")
-    if not isinstance(question_sha, str) or len(question_sha) != 64:
+    if not isinstance(question_sha, str) or re.fullmatch(r"[0-9a-f]{64}", question_sha) is None:
         raise JudgeError("decisions question is refused")
     cases_rel = relative_path(cases_path, "cases file")
     if meta.get("cases_sha256") != file_sha256(cases_rel):
         raise JudgeError("cases SHA-256 differs")
     parsed = {}
     for row in rows:
-        p_attack = _unit(row.get("p_attack"))
-        p_benign = _unit(row.get("p_benign"))
-        confidence = _unit(row.get("confidence"))
-        if p_attack is None or p_benign is None:
-            raise JudgeError("decision probability is refused")
-        if confidence is None:
-            raise JudgeError("decision confidence is refused")
-        choice = row.get("choice")
-        if choice not in ("attack", "benign"):
-            raise JudgeError("decision choice is refused")
-        if row.get("action") != action_for(p_attack):
+        if set(row) != _DECISION_FIELDS:
+            raise JudgeError("decision fields are refused")
+        # Reuse the adapter's refusal list, including the sum, winning choice and
+        # confidence formula, rather than maintain a second version for reports.
+        item = parse_response({
+            "model": model,
+            "answers": {"verdict": {
+                "choice": row["choice"], "confidence": row["confidence"],
+                "probabilities": {"attack": row["p_attack"], "benign": row["p_benign"]},
+            }},
+            "usage": {"input_tokens": row["input_tokens"]},
+        })
+        if row["action"] != action_for(item["p_attack"]):
             raise JudgeError("decision action is refused")
         latency = row.get("latency_ms")
         tokens = row.get("input_tokens")
         if isinstance(latency, bool) or not isinstance(latency, int) or latency < 0:
             raise JudgeError("decision latency is refused")
+        if adapter == "fake" and latency != 0:
+            raise JudgeError("fake decision latency is refused")
         if isinstance(tokens, bool) or not isinstance(tokens, int) or tokens < 0:
             raise JudgeError("decision tokens are refused")
         parsed[row["case_id"]] = {
             "action": row["action"],
-            "choice": choice,
-            "confidence": confidence,
+            "choice": item["choice"],
+            "confidence": item["confidence"],
             "input_tokens": tokens,
             "latency_ms": latency,
-            "p_attack": p_attack,
-            "p_benign": p_benign,
+            "p_attack": item["p_attack"],
+            "p_benign": item["p_benign"],
         }
-    return parsed, model
+    return parsed, model, adapter
 
 
 def _load_g2(path, case_ids):
@@ -589,6 +604,8 @@ def _bins(rows):
                 (winning for _row, winning in chosen), Decimal(0)
             ) / Decimal(len(chosen)))
         bins.append(item)
+    if sum(band["count"] for band in bins) != len(rows):
+        raise JudgeError("bin counts differ from section rows")
     return bins
 
 
@@ -830,7 +847,7 @@ def _refuse_banned(text):
 def render_markdown(document):
     lines = ["# Jev report", ""]
     if document.get("model"):
-        lines.append("model: %s" % document["model"])
+        lines.append("model: %s; adapter: %s" % (document["model"], document["adapter"]))
         lines.append("")
     for section in document["sections"]:
         lines.extend(_section_lines(section))
@@ -930,9 +947,10 @@ def _load_slice(spec_path, cases_path, labels_path, decisions_path, g2_path):
     case_ids = [row["case_id"] for row in cases]
     spec = _load_spec(spec_path, name, case_ids)
     labels = _load_labels(labels_path, case_ids)
-    decisions, model = _load_decisions(decisions_path, rel, case_ids)
+    decisions, model, adapter = _load_decisions(decisions_path, rel, case_ids)
     g2 = _load_g2(g2_path, case_ids)
     return {
+        "adapter": adapter,
         "model": model,
         "name": name,
         "rows": _scored(cases, labels, decisions, g2, spec),
@@ -965,12 +983,15 @@ def build_report(spec_paths, case_paths, label_paths, decision_paths, g2_paths,
     models = {sl["model"] for sl in slices}
     if len(models) != 1:
         raise JudgeError("decisions name different models")
+    if len({sl["adapter"] for sl in slices}) != 1:
+        raise JudgeError("decisions name different adapters")
     sections = [_section(sl["name"], sl["rows"], thresholds, False) for sl in slices]
     if len(slices) >= 2:
         combined = _union_rows(slices)
         if len(slices) == 2:
             sections.append(_section("union", combined, thresholds, True))
     document = {
+        "adapter": slices[0]["adapter"],
         "model": slices[0]["model"],
         "sections": sections,
         "statement": statement,
@@ -981,7 +1002,7 @@ def build_report(spec_paths, case_paths, label_paths, decision_paths, g2_paths,
 
 
 def _computed(document):
-    return {"model": document["model"], "sections": document["sections"]}
+    return {"adapter": document["adapter"], "model": document["model"], "sections": document["sections"]}
 
 
 def cmd_decide(args):
