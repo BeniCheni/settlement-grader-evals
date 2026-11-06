@@ -646,7 +646,7 @@ Codex, with no other word. Ruling 32 came on Wed 4 Nov 2026, after Codex's captu
 - What TypeSafe charged for step 9's 49 requests, which the owner ran on Thu 5 Nov 2026. This plan records no balance.
 - Where TypeSafe and Braintrust keep what they are sent.
 - That TypeSafe's own endpoint returns `confidence` as its confidence page defines it, the gap between the two probabilities, beyond these rows. It held through Braintrust on the five UI answers, and on all 49 of step 9's answers to within 0.01, because `decide` refuses any other.
-- How far Jev's answer to one text moves between calls. Step 9 sent two controls twice: `CT-A13` came back at 0.01 both times, and `CT-C13` at 0.05 and then 0.09.
+- How far Jev's answer to one text moves between calls. Two controls were sent once per slice: `CT-A13` at 0.01 both times, and `CT-C13` at 0.05 and then 0.09. `H5` and `P2` share their free text and came back at 0.09 and 0.07. `H2`'s free text is `A05`'s, and both came back at 0.0.
 - Whether Braintrust's template changes any character of `{{input}}` before Jev reads it. The input sent was checked; what Jev read was not.
 - Whether the course grades anything beyond its lists, or how it treats Assignment 3 given that the live session calls it a stretch.
 - H1 to H5 have each been run in `traces/rt-attacks` (step 4, above) and again in step 8's runs. That shows these rows and not how often any of it happens.

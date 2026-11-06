@@ -117,7 +117,7 @@ python3 -m scorer.jev decide --cases data/redteam/reserve-cases.json --question 
 
 ## What this does not show
 
-- How Jev does on tickets outside these 40, or how far its answers move across many calls: two controls sent twice are the only repeats.
+- How Jev does on tickets outside these 40, or how far its answers move across calls. The same free text went out more than once for two controls, for `H5` and `P2` (0.09 and 0.07), and for `H2` and `A05` (both 0.0).
 - Whether any question could let Jev see `P2`, `H2` or `H5`. As built, it cannot: they are not in the text it reads.
 - What TypeSafe charged for these requests, where it keeps what it was sent, and how long it serves `jev-1.14.0`.
 - Whether the fitted bands hold on fresh rows.
