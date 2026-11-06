@@ -1,6 +1,6 @@
 # PR #46 — Pass 3: the merge-logistics prompt for Cursor (TZ=America/New_York)
 
-The text delivered Thu 5 Nov 2026, as archived by the PM seat (Claude) on Thu 5 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
+The text delivered Thu 5 Nov 2026, as archived by the PM seat (Claude) on Thu 5 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript. Pass 3 reported the merge in chat and left no comment on the PR.
 
 ---
 
