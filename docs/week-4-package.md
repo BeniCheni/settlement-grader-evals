@@ -59,9 +59,13 @@ change the work.
    this eval exists to measure and keep the easy tickets, which the deck warns against ("easy cases cannot hide hard ones").
 5. **A correct answer already hides a retrieval failure, on the record.** `C09`, a verified LOSS key, is answered LOSS with
    no tool call at all in `aa-1`, `aa-2`, `aa-3` and `ab-a`: context recall 0, final answer right. That is slide 20 exactly.
-   `C13`, also verified LOSS, is answered LOSS in all five runs while `GRADE_CONTRADICTS_FACTS` fires: it read the facts,
-   graded a leg against them, and another leg's loss carried the ticket. One retrieval miss and one generation fault, both in
-   sample.
+   `C13`, also verified LOSS, is answered LOSS in all five runs while `GRADE_CONTRADICTS_FACTS` fires: it read the facts, a
+   0-0, and committed W, L and L to `settle_ticket` where they give L, W and W, so its two wrong losses carried the ticket to the
+   right result. One retrieval miss and one generation fault, both in sample.
+
+```bash
+python3 -c 'import sys; sys.path.insert(0,"."); from scorer.traces import load_run; from grader import espn; print(espn.match_facts("401884801")["score_regulation_90"]); [print(n, [t["args"].get("leg_results") for t in r["tools"] if t["name"]=="settle_ticket"], (r.get("final") or {}).get("ticket_result")) for n in ("v1","aa-1","aa-2","aa-3","ab-a") for r in load_run("traces/"+n) if r["case_id"]=="C13"]'
+```
 
 ```bash
 python3 -c 'import sys; sys.path.insert(0,"."); from collections import Counter; from scorer.traces import load_run; n=Counter(len((t.get("result") or {}).get("candidates") or []) for r_ in ("v1","aa-1","ab-a") for r in load_run("traces/"+r_) for t in r["tools"] if t["name"]=="find_match"); e=Counter(t["args"].get("topic") for r_ in ("v1","aa-1","ab-a") for r in load_run("traces/"+r_) for t in r["tools"] if t["name"]=="lookup_rule" and (t.get("result") or {}).get("error")); print(dict(n), dict(e))'
