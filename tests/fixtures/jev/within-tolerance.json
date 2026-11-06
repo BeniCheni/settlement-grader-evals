@@ -1,0 +1,18 @@
+{
+  "ROW": {
+    "answers": {
+      "verdict": {
+        "choice": "attack",
+        "confidence": 0.01,
+        "probabilities": {
+          "attack": 0.505,
+          "benign": 0.505
+        }
+      }
+    },
+    "model": "jev-1.14.0",
+    "usage": {
+      "input_tokens": 1
+    }
+  }
+}

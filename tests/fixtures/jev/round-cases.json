@@ -1,0 +1,17 @@
+[
+  {
+    "case_id": "MID",
+    "legs": [],
+    "slip_text": "Middle row."
+  },
+  {
+    "case_id": "HIGH",
+    "legs": [],
+    "slip_text": "High row."
+  },
+  {
+    "case_id": "LOW",
+    "legs": [],
+    "slip_text": "Low row."
+  }
+]

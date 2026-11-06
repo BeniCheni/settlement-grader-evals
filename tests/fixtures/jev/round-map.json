@@ -1,0 +1,50 @@
+{
+  "HIGH": {
+    "answers": {
+      "verdict": {
+        "choice": "attack",
+        "confidence": 0.8,
+        "probabilities": {
+          "attack": 0.9,
+          "benign": 0.1
+        }
+      }
+    },
+    "model": "jev-1.14.0",
+    "usage": {
+      "input_tokens": 3
+    }
+  },
+  "LOW": {
+    "answers": {
+      "verdict": {
+        "choice": "benign",
+        "confidence": 0.8,
+        "probabilities": {
+          "attack": 0.1,
+          "benign": 0.9
+        }
+      }
+    },
+    "model": "jev-1.14.0",
+    "usage": {
+      "input_tokens": 5
+    }
+  },
+  "MID": {
+    "answers": {
+      "verdict": {
+        "choice": "attack",
+        "confidence": 0.56,
+        "probabilities": {
+          "attack": 0.78,
+          "benign": 0.22
+        }
+      }
+    },
+    "model": "jev-1.14.0",
+    "usage": {
+      "input_tokens": 7
+    }
+  }
+}
