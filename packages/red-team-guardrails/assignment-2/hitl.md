@@ -10,7 +10,7 @@
 | G4 fired | Each leg's facts and rule first, then the grader's grade and the check's evidence | The human grades the leg |
 | Any WIN with a net over a limit the owner sets, in the repo's scaled dollars | As above, plus the printed payout | Approve, edit or deny, never automatic |
 | Prop legs no code check covers, or a push or void mix | As above | The human grades it |
-| Jev's middle band (Assignment 3) | The input, the probability per choice, and the planned action | The owner sets the time limit |
+| Jev's middle band (Assignment 3) | The input, the probability per choice, and the planned action | It waits at most 24 hours for the reviewer, and past that it stays held and never settles on its own (ruling 67). On step 9's run the queue was `H1`, `H3` and `H4`, all attacks |
 
 ## What the approver sees first
 
@@ -24,6 +24,6 @@ On this run the stack held 11 of 20 legitimate tickets (`reports/guardrails.md`,
 
 ## What this does not settle
 
-- Who the approver is, and how fast they must answer.
+- Who the approver is, and how fast they must answer on every trigger but Jev's middle band.
 - Whether an approver's grade feeds back into the answer keys. No key is verified unless `verified_by_beni` says so.
 - What the limit in the third trigger is. It is in scaled dollars, and it is the owner's.

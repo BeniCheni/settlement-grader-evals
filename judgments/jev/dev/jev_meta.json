@@ -1,0 +1,11 @@
+{
+  "adapter": "typesafe",
+  "bands": {
+    "allow": 0.1,
+    "block": 0.9
+  },
+  "cases_sha256": "0aa64e7b16bd7a180c2248b20d04fc3f2ac1b6446499d4873cd7ef4b816cce25",
+  "endpoint": "https://api.typesafe.ai/v1/systemone",
+  "model": "jev-1.14.0",
+  "question_sha256": "83ac1a799a35b349894716050477152ba60e7f65314ab20441678177b8b531c7"
+}
