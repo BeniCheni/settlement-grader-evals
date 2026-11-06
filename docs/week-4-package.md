@@ -173,7 +173,7 @@ The starter annotates a float. A scorer here may return `None`, with a reason, w
 |---|---|---|
 | `context_recall` | Retrieval | Needed items retrieved ÷ needed items. Needed: each leg's event (through `get_match_facts`), each leg's rule topics, and the ticket-level rules in the spec. A lookup that erred retrieved nothing |
 | `context_precision` | Retrieval | RAGAS-style ranked precision over the retrieved items in call order. An erred lookup, or facts for an event no leg needs, is noise |
-| `faithfulness` | Generation | Supported leg claims ÷ leg claims. A claim is a leg grade and the score its evidence cites; supported means the re-grader agrees using only the facts this run fetched. A grade with no facts fetched is unsupported, except a `NEEDS_HUMAN` grade, which is supported. Markets code cannot grade are left out and counted |
+| `faithfulness` | Generation | Supported leg claims ÷ leg claims. A claim is a leg grade and the score its evidence cites; supported means the re-grader agrees using only the facts this run fetched. A grade with no facts fetched is unsupported, except a `NEEDS_HUMAN` grade, which is supported. Markets code cannot grade are left out of the rate and counted (ruling 26) |
 | `answer_relevancy` | Generation | The share of four tests that hold: one grade per ticket leg; each grade names that leg's selection; `ticket_result` is in the enum; the final came from `settle_ticket` |
 
 The report prints the two pairs apart, each as a mean with k of n and an interval, then names the weaker half. There is
@@ -279,7 +279,8 @@ packages/rag-eval/
 ## Rulings (the owner's, from Fri 6 Nov 2026)
 
 The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13. `docs/rag-spec.md` asked rulings 14 to
-18, and the owner accepted each as recommended the same day, then set ruling 19.
+18, and the owner accepted each as recommended the same day, then set ruling 19. Cursor's cold read of PR #50 asked seven
+questions and the PM seat added an eighth; the owner accepted the PM seat's answers the same day as rulings 20 to 27.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -299,6 +300,14 @@ The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruli
 | 14 | Is the market-to-topic table in `docs/rag-spec.md` the source of every row's needed contexts? | Yes | Recall's denominator is a rubric, and the owner writes rubrics |
 | 15 | Do `X01` and `X02` stay out of v1? | Yes | They are attacks, and ruling 10 keeps attacks out |
 | 16 | May synthetic tickets use the four Champions League matches of 14 Oct that the frozen file holds as scheduled? | Yes | They are the only way to test `unsettled`. They have been played since, so a ticket on them tips nothing (Hard Rule 4), and the grader can only answer UNSETTLED |
-| 17 | Does `void_postponed` go without rows in v1, named as a gap in `dataset.md`? | Yes | No frozen match is postponed, and adding one is an `ESPN_LIVE=1` PR (Hard Rule 3), so it waits for v2 |
+| 17 | Does `void_postponed` go without rows in v1, named as a gap in `dataset.md`? | Yes | No frozen match is postponed, and adding one is an `ESPN_LIVE=1` PR (Hard Rule 3), so it waits for v2. Ruling 27 amends it |
 | 18 | Are the A/B's bars in `docs/rag-spec.md` approved as drafted? | Yes | They are written before any run, as this plan requires |
 | 19 | Who gives PR #50's cold read? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor builds steps 3, 4 and 8 from this spec, so this read is not independent of that build |
+| 20 | Is `C13`'s relevancy in `v1` 2/4? | No, 3/4 | The second test reads the final's own numbering, with n its own leg count. The first test already fails a final that drops legs, so reading n from the ticket would charge one fault twice |
+| 21 | Does a boost make a one-leg ticket settled on the score `medium`? | Yes | Difficulty takes the first that holds: `hard`, then `medium`, then `easy`. An edge row is one of the owner's `hand_crafted` rows |
+| 22 | Does `boosted` replace `cash` in the segment? | Yes | A bonus, free-bet or second-chance stake comes first, then a boost, then cash. All 24 real boosts are on cash stakes |
+| 23 | Do ticket-level contexts, which have no leg, sort first? | Yes | `docs/rag-spec.md` writes the whole sort key, so two builds emit the same bytes |
+| 24 | Must the generator's order of draws be pinned before the build? | No | Its lists go in a data file the owner approves in the build PR, a test holds it to the same bytes from the same inputs, and the cuts and the owner's sample are pinned exactly. v1 is fixed by its bytes and its hash, not by a second program drawing it again |
+| 25 | Does the early-payout market stay on `moneyline_3way`? | Yes | It is on `C14`, whose match was postponed and is in no frozen file. A real leg with no frozen event needs no event, and also needs `void_postponed` when its key is `VOID` |
+| 26 | Is a leg whose key is `None` left out of the faithfulness rate? | Yes, and counted | It leaves the numerator and the denominator, and the report prints how many legs left |
+| 27 | Does ruling 17 change to: no synthetic `void_postponed` rows in v1, with `C14` as its one row? | Yes | `C14` is real, its key is verified `VOID`, and under ruling 25 it needs `void_postponed`, so ruling 17's "no rows" was wrong. `dataset.md` names the thin coverage |
