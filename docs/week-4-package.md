@@ -171,9 +171,8 @@ or `None` with a reason when it does not apply. Each has a mutation test, as `AG
 | `faithfulness` | Generation | Supported leg claims ÷ leg claims. A claim is a leg grade and the score its evidence cites; supported means the re-grader agrees using only the facts this run fetched. A grade with no facts fetched is unsupported. Markets code cannot grade are left out and counted |
 | `answer_relevancy` | Generation | The share of four tests that hold: one grade per ticket leg; each grade names that leg's selection; `ticket_result` is in the enum; the final came from `settle_ticket` |
 
-The report prints the two pairs apart, each as a mean with k of n and an interval, then names the weaker half. An LLM
-faithfulness column from `autoevals` is optional and report-only, with its agreement and kappa against the code scorer
-beside it: a small Week 2 calibration. It decides nothing until it meets the bar (ruling 7).
+The report prints the two pairs apart, each as a mean with k of n and an interval, then names the weaker half. There is
+no `autoevals` column (ruling 7).
 
 ## The A/B: one retrieval parameter
 
@@ -229,8 +228,7 @@ one experiment per variant, and the report records the experiment ids.
 
 Machine time: one grader pass is about 23 s a ticket (`traces/ab-a`'s mean), so the pilot (2 × 210) is about 2.7 hours and
 the A/B (2 × 160) about 2 hours. Week 5 went live on Wed 4 Nov, so if time presses: steps 1 and 2 merge into one docs PR,
-steps 3 and 8 into one build PR, and the optional `autoevals` column and the A/A run are dropped. Every acceptance item still
-holds.
+steps 3 and 8 into one build PR, and the A/A run is dropped. Every acceptance item still holds.
 
 ## Validate
 
