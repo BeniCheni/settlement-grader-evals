@@ -117,7 +117,7 @@ owner's log. The course calls the blend a target, not a rule.
 | Source | Drafted | Kept, about | How | Key from |
 |---|---|---|---|---|
 | Real | 30 | 30 | As in `data/gold.json`, `source` unchanged | Existing keys; 6 verified, the rest code-checked |
-| Synthetic | 160 | 110 | Seed: 5 real tickets and a named gap. Code picks the event, market, line, selection and legs from the frozen facts; a model that is not `qwen3:8b` writes only the slip wording, in batches of 20 (ruling 3) | `check_gold.py`'s re-grader and `settle_ticket`, never a model |
+| Synthetic | 160 | 110 | Seed: 5 real tickets and a named gap. Code picks the event, market, line, selection and legs from the frozen facts; `llama3.1:8b` (ruling 3) writes only the slip wording, in batches of 20 | `check_gold.py`'s re-grader and `settle_ticket`, never a model |
 | Hand-crafted | 20 | 20 | The owner writes them (below) | The owner |
 
 **Gaps to name** (the live session's "jobs × 5–10, positive and negative"). Across `v1`, `aa-1` and `ab-a` the grader read
