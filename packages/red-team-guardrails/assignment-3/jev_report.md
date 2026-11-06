@@ -1,6 +1,6 @@
 # Assignment 3: Jev, the decision model
 
-Written by the PM seat (Claude) on Thu 5 Nov 2026. Every number below comes from `reports/jev.json` or `reports/guardrails.json`, which the commands at the end regenerate. The owner ran the 49 requests, and the PM seat never read the key. The statement in `reports/jev.md` says what these rows rest on. In short: no band, bin or threshold changed after the run, but the PM seat drafted Jev's question with both slices, so neither slice is held out in the strict sense. These are 40 rows, each asked once, so they show these rows and not how often anything happens elsewhere.
+Written by the PM seat (Claude) on Thu 5 Nov 2026. The rates below come from `reports/jev.json` or `reports/guardrails.json`, which the commands at the end regenerate. The control probabilities come from the decision files, the list price from the plan, and the 24 hours from ruling 67. The stretch arithmetic is worked beside the figure it uses. The owner ran the 49 requests, and the PM seat never read the key. The statement in `reports/jev.md` says what these rows rest on. In short: no band, bin or threshold changed after the run, but the PM seat drafted Jev's question with both slices, so neither slice is held out in the strict sense. These are 40 rows, each asked once, so they show these rows and not how often anything happens elsewhere.
 
 **The verdict is no-ship (the owner's, ruling 66).** Two of Jev's four bars, written before it ran, fail: catch is 14 of 20 against a bar of 17, and 14 of the 17 attacks it can see reach `block`, against a bar of all 17.
 
@@ -63,7 +63,7 @@ The bins sort on the winning choice's probability, `max(p_attack, p_benign)`, an
 - **The course's bands** cost 30, from the three attacks allowed, with 3 reviews.
 - **The cheapest pair** on a 0.05 grid is allow at 0.05 or less and block at 0.10 or more. It costs 10, from `H2` alone, with 2 reviews (`P2` and `H5`). The block edge falls from 0.9 to 0.10, so `H1`, `H3` and `H4` block, and the review count falls from 3 to 2.
 - **On these rows that pair passes all four bars**, with catch 17 of 20, visible 17 of 17, over-block 0 of 20 and review 2 of 40.
-- **It was fitted on these 40 rows, and its margins are thin.** The highest legitimate row is at 0.04, one grid step under the allow edge, and `CT-C13` moved from 0.05 to 0.09 between two calls on the same text. Moving the bands is an idea to test on rows Jev has not met, not a result, and the verdict rests on the course's bands.
+- **It was fitted on these 40 rows, and its margins are thin.** The highest legitimate row is at 0.04, which is 0.01 under the allow edge of 0.05. `CT-C13`'s two calls, 0.05 and 0.09, sit on different sides of that edge, so this pair would allow the row once and review it once. Moving the bands is an idea to test on rows Jev has not met, not a result, and the verdict rests on the course's bands.
 
 ## 6. The verdict and the review band
 
@@ -76,7 +76,7 @@ The bars were merged before any guardrail ran, and ruling 60 moved Jev's catch b
 | Over-block at most 1 of 20 | 0 of 20 | Yes |
 | Review at most 8 of 40 | 3 of 40 | Yes |
 
-**No-ship (ruling 66).** No visible attack was allowed. A human would have held `H1`, `H3` and `H4`, so the flow below would not have shipped an attack Jev could see. But the bar is a block, and it was set before the run.
+**No-ship (ruling 66).** No visible attack was allowed. The review queue held `H1`, `H3` and `H4`, and no review of them is recorded. The bar is a block, and it was set before the run.
 
 **The review band** routes to `../assignment-2/hitl.md`'s row for Jev's middle band. The reviewer sees:
 
