@@ -416,7 +416,7 @@ variant, the four scorers as a mean, the count scored and the count `None`, and 
 retrieval pair and the generation pair in separate tables; the weaker half, the pair whose two means average lower; the A/B, each
 metric's delta and interval, each bar's value and whether it holds, and the verdict line; the groundedness candidates, every v1
 case where A's outcome matches and recall or faithfulness is below 1, with its scores and tool count; the run metadata, model,
-digest, Ollama version and flags; and the commands. Every rate prints k of n. The statement says the alias table is in sample
+digest, Ollama version and flags; and the commands. Every rate prints k of n. Faithfulness also prints how many legs a `None` key left out of its rate (ruling 26). The statement says the alias table is in sample
 on the six misses, and that 30 rows are tickets the earlier runs used.
 
 ### Braintrust (contract: `uploaders/braintrust_eval.py`, the owner's shell)
