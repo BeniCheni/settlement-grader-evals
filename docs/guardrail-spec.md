@@ -1,6 +1,6 @@
 # Guardrail spec: the seams, the frozen data, the guardrails and the scorer
 
-Written Tue 3 Nov 2026 by the PM seat, for steps 2, 5 and 6 of `docs/week-3-package.md`, with step 6's contracts amended on Wed 4 Nov 2026 by rulings 41 and 42 and the PM seat's gap fixes, which PR #37's body lists, and on Thu 5 Nov 2026 by rulings 44 to 47 and the corrections from PR #38's reviews, which PR #39's body lists. Step 9's section was added on Thu 5 Nov 2026, on rulings 59 to 61, and amended the same day on rulings 62 and 63 and Codex's reads of PR #45. It is the spec of record for their
+Written Tue 3 Nov 2026 by the PM seat, for steps 2, 5 and 6 of `docs/week-3-package.md`, with step 6's contracts amended on Wed 4 Nov 2026 by rulings 41 and 42 and the PM seat's gap fixes, which PR #37's body lists, and on Thu 5 Nov 2026 by rulings 44 to 47 and the corrections from PR #38's reviews, which PR #39's body lists. Step 9's section was added on Thu 5 Nov 2026, on rulings 59 to 61, and amended the same day on rulings 62 and 63 and Codex's reads of PR #45, and on rulings 64 and 65 and PR #46's Pass 1. Its build prompt is `docs/cursor-prompts/jev-build.md`. It is the spec of record for their
 build prompts. `AGENTS.md` outranks it on process, and no line here loosens it. Within that, precedence runs: the owner's
 rulings in the plan, then `docs/judge-spec.md` where this spec reuses its contracts, then this spec, then the build prompts,
 then the plan. Where this spec says "contract" the name, format or behaviour is fixed, because a run, a label or a report
