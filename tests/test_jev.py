@@ -1620,8 +1620,8 @@ class ReportTests(JevTest):
         self.assertEqual([section["name"] for section in sections], ["first", "second", "union"])
         self.assertEqual([band["count"] for band in sections[2]["bins"]], [1, 0, 1])
         self.assertEqual(_read(svg), jev.render_svg(sections[2]["bins"], sections[2]["name"]))
-        self.assertNotEqual(_read(svg), jev.render_svg(sections[0]["bins"], sections[0]["name"]))
-        self.assertNotEqual(_read(svg), jev.render_svg(sections[1]["bins"], sections[1]["name"]))
+        self.assertNotEqual(_read(svg), jev.render_svg(sections[0]["bins"], sections[2]["name"]))
+        self.assertNotEqual(_read(svg), jev.render_svg(sections[1]["bins"], sections[2]["name"]))
 
     def test_latency_is_labelled_as_depending_on_the_machine(self):
         root = _scratch("latency")
