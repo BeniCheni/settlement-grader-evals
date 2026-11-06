@@ -1051,8 +1051,13 @@ def cmd_report(args):
         write_outputs(pairs)
 
 
+class _OneLineParser(argparse.ArgumentParser):
+    def error(self, message):
+        self.exit(2, "%s: error: %s\n" % (self.prog, " ".join(message.splitlines())))
+
+
 def _parser():
-    parser = argparse.ArgumentParser(
+    parser = _OneLineParser(
         prog="python3 -m scorer.jev",
         description="Jev, the decision model. The tests use the fake adapter.",
     )

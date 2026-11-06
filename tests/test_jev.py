@@ -1875,6 +1875,7 @@ class ReportValidationTests(JevTest):
         self.assertEqual(code, 2)
         self.assertEqual(stdout, "")
         self._clean(stdout, err)
+        self.assertEqual(len(err.splitlines()), 1)
         self.assertEqual(sum("error:" in line for line in err.splitlines()), 1)
         if message:
             self.assertIn(message, err)
@@ -2138,6 +2139,20 @@ class ReportPresentationTests(JevTest):
                 self.assertEqual(os.path.isfile(out), flag is not None)
 
 class ParserBoundaryTests(JevTest):
+    def test_usage_and_validation_refusals_print_exactly_one_line(self):
+        root = _scratch("one-line")
+        argv = ["decide", "--cases", ROW_CASES, "--question", QUESTION,
+                "--adapter", "typesafe", "--out", os.path.join(root, "out")]
+        with mock.patch.dict(os.environ, {"TYPESAFE_API_KEY": SENTINEL + "\n"}):
+            for args in ([], ["unknown-command"], argv):
+                with self.subTest(arguments=args[:1]):
+                    code, stdout, err = _cli_traced(args)
+                    self.assertEqual(code, 2)
+                    self.assertEqual(stdout, "")
+                    self.assertEqual(len(err.splitlines()), 1)
+                    self._clean(stdout, err)
+                    self.assertFalse(os.path.exists(argv[-1]))
+
     def test_json_numeric_limits_are_refused_without_a_body_or_traceback(self):
         root = _scratch("numeric-limits")
         argv = ["decide", "--cases", ROW_CASES, "--question", QUESTION,
