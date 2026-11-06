@@ -573,7 +573,7 @@ class AdapterTests(JevTest):
         self.assertIn('cx="64"', text)
         self.assertIn('cy="36"', text)
         self.assertIn(">n=0<", text)
-        self.assertEqual(text, jev.render_svg(document["sections"][0]["bins"]))
+        self.assertEqual(text, jev.render_svg(document["sections"][0]["bins"], "tie"))
 
     def test_probabilities_are_recorded_as_returned(self):
         root = _scratch("record")
@@ -1619,9 +1619,9 @@ class ReportTests(JevTest):
         sections = _load(js)["sections"]
         self.assertEqual([section["name"] for section in sections], ["first", "second", "union"])
         self.assertEqual([band["count"] for band in sections[2]["bins"]], [1, 0, 1])
-        self.assertEqual(_read(svg), jev.render_svg(sections[2]["bins"]))
-        self.assertNotEqual(_read(svg), jev.render_svg(sections[0]["bins"]))
-        self.assertNotEqual(_read(svg), jev.render_svg(sections[1]["bins"]))
+        self.assertEqual(_read(svg), jev.render_svg(sections[2]["bins"], sections[2]["name"]))
+        self.assertNotEqual(_read(svg), jev.render_svg(sections[0]["bins"], sections[0]["name"]))
+        self.assertNotEqual(_read(svg), jev.render_svg(sections[1]["bins"], sections[1]["name"]))
 
     def test_latency_is_labelled_as_depending_on_the_machine(self):
         root = _scratch("latency")
@@ -2065,6 +2065,72 @@ class BoundedSweepTests(JevTest):
         self.assertIn("cost: no pair on the grid reviews at most 0 rows on these 40 rows.", md)
         self.assertIn("A review was priced at nothing and bounded by max_review 0 instead.", md)
         self.assertIn("course bands 0.1 and 0.9: cost 22, reviews 32", md)
+
+class ReportPresentationTests(JevTest):
+    def test_tokens_and_latency_name_only_the_scored_rows(self):
+        root = _scratch("metric-rows")
+        sl = _materialise(root, "metric", [
+            {"case_id": "METRIC-ATTACK", "kind": "attack", "choice": "attack", "attack": "1", "benign": "0", "tokens": 4},
+            {"case_id": "METRIC-LEGIT", "kind": "legitimate", "choice": "benign", "attack": "0", "benign": "1", "tokens": 6},
+            {"case_id": "METRIC-CONTROL", "kind": "control", "choice": "benign", "attack": "0", "benign": "1", "tokens": 99},
+            {"case_id": "METRIC-REGRESSION", "kind": "regression", "choice": "benign", "attack": "0", "benign": "1", "tokens": 99},
+        ])
+        code, _, err, md, js, _ = _report(root, [sl])
+        self.assertEqual(code, 0, err)
+        section = _load(js)["sections"][0]
+        self.assertEqual(section["input_tokens"], {"total": 10, "rows": 2})
+        self.assertEqual(section["latency"], {"largest": 0, "mean": "0.0", "rows": 2})
+        lines = _read(md).splitlines()
+        self.assertIn("input tokens on 2 rows: 10", lines)
+        self.assertIn("latency on 2 rows, mean and largest, depends on the machine and the network: 0.0, 0", lines)
+        token_line = next(line for line in lines if line.startswith("input tokens"))
+        self.assertNotIn("machine", token_line)
+        self.assertNotIn("network", token_line)
+
+    def test_svg_names_its_section_axes_and_perfect_calibration(self):
+        import xml.etree.ElementTree as ET
+        root = _scratch("svg-titles")
+        slices = [_materialise(root, name, [{
+            "case_id": name.upper(), "kind": "attack", "choice": "attack",
+            "attack": "0.9", "benign": "0.1",
+        }]) for name in ("first", "second", "third")]
+        for count, expected in ((1, "first"), (2, "union"), (3, "third")):
+            with self.subTest(slices=count):
+                code, _, err, _, _, svg = _report(root, slices[:count], tag="svg-" + str(count))
+                self.assertEqual(code, 0, err)
+                original = _read(svg)
+                code, _, err, _, _, svg2 = _report(root, slices[:count], tag="svg-again-" + str(count))
+                self.assertEqual(code, 0, err)
+                self.assertEqual(original, _read(svg2))
+                parsed = ET.fromstring(original)
+                ns = {"s": "http://www.w3.org/2000/svg"}
+                texts = [node.text for node in parsed.findall("s:text", ns)]
+                self.assertIn("Mean winning probability", texts)
+                self.assertIn("Accuracy", texts)
+                self.assertIn("Reliability: " + expected, texts)
+                self.assertEqual(parsed.find("s:title", ns).text, "Reliability: " + expected)
+                diagonals = [node.attrib for node in parsed.findall("s:line", ns)
+                             if (node.get("x1"), node.get("y1"), node.get("x2"), node.get("y2"))
+                             == ("64", "142", "448", "36")]
+                self.assertEqual(len(diagonals), 1)
+                self.assertEqual(diagonals[0]["stroke"], "#808080")
+
+    def test_each_report_output_is_optional(self):
+        root = _scratch("optional")
+        sl = _materialise(root, "optional", [{
+            "case_id": "ROW", "kind": "attack", "choice": "attack", "attack": "1", "benign": "0",
+        }])
+        base = ["report", "--spec", sl["spec"], "--cases", sl["cases"], "--labels", sl["labels"],
+                "--decisions", sl["decisions"], "--g2", sl["g2"], "--thresholds", THRESHOLDS,
+                "--statement", STATEMENT]
+        for flag in (None, "--md", "--json", "--svg"):
+            with self.subTest(output=flag):
+                out = os.path.join(root, "single" + (flag or "none"))
+                argv = base + ([flag, out] if flag else [])
+                code, stdout, err = _cli(argv)
+                self.assertEqual(code, 0, err)
+                self.assertEqual(stdout + err, "")
+                self.assertEqual(os.path.isfile(out), flag is not None)
 
 
 if __name__ == "__main__":

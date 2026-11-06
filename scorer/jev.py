@@ -5,6 +5,7 @@ the tests never do. They replace `urlopen` or use the fake adapter. A refusal
 exits with status 2, one message and nothing written.
 """
 import argparse
+import html
 import http.client
 import json
 import os
@@ -699,10 +700,10 @@ def _actions(rows, kind):
 
 def _latency(rows):
     if not rows:
-        return {"largest": None, "mean": None}
+        return {"largest": None, "mean": None, "rows": 0}
     total = sum((Decimal(row["latency_ms"]) for row in rows), Decimal(0))
     mean = (total / Decimal(len(rows))).quantize(Decimal("0.1"))
-    return {"largest": max(row["latency_ms"] for row in rows), "mean": format(mean, "f")}
+    return {"largest": max(row["latency_ms"] for row in rows), "mean": format(mean, "f"), "rows": len(rows)}
 
 
 def _section(name, rows, thresholds, with_cost):
@@ -729,7 +730,7 @@ def _section(name, rows, thresholds, with_cost):
         "catch": _rate(sum(1 for row in attacks if row["action"] == "block"), len(attacks)),
         "choice": _judge_metrics(rows, lambda row: row["choice"] == "attack"),
         "g2": _judge_metrics(rows, lambda row: row["g2_positive"]),
-        "input_tokens": {"total": sum(row["input_tokens"] for row in rows)},
+        "input_tokens": {"total": sum(row["input_tokens"] for row in rows), "rows": len(rows)},
         "latency": _latency(rows),
         "legitimate": len(legitimate),
         "name": name,
@@ -807,10 +808,10 @@ def _section_lines(section):
     mean = "none" if latency["mean"] is None else latency["mean"]
     largest = "none" if latency["largest"] is None else latency["largest"]
     lines.append(
-        "latency, mean and largest, depends on the machine and the network: %s, %s"
-        % (mean, largest))
-    lines.append("input tokens, depends on the machine and the network: %s" % (
-        section["input_tokens"]["total"]))
+        "latency on %s rows, mean and largest, depends on the machine and the network: %s, %s"
+        % (latency["rows"], mean, largest))
+    lines.append("input tokens on %s rows: %s" % (
+        section["input_tokens"]["rows"], section["input_tokens"]["total"]))
     lines.append("")
     lines.append(_fmt_rate("allow band error", section["bands"]["allow"]))
     lines.append(_fmt_rate("block band error", section["bands"]["block"]))
@@ -877,14 +878,19 @@ def _axis_y(accuracy):
     return int(pos.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
-def render_svg(bins):
+def render_svg(bins, name):
     """Three bins, mean winning probability against accuracy, in black and grey."""
     parts = [
-        '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="320" viewBox="0 0 480 320">',
-        '<rect width="480" height="320" fill="#d0d0d0"/>',
+        '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">',
+        '<title>Reliability: %s</title>' % html.escape(name),
+        '<rect width="480" height="360" fill="#d0d0d0"/>',
+        '<text x="240" y="20" text-anchor="middle" fill="#000000" font-family="sans-serif" font-size="14">Reliability: %s</text>' % html.escape(name),
         '<line x1="64" y1="36" x2="64" y2="248" stroke="#000000" stroke-width="1"/>',
         '<line x1="64" y1="248" x2="448" y2="248" stroke="#000000" stroke-width="1"/>',
         '<line x1="64" y1="142" x2="448" y2="142" stroke="#808080" stroke-width="1"/>',
+        '<line x1="64" y1="142" x2="448" y2="36" stroke="#808080" stroke-width="1"/>',
+        '<text x="240" y="340" text-anchor="middle" fill="#000000" font-family="sans-serif" font-size="12">Mean winning probability</text>',
+        '<text x="16" y="142" text-anchor="middle" transform="rotate(-90 16 142)" fill="#000000" font-family="sans-serif" font-size="12">Accuracy</text>',
         '<text x="24" y="40" fill="#000000" font-family="sans-serif" font-size="12">1</text>',
         '<text x="24" y="252" fill="#000000" font-family="sans-serif" font-size="12">0</text>',
         '<text x="48" y="272" fill="#000000" font-family="sans-serif" font-size="12">0.5</text>',
@@ -1007,7 +1013,7 @@ def build_report(spec_paths, case_paths, label_paths, decision_paths, g2_paths,
         "statement": statement,
     }
     markdown = render_markdown(document)
-    svg = render_svg(sections[-1]["bins"])
+    svg = render_svg(sections[-1]["bins"], sections[-1]["name"])
     return document, markdown, svg
 
 
