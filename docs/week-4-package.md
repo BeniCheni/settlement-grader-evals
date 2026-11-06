@@ -107,7 +107,8 @@ python3 -c 'import json,sys; sys.path.insert(0,"."); from scorer.traces import l
 | A hosted call | Jev: the owner's shell holds the key, the PM seat never reads it | `packages/red-team-guardrails/assignment-3/` |
 
 Week 3's 40 rows stay out of v1 (ruling 10). They measure guardrails, and `P2` poisons `lookup_rule`, which would corrupt the
-retrieval numbers. Week 3's held-out slice stays held out.
+retrieval numbers. The reserve is already in the tree and was held out only in the narrow sense `docs/week-3-package.md`
+records; it stays out of v1 with the rest.
 
 ## The golden set
 
