@@ -278,7 +278,7 @@ packages/rag-eval/
 ## Rulings (the owner's, from Fri 6 Nov 2026)
 
 The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13. `docs/rag-spec.md` asked rulings 14 to
-18, and the owner accepted each as recommended the same day.
+18, and the owner accepted each as recommended the same day, then set ruling 19.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -300,3 +300,4 @@ The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruli
 | 16 | May synthetic tickets use the four Champions League matches of 14 Oct that the frozen file holds as scheduled? | Yes | They are the only way to test `unsettled`. They have been played since, so a ticket on them tips nothing (Hard Rule 4), and the grader can only answer UNSETTLED |
 | 17 | Does `void_postponed` go without rows in v1, named as a gap in `dataset.md`? | Yes | No frozen match is postponed, and adding one is an `ESPN_LIVE=1` PR (Hard Rule 3), so it waits for v2 |
 | 18 | Are the A/B's bars in `docs/rag-spec.md` approved as drafted? | Yes | They are written before any run, as this plan requires |
+| 19 | Who gives PR #50's cold read? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor builds steps 3, 4 and 8 from this spec, so this read is not independent of that build |
