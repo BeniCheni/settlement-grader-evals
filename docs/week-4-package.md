@@ -277,7 +277,8 @@ packages/rag-eval/
 
 ## Rulings (the owner's, from Fri 6 Nov 2026)
 
-The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13.
+The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13. `docs/rag-spec.md` asked rulings 14 to
+18, and the owner accepted each as recommended the same day.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -294,3 +295,8 @@ The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruli
 | 11 | Who gives the cold reads: Codex, as `AGENTS.md` says, or Cursor, as most of Week 3 did? | Codex, unless a ruling names another seat for a PR | |
 | 12 | A field for the owner's hand-checks, apart from `verified_by_beni`? | Yes | Hard Rule 5 |
 | 13 | Who gives the cold read of the PR that lands this plan? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for this PR only. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor will build from this plan's spec, so this read is not independent of that build. The plan holds no row of the golden set and no threshold a build is measured on |
+| 14 | Is the market-to-topic table in `docs/rag-spec.md` the source of every row's needed contexts? | Yes | Recall's denominator is a rubric, and the owner writes rubrics |
+| 15 | Do `X01` and `X02` stay out of v1? | Yes | They are attacks, and ruling 10 keeps attacks out |
+| 16 | May synthetic tickets use the four Champions League matches of 14 Oct that the frozen file holds as scheduled? | Yes | They are the only way to test `unsettled`. They have been played since, so a ticket on them tips nothing (Hard Rule 4), and the grader can only answer UNSETTLED |
+| 17 | Does `void_postponed` go without rows in v1, named as a gap in `dataset.md`? | Yes | No frozen match is postponed, and adding one is an `ESPN_LIVE=1` PR (Hard Rule 3), so it waits for v2 |
+| 18 | Are the A/B's bars in `docs/rag-spec.md` approved as drafted? | Yes | They are written before any run, as this plan requires |

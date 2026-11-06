@@ -24,11 +24,12 @@ Reuse these, and copy none of them: `scorer.traces.load_run`; `scorer/stats.py`;
 `settle_ticket`; `grader.espn.match_facts`; from `scorer/judge.py`, `build_adapter`, which gives the Ollama and fake adapters
 the wording model needs; and each real leg's `espn_event` in `data/gold_check.json`.
 
-## Rulings this spec asks
+## The owner's rulings on this spec
 
-Recorded in the plan's table once the owner answers. Until then the contracts below carry the recommended answer.
+The owner accepted each as the PM seat recommended it, on Fri 6 Nov 2026, and the plan's table records them. The contracts
+below carry them.
 
-| # | Question | Recommended | Why |
+| # | Question | Answer | Why |
 |---|---|---|---|
 | 14 | Is the market-to-topic table below the source of every row's needed contexts? | Yes | Recall's denominator is a rubric, and the owner writes rubrics |
 | 15 | Do `X01` and `X02` stay out of v1? | Yes | They are attacks, and ruling 10 keeps attacks out |
