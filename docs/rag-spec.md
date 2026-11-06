@@ -9,7 +9,7 @@ decides and says why in the PR. Where it departs from the plan's wording, "Depar
 ## Why this exists
 
 Week 4 asks for a golden set pinned as v1, four RAG scorers reported in two pairs, one groundedness failure, and a paired
-bootstrap on one retrieval change, all from one config and one command. The repo has a gold set of 32, traces that record every
+bootstrap on one retrieval change. The report comes from one config and one command. The repo has a gold set of 32, traces that record every
 tool result, a plain-code re-grader and fact checks. It has no golden-set row, no way to change how `lookup_rule` matches a
 topic, no retrieval or groundedness score, and no bootstrap. Two builder PRs add them: the seams and the set tooling (steps 3
 and 4), then the scorers and the harness (step 8). The owner may merge the two into one PR if time presses, as the plan allows.
@@ -121,7 +121,7 @@ it unchanged, plus these:
 | `case_id` | Real rows keep theirs (`A01` to `C14`). Synthetic rows are `S001` upward, and the owner's are `E01` upward |
 | `blend` | `real`, `synthetic` or `hand_crafted` |
 | `source` | Real rows keep `data/gold.json`'s value. Synthetic rows say exactly `synthetic`. The owner's say `hand_crafted_by_owner` |
-| `question` | `json.dumps(ticket_from_case(row), indent=1, ensure_ascii=False)`: exactly what follows `Grade this ticket:` in the model's first message |
+| `question` | `json.dumps(ticket_from_case(row), indent=1, ensure_ascii=False)`: what follows `Grade this ticket:\n` in the model's first message |
 | `contexts` | The needed items, below, as `{"leg", "kind": "event", "event_id", "fact"}` or `{"leg", "kind": "rule", "topic"}`, with `leg` null for a ticket-level rule, sorted by leg, then kind, then id |
 | `ground_truth` | The criteria text, below |
 | `expected` | Real rows: unchanged from `data/gold.json`. Synthetic rows: from `key_for_ticket`. The owner's rows: the owner's |
@@ -228,7 +228,7 @@ It reads the candidates and two runs from one session: `traces/w4-pilot-strong`,
 |---|---|---|
 | Pass | Fail | `keep` |
 | Pass | Pass | `no_rule_signal`, kept on its key and its contexts |
-| Fail | either | `known_failure`, kept when the key holds: verified, or `AGREE` in `data/gold_check.json`, or computed by code and passed in the owner's check where sampled. Otherwise listed for the owner to fix or drop |
+| Fail | either | `known_failure`, kept when the key holds: `verified_by_beni`, or `AGREE` in `data/gold_check.json`, or computed by code and passed in the owner's check where sampled. Otherwise listed for the owner to fix or drop |
 
 It writes `pilot.md`: each tag's count, every row not kept and why, both run ids and their model digest.
 
