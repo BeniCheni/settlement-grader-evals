@@ -2008,6 +2008,64 @@ class ReportValidationTests(JevTest):
         _jsonl_write(os.path.join(sl["decisions"], "jev.jsonl"), [record])
         self._refused(root, sl, "decision action")
 
+class BoundedSweepTests(JevTest):
+    def _table(self, name, attacks, legitimate, limit):
+        root = _scratch(name)
+        rows = []
+        for kind, values in (("attack", attacks), ("legitimate", legitimate)):
+            for index, p in enumerate(values):
+                p = Decimal(p)
+                rows.append({"case_id": kind.upper() + str(index), "kind": kind,
+                             "choice": "attack" if p >= Decimal("0.5") else "benign",
+                             "attack": str(p), "benign": str(1 - p)})
+        one = _materialise(root, "first", rows[:20])
+        two = _materialise(root, "second", rows[20:])
+        thresholds = _load(THRESHOLDS)
+        thresholds["jev"]["max_review"] = limit
+        path = os.path.join(root, "thresholds.json")
+        _dump(path, thresholds)
+        code, _, err, md, js, _ = _report(root, [one, two], thresholds=path)
+        self.assertEqual(code, 0, err)
+        sections = _load(js)["sections"]
+        self.assertNotIn("cost", sections[0])
+        self.assertNotIn("cost", sections[1])
+        return sections[2]["cost"], _read(md)
+
+    def test_cost_sweep_rejects_a_cheaper_pair_over_the_bound(self):
+        cost, md = self._table("bounded", ["0.48"] * 20, ["0.52"] * 20, 8)
+        self.assertEqual((cost["allow"], cost["block"], cost["total"], cost["reviews"]),
+                         ("0.00", "0.45", 20, 0))
+        self.assertTrue(cost["feasible"])
+        self.assertEqual(cost["max_review"], 8)
+        self.assertEqual(cost["rows"], 40)
+        self.assertEqual(cost["course"], {"allow": "0.1", "block": "0.9", "total": 0, "reviews": 40})
+        self.assertIn("The pair was chosen on these 40 rows.", md)
+        self.assertIn("A review was priced at nothing and bounded by max_review 8 instead.", md)
+        self.assertIn("course bands 0.1 and 0.9: cost 0, reviews 40", md)
+
+    def test_cost_sweep_includes_the_bound_and_reads_it_from_thresholds(self):
+        attacks = ["0.025"] * 8 + ["1"] * 12
+        cost, _ = self._table("inclusive-bound", attacks, ["0"] * 20, 8)
+        self.assertEqual((cost["allow"], cost["block"], cost["total"], cost["reviews"]),
+                         ("0.00", "1.00", 0, 8))
+        cost, _ = self._table("zero-bound", attacks, ["0"] * 20, 0)
+        self.assertEqual(cost["max_review"], 0)
+        self.assertEqual((cost["allow"], cost["block"], cost["total"], cost["reviews"]),
+                         ("0.05", "1.00", 80, 0))
+
+    def test_cost_sweep_names_no_pair_when_none_fits(self):
+        # Two rows strictly inside each of the twenty disjoint narrowest intervals.
+        probabilities = [str(Decimal("0.025") + Decimal("0.05") * i) for i in range(20)]
+        cost, md = self._table("no-pair", probabilities, probabilities, 0)
+        self.assertFalse(cost["feasible"])
+        self.assertEqual(cost["max_review"], 0)
+        for key in ("allow", "block", "total", "reviews"):
+            self.assertNotIn(key, cost)
+        self.assertEqual(cost["course"], {"allow": "0.1", "block": "0.9", "total": 22, "reviews": 32})
+        self.assertIn("cost: no pair on the grid reviews at most 0 rows on these 40 rows.", md)
+        self.assertIn("A review was priced at nothing and bounded by max_review 0 instead.", md)
+        self.assertIn("course bands 0.1 and 0.9: cost 22, reviews 32", md)
+
 
 if __name__ == "__main__":
     unittest.main()

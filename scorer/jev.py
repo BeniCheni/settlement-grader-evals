@@ -640,31 +640,35 @@ def _pair_cost(rows, allow, block):
     return cost, reviews
 
 
-def _sweep(rows):
+def _sweep(rows, max_review):
     best = None
     for allow in GRID:
         for block in GRID:
             if allow >= block:
                 continue
             cost, reviews = _pair_cost(rows, allow, block)
+            if reviews > max_review:
+                continue
             rank = (cost, reviews, allow, -block)
             if best is None or rank < best[0]:
                 best = (rank, allow, block, cost, reviews)
-    _rank, allow, block, cost, reviews = best
     course_cost, course_reviews = _pair_cost(rows, COURSE_ALLOW, COURSE_BLOCK)
-    return {
-        "allow": format(allow, "f"),
-        "block": format(block, "f"),
+    result = {
         "course": {
             "allow": format(COURSE_ALLOW, "f"),
             "block": format(COURSE_BLOCK, "f"),
             "reviews": course_reviews,
             "total": course_cost,
         },
-        "reviews": reviews,
+        "feasible": best is not None,
+        "max_review": max_review,
         "rows": len(rows),
-        "total": cost,
     }
+    if best is not None:
+        _rank, allow, block, cost, reviews = best
+        result.update(allow=format(allow, "f"), block=format(block, "f"),
+                      total=cost, reviews=reviews)
+    return result
 
 
 def _bars(rows, thresholds):
@@ -739,7 +743,7 @@ def _section(name, rows, thresholds, with_cost):
         },
     }
     if with_cost:
-        section["cost"] = _sweep(rows)
+        section["cost"] = _sweep(rows, thresholds["max_review"])
     return section
 
 
@@ -827,9 +831,15 @@ def _section_lines(section):
     if "cost" in section:
         cost = section["cost"]
         lines.append("")
-        lines.append(
-            "cost: %s at allow %s and block %s, reviews %s. The pair was chosen on these %s rows."
-            % (cost["total"], cost["allow"], cost["block"], cost["reviews"], cost["rows"]))
+        if cost["feasible"]:
+            text = (
+                "cost: %s at allow %s and block %s, reviews %s. The pair was chosen on these %s rows."
+                % (cost["total"], cost["allow"], cost["block"], cost["reviews"], cost["rows"]))
+        else:
+            text = "cost: no pair on the grid reviews at most %s rows on these %s rows." % (
+                cost["max_review"], cost["rows"])
+        lines.append(text + " A review was priced at nothing and bounded by max_review %s instead." % (
+            cost["max_review"]))
         course = cost["course"]
         lines.append("course bands %s and %s: cost %s, reviews %s" % (
             course["allow"], course["block"], course["total"], course["reviews"]))
