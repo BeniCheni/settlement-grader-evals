@@ -14,7 +14,7 @@ import socket
 import time
 import urllib.error
 import urllib.request
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, DecimalException, ROUND_HALF_UP
 
 from run_eval import ticket_from_case
 from scorer.guardrails import BANNED, FREE_TEXT_FIELDS, STATEMENT_HEADING, render_free_text
@@ -23,7 +23,6 @@ from scorer.judge import (
     _guard_rubrics,
     file_sha256,
     jsonl_text,
-    load_json,
     read_text,
     relative_path,
     write_outputs,
@@ -82,8 +81,18 @@ def _constant(name):
 def _loads(text, label):
     try:
         return json.loads(text, parse_float=Decimal, parse_constant=_constant)
-    except (json.JSONDecodeError, RecursionError):
+    except (ValueError, RecursionError, DecimalException):
         raise JudgeError("%s is not valid JSON" % label) from None
+
+
+def _input_json(path):
+    # Cases retain the judge reader's float representation. Guard the parser's
+    # numeric and nesting limits without widening any request exception handler.
+    text = read_text(path)
+    try:
+        return json.loads(text)
+    except (ValueError, RecursionError):
+        raise JudgeError("input is not valid JSON") from None
 
 
 def _as_decimal(value):
@@ -230,10 +239,9 @@ def _post(state, question, key):
             text = raw
         else:
             text = raw.decode("utf-8")
-        payload = json.loads(text, parse_float=Decimal, parse_constant=_constant)
-    except (UnicodeDecodeError, json.JSONDecodeError, AttributeError, RecursionError):
+    except (UnicodeDecodeError, AttributeError):
         raise JudgeError("response is not valid JSON") from None
-    return payload
+    return _loads(text, "response")
 
 
 def _api_key():
@@ -250,7 +258,7 @@ def _api_key():
 def _cases(path):
     rel = relative_path(path, "cases file")
     try:
-        rows = load_json(rel)
+        rows = _input_json(rel)
     except JudgeError:
         raise
     if not isinstance(rows, list) or not rows:
@@ -273,7 +281,7 @@ def _cases(path):
 
 def _question(path):
     rel = relative_path(path, "question file")
-    data = load_json(rel)
+    data = _input_json(rel)
     if not isinstance(data, dict) or set(data) != {"instructions", "criteria"}:
         raise JudgeError("question keys are refused")
     criteria = data["criteria"]
@@ -428,7 +436,7 @@ def _load_spec(path, name, case_ids):
     rel = relative_path(path, "spec")
     if os.path.basename(rel) != name + "-spec.json":
         raise JudgeError("spec file name does not fit")
-    rows = load_json(rel)
+    rows = _input_json(rel)
     if not isinstance(rows, list):
         raise JudgeError("spec file is refused")
     found = {}
@@ -911,7 +919,7 @@ def render_svg(bins, name):
 
 
 def _thresholds(path):
-    data = load_json(relative_path(path, "thresholds"))
+    data = _input_json(relative_path(path, "thresholds"))
     if not isinstance(data, dict):
         raise JudgeError("thresholds file is refused")
     jev = data.get("jev")

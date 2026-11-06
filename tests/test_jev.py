@@ -2000,13 +2000,18 @@ class ReportValidationTests(JevTest):
     def test_report_refuses_action_rounded_across_a_band_edge(self):
         root = _scratch("rounded-edge")
         sl = self._slice(root)
-        payload = jev._loads(json.dumps(_body("attack", "0.9", "0.1")), "fixture")
-        payload["answers"]["verdict"]["probabilities"]["attack"] = Decimal("0.89999999999999999999")
-        record = jev._record("ROW", jev.parse_response(payload), 0)
-        self.assertEqual(record["action"], "review")
-        self.assertEqual(record["p_attack"], 0.9)
-        _jsonl_write(os.path.join(sl["decisions"], "jev.jsonl"), [record])
-        self._refused(root, sl, "decision action")
+        for p_attack, p_benign, choice, rounded in (
+                ("0.89999999999999999999", "0.1", "attack", 0.9),
+                ("0.10000000000000001", "0.9", "benign", 0.1)):
+            with self.subTest(p_attack=p_attack):
+                payload = jev._loads(json.dumps(_body(choice, "0.9", "0.1", confidence=0.8)), "fixture")
+                payload["answers"]["verdict"]["probabilities"] = {
+                    "attack": Decimal(p_attack), "benign": Decimal(p_benign)}
+                record = jev._record("ROW", jev.parse_response(payload), 0)
+                self.assertEqual(record["action"], "review")
+                self.assertEqual(record["p_attack"], rounded)
+                _jsonl_write(os.path.join(sl["decisions"], "jev.jsonl"), [record])
+                self._refused(root, sl, "decision action")
 
 class BoundedSweepTests(JevTest):
     def _table(self, name, attacks, legitimate, limit):
@@ -2131,6 +2136,64 @@ class ReportPresentationTests(JevTest):
                 self.assertEqual(code, 0, err)
                 self.assertEqual(stdout + err, "")
                 self.assertEqual(os.path.isfile(out), flag is not None)
+
+class ParserBoundaryTests(JevTest):
+    def test_json_numeric_limits_are_refused_without_a_body_or_traceback(self):
+        root = _scratch("numeric-limits")
+        argv = ["decide", "--cases", ROW_CASES, "--question", QUESTION,
+                "--adapter", "typesafe", "--out", os.path.join(root, "out")]
+        before = _seed(argv[-1])
+        good = _good_bytes()
+        payloads = (
+            good.replace(b'"attack": 1.0', b'"attack": 1e' + b'9' * 40),
+            good.replace(b'"choice": "attack"', b'"choice": ' + b'1' * 5000),
+        )
+        for index, raw in enumerate(payloads):
+            with self.subTest(table=index):
+                with _canned_https([_http(b"200 OK", raw)]) as seen:
+                    code, stdout, err = _cli_traced(argv)
+                self.assertEqual(code, 2)
+                self.assertEqual(len(seen), 1)
+                self.assertEqual(sum("error:" in line for line in err.splitlines()), 1)
+                self._clean(stdout, err)
+                self.assertNotIn("1" * 100, err)
+                self.assertNotIn("9" * 40, err)
+                for filename, text in before.items():
+                    self.assertEqual(_read(os.path.join(argv[-1], filename)), text)
+                # The fake adapter and report reader use the same JSON boundary.
+                with self.assertRaises(jev.JudgeError):
+                    jev.parse_response(jev._loads(raw.decode("ascii"), "fixture"))
+
+    def test_file_parser_limits_are_validation_errors(self):
+        root = _scratch("input-nesting")
+        bad = os.path.join(root, "bad.json")
+        with open(bad, "w", encoding="utf-8") as handle:
+            handle.write("[" * 5000)
+        for flag, original in (("--cases", ROW_CASES), ("--question", QUESTION)):
+            with self.subTest(input=flag):
+                argv = ["decide", "--cases", ROW_CASES, "--question", QUESTION,
+                        "--adapter", "fake:" + os.path.join(ROOT, "tie.json"),
+                        "--out", os.path.join(root, "out")]
+                argv[argv.index(flag) + 1] = bad
+                code, stdout, err = _cli_traced(argv)
+                self.assertEqual(code, 2)
+                self._clean(stdout, err)
+                self.assertFalse(os.path.exists(argv[-1]))
+        with self.assertRaisesRegex(jev.JudgeError, "not valid JSON"):
+            jev._thresholds(bad)
+        spec = os.path.join(root, "bad-spec.json")
+        shutil.copy(bad, spec)
+        with self.assertRaisesRegex(jev.JudgeError, "not valid JSON"):
+            jev._load_spec(spec, "bad", ["ROW"])
+
+    def test_module_value_errors_are_not_misreported_as_request_failures(self):
+        with mock.patch.object(jev, "_request_bytes", side_effect=ValueError("local construction")):
+            with self.assertRaisesRegex(ValueError, "local construction"):
+                jev._post("state", {}, SENTINEL)
+        with mock.patch.object(jev, "parse_response", side_effect=ValueError("local validation")), \
+                mock.patch.object(jev, "urlopen", return_value=_Response(200, _good_bytes())):
+            with self.assertRaisesRegex(ValueError, "local validation"):
+                jev.decide(ROW_CASES, QUESTION, "typesafe", os.path.join(_scratch("local-error"), "out"))
 
 
 if __name__ == "__main__":
