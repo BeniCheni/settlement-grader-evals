@@ -171,9 +171,9 @@ The starter annotates a float. A scorer here may return `None`, with a reason, w
 
 | Scorer | Half | Definition here |
 |---|---|---|
-| `context_recall` | Retrieval | Needed items retrieved ÷ needed items. Needed: each leg's event (through `get_match_facts`) and each leg's rule topic. A lookup that erred retrieved nothing |
+| `context_recall` | Retrieval | Needed items retrieved ÷ needed items. Needed: each leg's event (through `get_match_facts`), each leg's rule topics, and the ticket-level rules in the spec. A lookup that erred retrieved nothing |
 | `context_precision` | Retrieval | RAGAS-style ranked precision over the retrieved items in call order. An erred lookup, or facts for an event no leg needs, is noise |
-| `faithfulness` | Generation | Supported leg claims ÷ leg claims. A claim is a leg grade and the score its evidence cites; supported means the re-grader agrees using only the facts this run fetched. A grade with no facts fetched is unsupported. Markets code cannot grade are left out and counted |
+| `faithfulness` | Generation | Supported leg claims ÷ leg claims. A claim is a leg grade and the score its evidence cites; supported means the re-grader agrees using only the facts this run fetched. A grade with no facts fetched is unsupported, except a `NEEDS_HUMAN` grade, which is supported. Markets code cannot grade are left out and counted |
 | `answer_relevancy` | Generation | The share of four tests that hold: one grade per ticket leg; each grade names that leg's selection; `ticket_result` is in the enum; the final came from `settle_ticket` |
 
 The report prints the two pairs apart, each as a mean with k of n and an interval, then names the weaker half. There is
@@ -206,8 +206,9 @@ no dependency (ruling 8). It holds the dataset path and sha256, the model, both 
 `window_days`), the seed and the output paths.
 
 ```bash
-python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml   # both variants; needs Ollama
-python3 -m scorer.rag report --config packages/rag-eval/assignment-2/config.yaml   # report.md from the traces; no model
+python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml --variant a   # needs Ollama
+python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml --variant b
+python3 -m scorer.rag report --config packages/rag-eval/assignment-2/config.yaml              # report.md from the traces; no model
 ```
 
 Neither command exists until step 8 lands. A test fails when the committed `report.md` is stale, as Week 3's do. The Braintrust uploader is a separate script with the
@@ -243,7 +244,7 @@ steps 3 and 8 into one build PR, and the A/A run is dropped. Every acceptance it
 | No synthetic key came from a model | The generator's tests: the key field is written only by the re-grader, and the model's text never reaches it |
 | v1 does not move | The sha256 test |
 | Each scorer does something | Mutate it, and a named test goes red for that reason |
-| Retrieval is not scored against itself | A test feeds the gold contexts as retrieved and expects the scorer to refuse, as the starter warns |
+| Retrieval is not scored against itself | A record with no tools scores recall 0 against a row that needs items, so gold contexts never stand in as retrieved. The starter warns against feeding them as retrieved; it does not make the scorer refuse |
 | A difference is real | One session, version and digest recorded, the paired interval printed beside every delta |
 | Reports do not go stale | Byte-stable output and a test |
 | Nothing private entered | The pattern sweep on every PR, counts and patterns stated, no hit printed |
