@@ -33,7 +33,7 @@ correctly reported interval passes. One config, one command, one reproducible `r
 | Size | 150+ | 150+ after cuts; 60 + 120 − 22 = 158 is illustrative | "If 150 is too high... at least 50 to 100" | 150+ after cuts; the blend is not a quota | 150+ after cuts (ruling 1) |
 | The metrics | "four RAGAS metrics" | "four Braintrust scorers" | the RAGAS and autoevals libraries | Braintrust scorers, plain functions | The same four. Braintrust's `autoevals` implements the RAGAS four, so the names describe one set |
 | What the A/B changes | "a prompt change" | a retrieval change, `top_k` 3 vs 5 | | ONE retrieval parameter | One retrieval parameter: how `lookup_rule` matches a topic (ruling 5) |
-| Where v1 is pinned | LangSmith | LangSmith | Braintrust datasets, in the demo | LangSmith, id in `dataset.md` | LangSmith, plus a hash in this repo (ruling 6) |
+| Where v1 is pinned | LangSmith | LangSmith | Braintrust datasets, in the demo | LangSmith, id in `dataset.md` | LangSmith (ruling 6), plus a hash in this repo |
 | Hand-check | "validate" | 30+, error rate | about 15%, or 30 to 40 of 200 | 30+, error rate | 30+, by the owner |
 | Pilot weakened config | | | | `lookup_policy` disabled | `lookup_rule` disabled, with an amendment (ruling 4) |
 
@@ -48,7 +48,7 @@ change the work.
    lookup_policy". There are no chunks and no embeddings, so "chunk size" has no meaning here.
 2. **The course's `top_k` does nothing here.** `find_match` keeps 3 candidates (`grader/espn.py:134`). Across `v1`, `aa-1`
    and `ab-a` it returned one candidate in 90 of 107 calls, two in 14, none in 3, and never three, and the model never fetched
-   facts for a second candidate. A `top_k` change is a null result by construction. The retriever that misses is
+   facts for a second candidate. A `top_k` change is a null result on these calls. The retriever that misses is
    `lookup_rule`: 19 calls returned `UNKNOWN_TOPIC`, across 13 records, for `both_teams_to_score` (5), `match_result`,
    `anytime_goalscorer`, `total_goals`, `goals` (3 each) and `combo` (2).
 3. **Ground truth is computed, not written.** A leg's result follows from the frozen facts and the rule, and `check_gold.py`
@@ -99,9 +99,9 @@ python3 -c 'import json,sys; sys.path.insert(0,"."); from scorer.traces import l
 |---|---|---|
 | Real cases | 30 real tickets and 2 attacks; 6 keys verified (`A05`, `A13`, `C09`, `C13`, `C14`, `X01`) | `data/gold.json` |
 | A label check that is not the model | The plain-code re-grader | `check_gold.py` |
-| The documents | Frozen facts and rules; a lookup outside the file raises | `data/espn_frozen.json`, `grader/rules.py`, `grader/frozen.py` |
+| The documents | Frozen facts and rules; a lookup outside the file raises | `data/espn_frozen.json`, `grader/espn.py`, `grader/rules.py`, `grader/frozen.py` |
 | Retrieved context per case | Every tool call's arguments and result, in each run | `traces/*/`, `scorer/traces.py` |
-| Faithfulness, in parts | `GRADE_CONTRADICTS_FACTS`, `GRADED_WITHOUT_LOOKUP`, `SKIPPED_SETTLE_TICKET`, `PLACEHOLDER_ECHO`, `INCOMPLETE_LEG_LIST`; `SELF_CONTRADICTING_EVIDENCE` needs a judge that has not met the bar | `scorer/checks.py`, `reports/judge-set1.html` |
+| Faithfulness, in parts | `GRADE_CONTRADICTS_FACTS`, `GRADED_WITHOUT_LOOKUP`, `SKIPPED_SETTLE_TICKET`, `PLACEHOLDER_ECHO`, `INCOMPLETE_LEG_LIST`; `SELF_CONTRADICTING_EVIDENCE` needs a judge that has not met the bar | `scorer/checks.py`, `README.md` |
 | Intervals | `wilson`; `paired_difference` (Newcombe, for paired yes/no). No bootstrap yet | `scorer/stats.py` |
 | Freezing a file | A committed sha256 and a test, from Week 3 | `data/redteam/frozen.sha256` |
 | A hosted call | Jev: the owner's shell holds the key, the PM seat never reads it | `packages/red-team-guardrails/assignment-3/` |
@@ -162,8 +162,8 @@ to `v2`. In the owner's shell: a LangSmith dataset, the same rows uploaded, tag 
 
 ## The four scorers
 
-Plain code in `scorer/rag.py`, standard library, each with the course's signature `(output, expected, metadata) -> float`,
-or `None` with a reason when it does not apply. Each has a mutation test, as `AGENTS.md` requires.
+Plain code in `scorer/rag.py`, standard library, each with the course starter's signature `(output, expected, metadata, **kwargs) -> float`.
+The starter annotates a float. A scorer here may return `None`, with a reason, when it does not apply. Each has a mutation test, as `AGENTS.md` requires.
 
 | Scorer | Half | Definition here |
 |---|---|---|
