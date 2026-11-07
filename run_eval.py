@@ -24,6 +24,7 @@ from urllib.parse import urlsplit
 
 from grader.agent import DEFAULT_BUDGETS, OLLAMA_URL, SYSTEM_PROMPT, grade_ticket
 from grader.poison import PoisonError, poison_runner, validate_poison
+from grader.retrieval import disabled_rule_runner, rule_runner
 from grader.tracer import Tracer
 
 TICKET_FIELDS = ["book", "bet_type", "stake", "stake_kind", "boost_or_token",
@@ -85,6 +86,46 @@ def seam_refusal(case):
     if (poison or followups) and case.get("source") != "synthetic":
         return "%s: poison and followups require source synthetic" % label
     return None
+
+
+def _load_cases(path):
+    """A JSON list, or one JSON object per line when the path ends in .jsonl.
+
+    Blank lines are skipped. A line that is not a JSON object, and any path
+    that is not a list, is unreadable: the caller prints the one message.
+    """
+    if str(path).endswith(".jsonl"):
+        cases = []
+        try:
+            with open(path) as handle:
+                for line in handle:
+                    if line.strip() == "":
+                        continue
+                    item = json.loads(line)
+                    if not isinstance(item, dict):
+                        raise ValueError("not an object")
+                    cases.append(item)
+        except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+            return None
+        return cases
+    try:
+        with open(path) as handle:
+            cases = json.load(handle)
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    if not isinstance(cases, list):
+        return None
+    return cases
+
+
+def _poison_entries(case):
+    """The poison list seam_refusal treats as a use, or an empty list."""
+    if not isinstance(case, dict):
+        return []
+    poison = case.get("poison") or []
+    if not isinstance(poison, list):
+        return []
+    return poison
 
 
 def drop_ticket_fields(ticket, fields):
@@ -232,6 +273,10 @@ def main(argv=None, opener=None):
                     help="comma-separated output guardrails")
     ap.add_argument("--guard-rubric", default="rubrics-guardrails/ticket_free_text.md")
     ap.add_argument("--guard-adapter", default="ollama:llama3.1:8b")
+    ap.add_argument("--rule-match", default=None,
+                    help="exact or alias; passed to grade_ticket only when set")
+    ap.add_argument("--disable-tool", default=None,
+                    help="lookup_rule returns an empty rule; no other tool name is accepted")
     args = ap.parse_args(argv)
     unknown = _unknown_drop_field(args.drop_field)
     if unknown is not None:
@@ -244,19 +289,32 @@ def main(argv=None, opener=None):
         except PromptFileError as error:
             sys.stderr.write("%s\n" % error)
             return 2
-    try:
-        with open(args.cases) as f:
-            cases = json.load(f)
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        sys.stderr.write("cases file is unreadable\n")
+    retrieval = args.rule_match is not None or args.disable_tool is not None
+    if args.rule_match is not None and args.disable_tool is not None:
+        sys.stderr.write("--rule-match and --disable-tool exclude each other\n")
         return 2
-    if not isinstance(cases, list):
+    if args.rule_match is not None and args.rule_match not in ("exact", "alias"):
+        sys.stderr.write("unknown rule-match\n")
+        return 2
+    if args.disable_tool is not None and args.disable_tool != "lookup_rule":
+        sys.stderr.write("unknown tool\n")
+        return 2
+    if retrieval and (args.guard_input is not None or args.guard_output is not None):
+        sys.stderr.write("a retrieval flag cannot be combined with a guard\n")
+        return 2
+    cases = _load_cases(args.cases)
+    if cases is None:
         sys.stderr.write("cases file is unreadable\n")
         return 2
     for case in cases:
         message = seam_refusal(case)
         if message:
             sys.stderr.write("%s\n" % message)
+            return 2
+        if retrieval and _poison_entries(case):
+            case_id = case.get("case_id") if isinstance(case, dict) else None
+            label = case_id if isinstance(case_id, str) and case_id else "a case"
+            sys.stderr.write("%s: poison is refused\n" % label)
             return 2
     guard_input = []
     guard_output = []
@@ -312,7 +370,11 @@ def main(argv=None, opener=None):
             ticket_kwargs["system_prompt"] = system_prompt
         poison = c.get("poison") or []
         followups = c.get("followups") or []
-        if poison:
+        if args.rule_match is not None:
+            ticket_kwargs["tool_runner"] = rule_runner(args.rule_match)
+        elif args.disable_tool is not None:
+            ticket_kwargs["tool_runner"] = disabled_rule_runner()
+        elif poison:
             ticket_kwargs["tool_runner"] = poison_runner(poison)
         if followups:
             ticket_kwargs["followups"] = tuple(followups)
@@ -370,6 +432,10 @@ def main(argv=None, opener=None):
         }
         if args.drop_field:
             meta["drop_fields"] = list(args.drop_field)
+        if args.rule_match is not None:
+            meta["rule_match"] = args.rule_match
+        if args.disable_tool is not None:
+            meta["disabled_tools"] = ["lookup_rule"]
         if args.guard_input is not None:
             meta["guard_input"] = guard_input
         if args.guard_output is not None:
