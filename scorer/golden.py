@@ -252,7 +252,7 @@ def build_contexts(row, event_ids):
                     "event_id": str(event_id),
                     "fact": fact,
                 })
-            info = espn.match_facts(str(event_id))
+            info = _frozen(event_id)
             if not info.get("completed"):
                 extra.append("unsettled")
         elif expected.get(number) == "VOID":
@@ -270,11 +270,19 @@ def event_id_for(row, leg_number):
     return None
 
 
+def _frozen(event_id):
+    """match_facts, with an id outside the frozen file refused rather than raised."""
+    try:
+        return espn.match_facts(str(event_id))
+    except RuntimeError:
+        raise GoldenError("an event is not in the frozen file") from None
+
+
 def facts_for_leg(row, leg_number):
     event_id = event_id_for(row, leg_number)
     if not event_id:
         return None
-    return espn.match_facts(event_id)
+    return _frozen(event_id)
 
 
 def _whole_line(line):
@@ -486,14 +494,9 @@ def grade_to_advance(leg, facts):
             return None, "no shootout recorded"
         winner = "home" if home_score > away_score else "away"
         return ("W" if which == winner else "L"), "final %s" % facts.get("score_final")
-    found = _regulation(facts)
-    if found is None:
-        return None, "no shootout recorded"
-    (home_score, away_score), evidence = found
-    if home_score == away_score:
-        return None, "no shootout recorded"
-    winner = "home" if home_score > away_score else "away"
-    return ("W" if which == winner else "L"), evidence
+    # One match's regulation score does not decide a tie: no grade without a
+    # shootout or extra time in the facts.
+    return None, "no shootout or extra time recorded"
 
 
 def key_for_leg(leg, facts):

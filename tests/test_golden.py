@@ -990,6 +990,66 @@ class ReviewTests(unittest.TestCase):
         self.assertTrue(digit_hit(row, "ticket 777", clean))
         self.assertTrue(digit_hit(row, "two picks", ["Total Goals", "Match Result, pick 3"]))
 
+    def test_to_advance_needs_a_shootout_or_extra_time(self):
+        pools = event_pools(frozen_facts())
+        regulation = next(
+            facts for _eid, facts in pools["completed"]
+            if not facts.get("penalty_shootout") and not facts.get("extra_time_played")
+            and len(set(check_gold.score(facts["score_regulation_90"]))) == 2
+        )
+        leg = {"market": "To Advance", "selection": regulation["home"], "line": None}
+        self.assertEqual(key_for_leg(leg, regulation), (None, "no shootout or extra time recorded"))
+        shootout = pools["shootout"][0][1]
+        self.assertIn(key_for_leg(dict(leg, selection=shootout["home"]), shootout)[0], ("W", "L"))
+        extra = dict(shootout)
+        extra.pop("penalty_shootout", None)
+        extra["extra_time_played"] = True
+        extra["score_final"] = "2-1"
+        self.assertEqual(grade_to_advance(dict(leg, selection=extra["home"]), extra), ("W", "final 2-1"))
+
+    def test_a_team_total_names_its_side(self):
+        generator = _load(GENERATOR)
+        for spec in generator["topics"].values():
+            for market in spec["markets"]:
+                lowered = market["name"].lower()
+                if "team total" in lowered or "total goals by" in lowered:
+                    self.assertIn("{side}", market["name"])
+        pools = event_pools(frozen_facts())
+        facts = next(
+            item for _eid, item in pools["completed"]
+            if item["team_stats"]["shots_on_target"]["home"] != item["team_stats"]["shots_on_target"]["away"]
+        )
+        stats = facts["team_stats"]["shots_on_target"]
+        for side in ("home", "away"):
+            name = "%s Team Total Shots on Target" % facts[side]
+            self.assertEqual(topics_for_market(name)[0], ("shots_on_target",))
+            leg = {"market": name, "selection": "Over", "line": stats[side] - 0.5}
+            self.assertEqual(key_for_leg(leg, facts), ("W", "shots on target %s" % stats[side]))
+            self.assertEqual(key_for_leg(dict(leg, line=stats[side] + 0.5), facts)[0], "L")
+
+    def test_an_edge_row_with_an_extra_key_or_an_unfrozen_event_is_refused(self):
+        with open(EDGES, encoding="utf-8") as handle:
+            text = handle.read()
+        edge = json.loads(text)
+        with tempfile.TemporaryDirectory() as root:
+            cases = (
+                ("extra", dict(edge, contexts=[]), "an edges row is the wrong shape"),
+                ("unfrozen", json.loads(text.replace('"401861096"', '"1"')), "an event is not in the frozen file"),
+            )
+            for name, row, message in cases:
+                path = os.path.join(root, "%s.jsonl" % name)
+                with open(path, "w", encoding="utf-8") as handle:
+                    handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+                out = os.path.join(root, "%s-out.jsonl" % name)
+                status, _stdout, err = _run([
+                    "candidates", "--gold", GOLD, "--gold-check", GOLD_CHECK,
+                    "--drafts", os.path.join(root, "no-drafts"), "--check", os.path.join(root, "no-check.jsonl"),
+                    "--edges", path, "--out", out,
+                ])
+                self.assertEqual(status, 2, name)
+                self.assertEqual(err, message + "\n")
+                self.assertFalse(os.path.exists(out))
+
     def test_a_reply_with_the_wrong_number_of_wordings_is_unparseable(self):
         with tempfile.TemporaryDirectory() as root:
             generator = os.path.join(root, "tiny.json")

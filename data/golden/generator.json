@@ -90,7 +90,7 @@
       "events": "completed",
       "leg_counts": [1, 2, 3],
       "markets": [
-        {"name": "Team Total Shots on Target", "lines": [1.5, 2.5, 3.5, 4.5], "selections": ["over", "under"]},
+        {"name": "{side} Team Total Shots on Target", "lines": [1.5, 2.5, 3.5, 4.5], "selections": ["over", "under"]},
         {"name": "{side} Shots on Target", "lines": [0.5, 1.5, 2.5, 3.5], "selections": ["over", "under"]},
         {"name": "Player Shots on Target", "lines": [null], "selections": ["player_shot"]}
       ]
