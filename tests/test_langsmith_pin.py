@@ -12,7 +12,10 @@ class LangSmithPinSourceTests(unittest.TestCase):
         with open(path, encoding="utf-8") as handle:
             text = handle.read()
         needle = "import " + "langsmith"
-        self.assertLess(text.index("v1_hash_matches"), text.index(needle))
+        self.assertEqual(text.count(needle), 1)
+        # The call inside main, not the function's definition, must come first.
+        self.assertLess(text.index("if not v1_hash_matches("), text.index(needle))
+        self.assertNotIn("modified_at", text)
         for line in text.splitlines():
             if line.startswith("import ") or line.startswith("from "):
                 self.assertNotIn("lang" + "smith", line)

@@ -10,9 +10,10 @@ Calls, from the LangSmith Python SDK:
 - Client.create_dataset: https://reference.langchain.com/python/langsmith/client/Client/create_dataset
 - Client.create_example (outputs is the documented alias of reference_outputs):
   https://reference.langchain.com/python/langsmith/client/Client/create_example
-- Client.read_dataset:
-  https://reference.langchain.com/python/langsmith/client/Client/read_dataset
-- Client.update_dataset_tag returns None and needs the version's exact as_of:
+- Client.list_dataset_versions, each DatasetVersion with its exact as_of:
+  https://reference.langchain.com/python/langsmith/client/Client/list_dataset_versions
+- Client.update_dataset_tag returns None and needs a version's exact as_of, which
+  its documentation says to take from a version lookup, not from the dataset:
   https://reference.langchain.com/python/langsmith/client/Client/update_dataset_tag
 - Client.read_dataset_version(dataset_id=..., tag="v1"):
   https://reference.langchain.com/python/langsmith/client/Client/read_dataset_version
@@ -80,10 +81,15 @@ def main(argv=None):
             },
             dataset_id=dataset.id,
         )
-    # Examples create a version. read_dataset's modified_at is the timestamp
-    # update_dataset_tag requires to be exact; this script is not run here.
-    current = client.read_dataset(dataset_id=dataset.id)
-    client.update_dataset_tag(dataset_id=dataset.id, as_of=current.modified_at, tag="v1")
+    # Each example creates a version. update_dataset_tag needs a version's
+    # exact as_of, which only a version lookup carries: the dataset record's
+    # own timestamp is not documented as one. This script is not run here.
+    versions = list(client.list_dataset_versions(dataset_id=dataset.id))
+    if not versions:
+        sys.stderr.write("the dataset has no version to tag\n")
+        return 2
+    latest = max(versions, key=lambda item: item.as_of)
+    client.update_dataset_tag(dataset_id=dataset.id, as_of=latest.as_of, tag="v1")
     version = client.read_dataset_version(dataset_id=dataset.id, tag="v1")
     sys.stdout.write("%s\n" % dataset.id)
     sys.stdout.write("%s\n" % version.as_of)
