@@ -24,7 +24,7 @@ from scorer.golden import (
 from scorer.golden import _gap_plan, _passes
 from scorer.golden import (
     GoldenError, choose_sample, digit_hit, grade_to_advance, key_holds, leg_signature, segment_of,
-    topic_hit,
+    topic_hit, _boosted_price, _parlay_price, _payout, draw_structure, _gap_plan,
 )
 
 
@@ -373,6 +373,7 @@ class RowTests(unittest.TestCase):
     def test_key_for_leg_matches_auto_grade_except_the_whole_line_push(self):
         compared = 0
         pushes = 0
+        own_goals = 0
         for row in _real():
             for leg in row["legs"]:
                 found = topics_for_market(leg["market"])
@@ -387,13 +388,25 @@ class RowTests(unittest.TestCase):
                     plain = market_plain(leg["market"])
                     line = leg.get("line")
                     whole = isinstance(line, (int, float)) and not isinstance(line, bool) and float(line) == round(float(line))
-                    if whole and ("handicap" in plain or "spread" in plain) and grade == "P":
+                    goals = facts.get("goals") or []
+                    own_goal = (
+                        "first" in plain and ("goalscorer" in plain or "goal scorer" in plain)
+                        and goals and "Own" in (goals[0].get("kind") or "")
+                    )
+                    # Ruling 30: a first goal that is an own goal is NEEDS_HUMAN,
+                    # where auto_grade still returns W or L.
+                    if own_goal:
+                        own_goals += 1
+                        self.assertEqual(grade, "NEEDS_HUMAN", leg["market"])
+                        self.assertIn(other, ("W", "L"))
+                    elif whole and ("handicap" in plain or "spread" in plain) and grade == "P":
                         pushes += 1
                         self.assertEqual(other, "L")
                     else:
                         self.assertEqual(grade, other, leg["market"])
                         compared += 1
         self.assertGreater(compared, 0)
+        self.assertGreater(own_goals, 0)
         self.assertEqual(pushes, 0)
         facts = _completed()[0][1]
         home, away = check_gold.score(facts["score_regulation_90"])
@@ -920,29 +933,42 @@ class CommandTests(unittest.TestCase):
                     handle.write(json.dumps(row, sort_keys=True) + "\n")
             v1 = os.path.join(root, "v1.jsonl")
             sha = os.path.join(root, "v1.sha256")
-            status, _out, err = _run(["freeze", "--kept", kept, "--v1", v1, "--sha", sha])
+            copy = os.path.join(root, "golden_set.jsonl")
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
             self.assertEqual(status, 2)
             self.assertFalse(os.path.exists(v1))
             self.assertFalse(os.path.exists(sha))
+            self.assertFalse(os.path.exists(copy))
             rows.append({"case_id": "S150", "n": 150})
             with open(kept, "w", encoding="utf-8") as handle:
                 for row in rows:
                     handle.write(json.dumps(row, sort_keys=True) + "\n")
-            status, _out, err = _run(["freeze", "--kept", kept, "--v1", v1, "--sha", sha])
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
             self.assertEqual(status, 0, err)
             body = open(v1, "rb").read()
             digest = hashlib.sha256(body).hexdigest()
             self.assertEqual(open(sha, encoding="utf-8").read(), "%s  data/golden/v1.jsonl\n" % digest)
-            status, _out, err = _run(["freeze", "--kept", kept, "--v1", v1, "--sha", sha])
+            self.assertEqual(open(copy, "rb").read(), body)
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
             self.assertEqual(status, 0, err)
             self.assertEqual(open(v1, "rb").read(), body)
+            self.assertEqual(open(copy, "rb").read(), body)
             with open(kept, "w", encoding="utf-8") as handle:
                 handle.write(json.dumps({"case_id": "S999"}) + "\n")
                 for row in rows:
                     handle.write(json.dumps(row, sort_keys=True) + "\n")
-            status, _out, err = _run(["freeze", "--kept", kept, "--v1", v1, "--sha", sha])
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
             self.assertEqual(status, 2)
             self.assertEqual(open(v1, "rb").read(), body)
+            self.assertEqual(open(copy, "rb").read(), body)
 
 
 class ReviewTests(unittest.TestCase):
@@ -1141,6 +1167,232 @@ class ReviewTests(unittest.TestCase):
         other["legs"][0]["selection"] = "Under"
         self.assertNotEqual(leg_signature(base), leg_signature(other))
         self.assertEqual(leg_signature(base), (("401861096", "Total Goals", "2.5", "Over"),))
+
+
+class RulingTests(unittest.TestCase):
+    """Rulings 30 to 34 and the PM's decisions A to C. Each fails without its change."""
+
+    def _completed(self):
+        return event_pools(frozen_facts())["completed"]
+
+    def test_first_goal_on_an_own_goal_is_needs_human(self):
+        own = next(
+            facts for _eid, facts in self._completed()
+            if facts.get("goals") and "Own" in (facts["goals"][0].get("kind") or "")
+        )
+        leg = {"market": "First Goal Scorer", "selection": "No Such Player", "line": None}
+        grade, evidence = key_for_leg(leg, own)
+        self.assertEqual(grade, "NEEDS_HUMAN")
+        self.assertEqual(evidence, "first goal is an own goal")
+        other, _other = check_gold.auto_grade(leg, own)
+        self.assertIn(other, ("W", "L"))
+        anytime = {"market": "Anytime Goalscorer", "selection": "No Such Player", "line": None}
+        self.assertEqual(key_for_leg(anytime, own), check_gold.auto_grade(anytime, own))
+        ordinary = next(
+            facts for _eid, facts in self._completed()
+            if facts.get("goals") and "Own" not in (facts["goals"][0].get("kind") or "")
+        )
+        self.assertEqual(key_for_leg(leg, ordinary), check_gold.auto_grade(leg, ordinary))
+        gold = json.load(open(GOLD, encoding="utf-8"))
+        verified = sum(
+            1 for row in gold if (row.get("expected") or {}).get("verified_by_beni") is True
+        )
+        self.assertEqual(verified, 6)
+
+    def test_cards_count_yellow_plus_red_for_the_named_side_or_both(self):
+        base = next(
+            facts for _eid, facts in self._completed()
+            if facts.get("team_stats", {}).get("yellow_cards", {}).get("home") is not None
+        )
+        facts = json.loads(json.dumps(base))
+        facts["team_stats"]["yellow_cards"] = {"home": 1, "away": 1}
+        facts["team_stats"]["red_cards"] = {"home": 1, "away": 0}
+        facts["cards"] = [
+            {"team": facts["home"], "kind": "Yellow Card"},
+            {"team": facts["away"], "kind": "Yellow Card"},
+            {"team": facts["home"], "kind": "Red Card"},
+        ]
+        both = {"market": "Total Cards", "selection": "Over", "line": 2.5}
+        grade, evidence = key_for_leg(both, facts)
+        self.assertEqual(grade, "W")
+        self.assertEqual(evidence, "cards 3")
+        side = {"market": "%s Total Cards" % facts["home"], "selection": "Over", "line": 1.5}
+        self.assertEqual(key_for_leg(side, facts), ("W", "cards 2"))
+        away = {"market": "%s Total Cards" % facts["away"], "selection": "Over", "line": 1.5}
+        self.assertEqual(key_for_leg(away, facts), ("L", "cards 1"))
+        facts["cards"] = []
+        self.assertEqual(key_for_leg(both, facts)[0], "NEEDS_HUMAN")
+
+    def test_a_cards_scheme_comes_from_the_market_not_the_wording(self):
+        base = next(
+            facts for _eid, facts in self._completed()
+            if facts.get("team_stats", {}).get("yellow_cards", {}).get("home") is not None
+        )
+        facts = json.loads(json.dumps(base))
+        facts["team_stats"]["yellow_cards"] = {"home": 2, "away": 2}
+        facts["team_stats"]["red_cards"] = {"home": 0, "away": 0}
+        facts["cards"] = []
+        wording = {
+            "market": "Total Cards", "selection": "Over", "line": 2.5,
+            "market_wording_on_slip": "booking points",
+        }
+        self.assertEqual(key_for_leg(wording, facts)[0], "NEEDS_HUMAN")
+        named = dict(wording, market="Total Cards (booking points)")
+        self.assertEqual(key_for_leg(named, facts)[0], "W")
+
+    def test_a_team_half_total_has_no_branch(self):
+        facts = self._completed()[0][1]
+        for market in (
+            "%s 1st Half Total Goals" % facts["home"],
+            "1st Half Total Goals by %s" % facts["home"],
+        ):
+            grade, reason = key_for_leg(
+                {"market": market, "selection": "Over", "line": 0.5}, facts,
+            )
+            self.assertIsNone(grade, market)
+            self.assertEqual(reason, "no branch for this half market")
+        for market in ("1st Half Total Goals", "First Half Total Goals"):
+            leg = {"market": market, "selection": "Over", "line": 0.5}
+            self.assertEqual(key_for_leg(leg, facts), check_gold.auto_grade(leg, facts))
+
+    def test_a_lost_parlay_says_moot_also_passes(self):
+        lost = {
+            "expected": {
+                "ticket_result": "LOSS", "net": -10.0,
+                "legs": [{"leg": 1, "result": "W"}, {"leg": 2, "result": "L"}],
+            },
+            "legs": [
+                {"leg": 1, "market": "Match Result"},
+                {"leg": 2, "market": "Total Goals"},
+            ],
+            "contexts": [
+                {"leg": 1, "kind": "rule", "topic": "moneyline_3way"},
+                {"leg": 2, "kind": "rule", "topic": "totals"},
+            ],
+        }
+        lines = ground_truth(lost).splitlines()
+        self.assertIn("must be W:", lines[0])
+        self.assertIn("Never L.", lines[0])
+        self.assertIn("MOOT also passes once another leg is L.", lines[0])
+        self.assertIn("must be L:", lines[1])
+        self.assertIn("Never W.", lines[1])
+        self.assertIn("MOOT also passes once another leg is L.", lines[1])
+        single = {
+            "expected": {
+                "ticket_result": "LOSS", "net": -10.0,
+                "legs": [{"leg": 1, "result": "L"}],
+            },
+            "legs": [{"leg": 1, "market": "Match Result"}],
+            "contexts": [{"leg": 1, "kind": "rule", "topic": "moneyline_3way"}],
+        }
+        self.assertNotIn("MOOT also passes", ground_truth(single))
+        won = json.loads(json.dumps(lost))
+        won["expected"]["ticket_result"] = "WIN"
+        won["expected"]["legs"][1]["result"] = "W"
+        self.assertNotIn("MOOT also passes", ground_truth(won))
+
+    def test_a_boosted_ticket_prints_the_boosted_price_and_payout(self):
+        self.assertEqual(_boosted_price("+100", "10% Profit Boost"), "+110")
+        self.assertEqual(_boosted_price("+100", "15% Profit Boost"), "+115")
+        self.assertEqual(_boosted_price("+100", "no percent"), "+100")
+        self.assertEqual(_payout(10, "+110"), 21.0)
+        generator = json.load(open(GENERATOR, encoding="utf-8"))
+        plan = _gap_plan("profit_boost", generator)
+        pools = event_pools(frozen_facts())
+        row = None
+        for seed in range(30):
+            row = draw_structure(
+                random.Random(seed), "profit_boost", plan, pools, generator, "S001", "boost",
+            )
+            if row is not None:
+                break
+        self.assertIsNotNone(row)
+        leg_price = row["legs"][0]["leg_price_american"]
+        self.assertEqual(row["ticket_price_american"], _boosted_price(leg_price, row["boost_or_token"]))
+        self.assertEqual(row["printed_payout"], _payout(row["stake"], row["ticket_price_american"]))
+        self.assertEqual(leg_price, row["legs"][0]["leg_price_american"])
+        parlay = dict(plan, leg_counts=[2])
+        two = None
+        for seed in range(30):
+            two = draw_structure(
+                random.Random(seed), "profit_boost", parlay, pools, generator, "S002", "boost",
+            )
+            if two is not None and len(two["legs"]) == 2:
+                break
+        self.assertIsNotNone(two)
+        unboosted = _parlay_price([leg["leg_price_american"] for leg in two["legs"]])
+        self.assertEqual(two["ticket_price_american"], _boosted_price(unboosted, two["boost_or_token"]))
+        self.assertEqual(two["printed_payout"], _payout(two["stake"], two["ticket_price_american"]))
+        eid, winning = next(
+            (event_id, facts) for event_id, facts in self._completed()
+            if facts.get("score_regulation_90")
+            and check_gold.score(facts["score_regulation_90"])[0]
+            != check_gold.score(facts["score_regulation_90"])[1]
+        )
+        home, away = check_gold.score(winning["score_regulation_90"])
+        selection = winning["home"] if home > away else winning["away"]
+        priced = {
+            "stake": 10, "stake_kind": "cash",
+            "ticket_price_american": "+110", "printed_payout": 21.0,
+            "boost_or_token": "10% Profit Boost",
+            "legs": [{"leg": 1, "market": "Match Result", "selection": selection, "line": None}],
+            "contexts": [{
+                "leg": 1, "kind": "event", "event_id": eid, "fact": "score_regulation_90",
+            }],
+        }
+        settled = key_for_ticket(priced)
+        self.assertEqual(settled["ticket_result"], "WIN")
+        self.assertEqual(settled["net"], 11.0)
+
+    def test_a_hand_crafted_key_holds_by_itself(self):
+        row = {
+            "case_id": "E01", "blend": "hand_crafted",
+            "expected": {"verified_by_beni": False},
+        }
+        self.assertTrue(key_holds(row, {"E01": "DISAGREE"}, {"E01": {"ok": False}}))
+        self.assertIs(row["expected"]["verified_by_beni"], False)
+        real = {"case_id": "B10", "blend": "real", "expected": {"verified_by_beni": False}}
+        self.assertFalse(key_holds(real, {"B10": "DISAGREE"}, {}))
+        gold = json.load(open(GOLD, encoding="utf-8"))
+        verified = sum(
+            1 for item in gold if (item.get("expected") or {}).get("verified_by_beni") is True
+        )
+        self.assertEqual(verified, 6)
+
+    def test_freeze_refuses_when_any_of_the_three_files_differs(self):
+        with tempfile.TemporaryDirectory() as root:
+            kept = os.path.join(root, "kept.jsonl")
+            rows = [{"case_id": "S%03d" % number, "n": number} for number in range(1, 151)]
+            with open(kept, "w", encoding="utf-8") as handle:
+                for row in rows:
+                    handle.write(json.dumps(row, sort_keys=True) + "\n")
+            v1 = os.path.join(root, "v1.jsonl")
+            sha = os.path.join(root, "v1.sha256")
+            copy = os.path.join(root, "golden_set.jsonl")
+            with open(copy, "w", encoding="utf-8") as handle:
+                handle.write("other\n")
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
+            self.assertEqual(status, 2)
+            self.assertFalse(os.path.exists(v1))
+            self.assertFalse(os.path.exists(sha))
+            self.assertEqual(open(copy, encoding="utf-8").read(), "other\n")
+            os.remove(copy)
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
+            self.assertEqual(status, 0, err)
+            body = open(v1, "rb").read()
+            with open(sha, "w", encoding="utf-8") as handle:
+                handle.write("deadbeef  data/golden/v1.jsonl\n")
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
+            self.assertEqual(status, 2)
+            self.assertEqual(open(v1, "rb").read(), body)
+            self.assertEqual(open(copy, "rb").read(), body)
+            self.assertEqual(open(sha, encoding="utf-8").read(), "deadbeef  data/golden/v1.jsonl\n")
 
 
 if __name__ == "__main__":

@@ -18,11 +18,14 @@ The batch seed is the integer value of sha256(batch name). For each draw:
    that event's goals or cards. A token with no player cuts the draw.
 5. Draw the stake, the book and one American price per leg. A single keeps its
    leg price. A parlay multiplies the decimal prices and converts the product
-   back to a whole-number American price. A cash stake's printed payout is the
-   stake times that ticket decimal, rounded to cents. Any other stake kind has
-   no printed payout.
-6. The stake kind stays cash unless the gap names other kinds. profit_boost
-   also draws a boost text. The bet type is the matching string in generator.json.
+   back to a whole-number American price. Leg prices stay unboosted.
+   profit_boost draws a boost text and prints the boosted price: the unboosted
+   ticket price's profit, decimal minus 1, raised by the percentage in the
+   boost text, plus 1, as an American price. A cash stake's printed payout is
+   the stake times that printed price's decimal, rounded to cents. Any other
+   stake kind has no printed payout.
+6. The stake kind stays cash unless the gap names other kinds. The bet type is
+   the matching string in generator.json.
 7. Grade every leg. A None grade is the no_key cut and the model is not called.
 8. Otherwise call the adapter with its key set to the case id, drop every reply
    key except the slip text and the per-leg wording, and apply the remaining
@@ -51,7 +54,6 @@ from run_eval import outcome_match, ticket_from_case
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _HALF = re.compile(r"\b(?:1st|first|2nd|second)\s+half\b", re.IGNORECASE)
-_FIRST_HALF = re.compile(r"\b(?:1st|first)\s+half\b", re.IGNORECASE)
 _ML_WORD = re.compile(r"\bml\b")
 _RESULT_WORD = re.compile(
     r"\b(?:won|lost|win|loss|settled|void|push|final score)\b",
@@ -131,22 +133,17 @@ def topics_for_market(market):
 def _blocked_half(leg):
     """A half market auto_grade would grade on the wrong score.
 
-    The two real half markets still go through: the half-time/full-time row,
-    and a 1st or first half total that carries a line.
+    After parenthesised text is removed, a half market goes to auto_grade only
+    on the half-time/full-time row, or when its plain text is exactly
+    "1st half total goals" or "first half total goals" and it carries a line.
+    A team's half total is every other half market: no branch.
     """
     plain = market_plain(leg.get("market"))
     if not _HALF.search(plain):
         return False
     if "half time/" in plain or "ht/ft" in plain:
         return False
-    found = topics_for_market(leg.get("market"))
-    if found is None:
-        return True
-    topics, _facts = found
-    named_first = _FIRST_HALF.search(plain) is not None
-    has_line = leg.get("line") is not None
-    totals_market = "total" in plain or plain.startswith("goals")
-    if topics[0] == "first_half" and named_first and has_line and totals_market:
+    if plain in ("1st half total goals", "first half total goals") and leg.get("line") is not None:
         return False
     return True
 
@@ -300,11 +297,23 @@ def _score_pair(text):
         return None
 
 
+def _first_goal_is_own_goal(leg, facts):
+    """The goalscorer rule: a first goal that is an own goal is NEEDS_HUMAN."""
+    plain = market_plain(leg.get("market"))
+    if "first" not in plain:
+        return False
+    if "goalscorer" not in plain and "goal scorer" not in plain:
+        return False
+    goals = facts.get("goals") or []
+    if not goals:
+        return False
+    return "Own" in (goals[0].get("kind") or "")
+
+
 def whole_line_push(leg, facts):
     """(grade, evidence) when a whole-line handicap pushes, else None.
 
-    auto_grade grades that push as a loss. This is the one market where the
-    two differ on a result auto_grade does decide.
+    auto_grade grades that push as a loss.
     """
     plain = market_plain(leg.get("market"))
     if "handicap" not in plain and "spread" not in plain:
@@ -389,8 +398,8 @@ def grade_double_chance(leg, facts):
 
 
 def _scheme_defined(leg):
-    text = "%s %s" % (leg.get("market") or "", leg.get("market_wording_on_slip") or "")
-    lowered = text.lower()
+    """A counting scheme is named by the market. The wording cannot change a key."""
+    lowered = (leg.get("market") or "").lower()
     return "booking point" in lowered or "second yellow" in lowered
 
 
@@ -437,19 +446,33 @@ def _named_side_total(facts, key, leg, phrases):
     return stats["home"] + stats["away"]
 
 
+def _cards_shown(facts, leg):
+    """Yellow cards plus red cards, for the side the market names or for both."""
+    stats = facts.get("team_stats") or {}
+    yellow = stats.get("yellow_cards") or {}
+    red = stats.get("red_cards") or {}
+    if any(yellow.get(side) is None or red.get(side) is None for side in ("home", "away")):
+        return None
+    text = leg.get("market") or ""
+    for phrase in (r"team\s+total\s+cards", r"total\s+cards", r"cards", r"bookings"):
+        text = re.sub(phrase, " ", text, flags=re.IGNORECASE)
+    text = " ".join(text.split()).strip(" -")
+    which = check_gold.side(text, facts) if text else None
+    if which in ("home", "away"):
+        return yellow[which] + red[which]
+    return yellow["home"] + yellow["away"] + red["home"] + red["away"]
+
+
 def grade_cards(leg, facts):
     opened = _open_if_needed(facts)
     if opened:
         return opened
-    total = _named_side_total(
-        facts, "yellow_cards", leg,
-        (r"team\s+total\s+cards", r"total\s+cards", r"cards", r"bookings"),
-    )
+    total = _cards_shown(facts, leg)
     if total is None:
         return None, "no card data"
     if _cards_disagree(facts) and not _scheme_defined(leg):
         return "NEEDS_HUMAN", "card list disagrees with team_stats and the slip defines no counting scheme"
-    return check_gold.ou(total, leg.get("selection") or "", leg.get("line")), "yellow cards %s" % total
+    return check_gold.ou(total, leg.get("selection") or "", leg.get("line")), "cards %s" % total
 
 
 def grade_shots(leg, facts):
@@ -520,6 +543,8 @@ def key_for_leg(leg, facts):
     pushed = whole_line_push(leg, facts)
     if pushed is not None:
         return pushed
+    if facts.get("completed") and _first_goal_is_own_goal(leg, facts):
+        return "NEEDS_HUMAN", "first goal is an own goal"
     return check_gold.auto_grade(leg, facts)
 
 
@@ -649,6 +674,8 @@ def ground_truth(row):
         )
         if grade in ("W", "L"):
             line += " Never %s." % ("L" if grade == "W" else "W")
+        if expected.get("ticket_result") == "LOSS" and len(row.get("legs") or []) >= 2:
+            line += " MOOT also passes once another leg is L."
         lines.append(line)
     ticket = "Ticket must be %s with net %s." % (
         expected.get("ticket_result"), _net_text(expected.get("net")),
@@ -835,6 +862,24 @@ def _payout(stake, price):
     return round(float(stake) * _decimal(price), 2)
 
 
+_BOOST_PERCENT = re.compile(r"(\d+(?:\.\d+)?)\s*%")
+
+
+def _boosted_price(price, boost_text):
+    """The unboosted price's profit, raised by the boost text's percentage.
+
+    Profit is the decimal minus 1. The printed price is that profit times
+    one plus the percentage, plus 1, as an American price. Leg prices stay
+    as drawn.
+    """
+    found = _BOOST_PERCENT.search(boost_text or "")
+    if not found:
+        return price
+    profit = _decimal(price) - 1.0
+    raised = profit * (1.0 + float(found.group(1)) / 100.0) + 1.0
+    return _american(raised)
+
+
 def kickoff_et(kickoff_utc):
     try:
         zone = ZoneInfo("America/New_York")
@@ -989,6 +1034,8 @@ def draw_structure(rng, gap, plan, pools, generator, case_id, batch):
     prices = [leg["leg_price_american"] for leg in legs]
     ticket_price = prices[0] if len(prices) == 1 else _parlay_price(prices)
     boost = rng.choice(list(generator["boost_texts"])) if plan["boost"] else None
+    if boost:
+        ticket_price = _boosted_price(ticket_price, boost)
     payout = _payout(stake, ticket_price) if stake_kind == "cash" else None
     same_event = len(set(event_ids.values())) == 1
     row = {
@@ -1520,6 +1567,10 @@ def key_holds(row, statuses, checks):
     if row.get("blend") == "synthetic":
         record = checks.get(row.get("case_id"))
         return record is None or record.get("ok") is True
+    # The owner wrote a hand_crafted row, so its key holds by itself.
+    # verified_by_beni is not set here.
+    if row.get("blend") == "hand_crafted":
+        return True
     if (row.get("expected") or {}).get("verified_by_beni") is True:
         return True
     if statuses.get(row.get("case_id")) == "AGREE":
@@ -1596,22 +1647,31 @@ def cmd_pilot(args):
     return 0
 
 
+def _holds_other_bytes(path, expected):
+    """True when the path exists and its bytes are not the text freeze would write."""
+    if not os.path.exists(path):
+        return False
+    try:
+        with open(path, "r", encoding="utf-8", newline="") as handle:
+            current = handle.read()
+    except (OSError, UnicodeError):
+        raise GoldenError("v1 is unreadable") from None
+    return current != expected
+
+
 def cmd_freeze(args):
     rows = read_jsonl(args.kept)
     if len(rows) < 150:
         raise GoldenError("fewer than 150 rows")
     text = jsonl_text(rows)
-    if os.path.exists(args.v1):
-        try:
-            with open(args.v1, "r", encoding="utf-8", newline="") as handle:
-                current = handle.read()
-        except (OSError, UnicodeError):
-            raise GoldenError("v1 is unreadable") from None
-        if current != text:
-            raise GoldenError("v1.jsonl already holds other bytes")
     digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
-    _emit(args.v1, text)
-    _emit(args.sha, "%s  data/golden/v1.jsonl\n" % digest)
+    sha_text = "%s  data/golden/v1.jsonl\n" % digest
+    targets = ((args.v1, text), (args.sha, sha_text), (args.copy, text))
+    for path, expected in targets:
+        if _holds_other_bytes(path, expected):
+            raise GoldenError("v1.jsonl already holds other bytes")
+    for path, expected in targets:
+        _emit(path, expected)
     return 0
 
 
@@ -1662,6 +1722,8 @@ def _build_parser():
     freeze.add_argument("--kept", default=_default("data/golden/kept.jsonl"))
     freeze.add_argument("--v1", default=_default("data/golden/v1.jsonl"))
     freeze.add_argument("--sha", default=_default("data/golden/v1.sha256"))
+    freeze.add_argument("--copy", default=_default(os.path.join(
+        "packages", "rag-eval", "assignment-1", "golden_set.jsonl")))
     return parser
 
 
