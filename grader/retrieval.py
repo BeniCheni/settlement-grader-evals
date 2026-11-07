@@ -114,27 +114,40 @@ def resolve_topic(topic):
 
 
 def rule_runner(mode):
-    """A tool runner. "exact" is call_tool. "alias" remaps lookup_rule only."""
+    """A tool runner. "exact" is call_tool. "alias" remaps lookup_rule only.
+
+    The alias runner resolves a topic only on a well-formed call: a dict whose
+    topic is a string or absent. Any other lookup_rule call goes to call_tool,
+    which returns today's error result, so the runner never raises and a
+    malformed call cannot end a run.
+    """
     if mode == "exact":
         return call_tool
     if mode != "alias":
         raise ValueError("rule_match must be exact or alias")
 
     def runner(name, args):
-        if name == "lookup_rule":
-            topic = args.get("topic") if isinstance(args, dict) else None
-            return lookup_rule(resolve_topic(topic))
+        if name == "lookup_rule" and isinstance(args, dict):
+            topic = args.get("topic")
+            if topic is None or isinstance(topic, str):
+                return lookup_rule(resolve_topic(topic))
         return call_tool(name, args)
 
     return runner
 
 
 def disabled_rule_runner():
-    """lookup_rule succeeds and carries no rule. Every other tool is call_tool."""
+    """lookup_rule succeeds and carries no rule. Every other tool is call_tool.
+
+    A topic that is not a string normalises to the empty string, as a missing
+    one does, so the runner never raises.
+    """
 
     def runner(name, args):
         if name == "lookup_rule":
             topic = args.get("topic") if isinstance(args, dict) else None
+            if not isinstance(topic, str):
+                topic = None
             return {"topic": normalise(topic), "rule": ""}
         return call_tool(name, args)
 

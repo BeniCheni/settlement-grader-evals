@@ -1,13 +1,17 @@
 """The retrieval seam: alias matching, the exact runner, and the empty rule."""
 import hashlib
+import json
 import os
 import unittest
+from unittest import mock
 
+from grader.agent import grade_ticket
 from grader.retrieval import (
     ALIASES, disabled_rule_runner, normalise, resolve_topic, rule_runner, words_of,
 )
 from grader.rules import RULES, lookup_rule
 from grader.tools import call_tool
+from grader.tracer import Tracer
 
 
 FROZEN = os.path.join("data", "espn_frozen.json")
@@ -109,6 +113,76 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(runner("not_a_tool", {}), call_tool("not_a_tool", {}))
         self.assertEqual(runner("lookup_rule", None), {"topic": "", "rule": ""})
         self.assertEqual(_frozen_sha256(), before)
+
+
+# The ALIASES contract in docs/rag-spec.md, topic by topic.
+SPEC_ALIASES = {
+    "moneyline_3way": ("match_result", "full_time_result", "full_time", "result", "moneyline",
+                       "money_line", "ml", "1x2", "three_way", "3_way", "90_minutes"),
+    "btts": ("both_teams_to_score", "both_teams_score", "gg"),
+    "totals": ("total_goals", "goals", "over_under", "total"),
+    "goalscorer": ("anytime_goalscorer", "first_goalscorer", "goal_scorer", "scorer"),
+    "team_total": ("team_total_goals", "team_goals"),
+    "first_half": ("half_time", "halftime", "1st_half", "second_half", "2nd_half"),
+    "corners": ("corner", "total_corners"),
+    "cards": ("card", "booking", "bookings", "booking_points"),
+    "shots_on_target": ("sot", "shots"),
+    "draw_no_bet": ("dnb",),
+    "parlay_moot": ("combo", "parlay", "accumulator", "acca", "same_game_parlay", "sgp"),
+    "profit_boost": ("boost", "odds_boost"),
+    "bonus_bet_stake": ("bonus_bet", "free_bet"),
+    "second_chance_token": ("second_chance", "insurance"),
+    "to_advance": ("advance", "qualify", "to_qualify"),
+    "void_postponed": ("postponed", "abandoned", "void"),
+    "unsettled": ("not_final", "live", "in_progress"),
+}
+
+
+class ReviewTests(unittest.TestCase):
+    """Pinned by the Pass 1 review: each failed before its fix or survived a mutation."""
+
+    def test_the_alias_table_is_the_spec_table(self):
+        expected = {key: topic for topic, keys in SPEC_ALIASES.items() for key in keys}
+        self.assertEqual(ALIASES, expected)
+        self.assertEqual(len(expected), 59)
+        for topic in SPEC_ALIASES:
+            self.assertIn(topic, RULES)
+
+    def test_a_malformed_lookup_rule_call_never_raises(self):
+        alias = rule_runner("alias")
+        disabled = disabled_rule_runner()
+        for args in ({"topic": 123}, {"topic": 1.5}, {"topic": ["a"]}, {"topic": {"x": 1}}, ["a"], "foo", 5):
+            direct = call_tool("lookup_rule", args)
+            self.assertEqual(direct["error"], "AttributeError", args)
+            self.assertEqual(alias("lookup_rule", args), direct, args)
+            self.assertEqual(disabled("lookup_rule", args), {"topic": "", "rule": ""}, args)
+        self.assertEqual(alias("lookup_rule", {"topic": None}), call_tool("lookup_rule", {"topic": None}))
+        self.assertEqual(alias("lookup_rule", {}), call_tool("lookup_rule", {}))
+
+    def test_a_numeric_topic_does_not_end_a_graded_ticket(self):
+        calls = (
+            ("lookup_rule", {"topic": 123}),
+            ("settle_ticket", {"leg_results": ["L"], "stake": 5, "stake_kind": "cash"}),
+        )
+
+        def chat(payload, timeout):
+            n_tool = sum(1 for message in payload["messages"] if message["role"] == "tool")
+            if n_tool < len(calls):
+                name, args = calls[n_tool]
+                return {"message": {"role": "assistant", "content": "",
+                                    "tool_calls": [{"function": {"name": name, "arguments": args}}]},
+                        "done_reason": "stop"}
+            final = {"legs": [{"leg": 1, "result": "L", "evidence": "x"}], "ticket_result": "LOSS",
+                     "net": -5, "notes": ""}
+            return {"message": {"role": "assistant", "content": json.dumps(final)}, "done_reason": "stop"}
+
+        ticket = {"stake": 5, "stake_kind": "cash",
+                  "legs": [{"leg": 1, "market": "Moneyline", "selection": "Home"}]}
+        for runner in (rule_runner("alias"), disabled_rule_runner()):
+            with mock.patch("grader.agent._chat", chat):
+                result = grade_ticket(ticket, Tracer("settlement-grader"), tool_runner=runner)
+            self.assertEqual(result["status"], "complete")
+            self.assertEqual(result["tool_calls"], 2)
 
 
 if __name__ == "__main__":
