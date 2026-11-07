@@ -10,8 +10,8 @@ Grok 4.7 High, and paste the prompt below.
 `git clone https://github.com/BeniCheni/settlement-grader-evals.git settlement-grader-rag-seams && cd settlement-grader-rag-seams && git switch -c cursor/rag-seams-golden`
 
 The run, as GitHub shows it. PR #51 opened as a draft on `cursor/rag-seams-golden` with four commits authored as Cursor, head
-`2b21bb2`. Review added seven commits by Claude and one by Cursor. At this archive, Pass 3 was briefed to squash-merge it
-pinned to `b188b82`; its comment on the PR records the outcome.
+`2b21bb2`. Review added seven commits by Claude and one by Cursor, and Pass 3 squash-merged it as `ed5ff62`, pinned to
+`b188b82`.
 
 ---
 

@@ -1,6 +1,6 @@
 # PR #51 — Pass 3: Cursor's cold read of the last two commits, and the merge (TZ=America/New_York)
 
-The text delivered Sat 7 Nov 2026 at about 15:53, as archived by the PM seat (Claude) the same day. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript. At this archive Pass 3 had not reported; its comment on the PR records the outcome.
+The text delivered Sat 7 Nov 2026 at about 15:53, as archived by the PM seat (Claude) the same day. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript. Cursor merged PR #51 after this read, at `ed5ff62`, and the comment it led to is on the PR.
 
 ---
 
