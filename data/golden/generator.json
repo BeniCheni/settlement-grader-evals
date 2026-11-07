@@ -1,0 +1,131 @@
+{
+  "books": ["BetMGM", "BetRivers", "Caesars", "DraftKings", "FanDuel", "Fanatics", "theScore Bet"],
+  "stakes": [5, 10, 20, 25],
+  "prices": ["-200", "-150", "-110", "+100", "+150", "+200", "+250", "+400"],
+  "boost_texts": ["10% Profit Boost", "20% Profit Boost", "25% Profit Boost"],
+  "bet_types": {
+    "draw_no_bet_single": "DNB",
+    "moneyline_single": "ML",
+    "prop_single": "Prop",
+    "same_game": "SGP",
+    "same_game_boosted": "Boost-SGP",
+    "parlay": "Parlay"
+  },
+  "topics": {
+    "moneyline_3way": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Match Result", "lines": [null], "selections": ["home", "away", "draw"]},
+        {"name": "Full Time result", "lines": [null], "selections": ["home", "away", "draw"]},
+        {"name": "1X2 Moneyline", "lines": [null], "selections": ["home", "away", "draw"]},
+        {"name": "Moneyline", "lines": [null], "selections": ["home", "away", "draw"]},
+        {"name": "Money Line 3-Way", "lines": [null], "selections": ["home", "away", "draw"]}
+      ]
+    },
+    "double_chance": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Double Chance", "lines": [null], "selections": ["1x", "x2", "12"]}
+      ]
+    },
+    "draw_no_bet": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Draw No Bet", "lines": [null], "selections": ["home", "away"]}
+      ]
+    },
+    "btts": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Both teams to score", "lines": [null], "selections": ["yes", "no"]},
+        {"name": "BTTS", "lines": [null], "selections": ["yes", "no"]},
+        {"name": "Both Teams To Score", "lines": [null], "selections": ["yes", "no"]}
+      ]
+    },
+    "totals": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Total Goals", "lines": [0.5, 1.5, 2.5, 3.5], "selections": ["over", "under"]},
+        {"name": "Total goals", "lines": [0.5, 1.5, 2.5, 3.5], "selections": ["over", "under"]},
+        {"name": "Goals", "lines": [0.5, 1.5, 2.5, 3.5], "selections": ["over", "under"]}
+      ]
+    },
+    "team_total": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Total Goals by {side}", "lines": [0.5, 1.5, 2.5], "selections": ["over", "under"]}
+      ]
+    },
+    "first_half": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "1st Half Total Goals", "lines": [0.5, 1.5, 2.5], "selections": ["over", "under"]},
+        {"name": "First Half Total Goals", "lines": [0.5, 1.5, 2.5], "selections": ["over", "under"]}
+      ]
+    },
+    "corners": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Total Corners", "lines": [3.5, 4.5, 8.5, 9.5], "selections": ["over", "under"]},
+        {"name": "{side} Total Corners", "lines": [3.5, 4.5, 8.5], "selections": ["over", "under"]}
+      ]
+    },
+    "cards": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Total Cards", "lines": [1.5, 2.5, 3.5, 4.5], "selections": ["over", "under"]},
+        {"name": "{side} Total Cards", "lines": [0.5, 1.5, 2.5], "selections": ["over", "under"]}
+      ]
+    },
+    "shots_on_target": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "{side} Team Total Shots on Target", "lines": [1.5, 2.5, 3.5, 4.5], "selections": ["over", "under"]},
+        {"name": "{side} Shots on Target", "lines": [0.5, 1.5, 2.5, 3.5], "selections": ["over", "under"]},
+        {"name": "Player Shots on Target", "lines": [null], "selections": ["player_shot"]}
+      ]
+    },
+    "goalscorer": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "Anytime Goalscorer", "lines": [null], "selections": ["player_goal"]},
+        {"name": "First Goal Scorer", "lines": [null], "selections": ["player_goal"]}
+      ]
+    },
+    "to_advance": {
+      "events": "shootout",
+      "leg_counts": [1, 2],
+      "markets": [
+        {"name": "To Advance", "lines": [null], "selections": ["home", "away"]},
+        {"name": "To Qualify", "lines": [null], "selections": ["home", "away"]}
+      ]
+    },
+    "general": {
+      "events": "completed",
+      "leg_counts": [1, 2, 3],
+      "markets": [
+        {"name": "2-Way Handicap", "lines": [-2.5, -1.5, -1.0, 1.5], "selections": ["home", "away"]},
+        {"name": "Spread", "lines": [-2.5, -1.5, 1.5], "selections": ["home", "away"]},
+        {"name": "First team to score", "lines": [null], "selections": ["home", "away"]}
+      ]
+    }
+  },
+  "ticket_gaps": {
+    "profit_boost": {"leg_topic": "moneyline_3way", "leg_counts": [1], "stake_kinds": ["cash"]},
+    "bonus_bet_stake": {"leg_topic": "moneyline_3way", "leg_counts": [1], "stake_kinds": ["bonus_bet", "free_bet"]},
+    "second_chance_token": {"leg_topic": "moneyline_3way", "leg_counts": [1], "stake_kinds": ["second_chance"]},
+    "parlay_moot": {"leg_topic": "moneyline_3way", "leg_counts": [2, 3], "stake_kinds": ["cash"]},
+    "unsettled": {"leg_topic": "moneyline_3way", "leg_counts": [1], "stake_kinds": ["cash"], "events": "scheduled"}
+  }
+}
