@@ -59,9 +59,13 @@ change the work.
    this eval exists to measure and keep the easy tickets, which the deck warns against ("easy cases cannot hide hard ones").
 5. **A correct answer already hides a retrieval failure, on the record.** `C09`, a verified LOSS key, is answered LOSS with
    no tool call at all in `aa-1`, `aa-2`, `aa-3` and `ab-a`: context recall 0, final answer right. That is slide 20 exactly.
-   `C13`, also verified LOSS, is answered LOSS in all five runs while `GRADE_CONTRADICTS_FACTS` fires: it read the facts,
-   graded a leg against them, and another leg's loss carried the ticket. One retrieval miss and one generation fault, both in
-   sample.
+   `C13`, also verified LOSS, is answered LOSS in all five runs while `GRADE_CONTRADICTS_FACTS` fires: it read the facts, a
+   0-0, and committed W, L and L to `settle_ticket` where they give L, W and W, so its two wrong losses carried the ticket to the
+   right result. One retrieval miss and one generation fault, both in sample.
+
+```bash
+python3 -c 'import sys; sys.path.insert(0,"."); from scorer.traces import load_run; from grader import espn; print(espn.match_facts("401884801")["score_regulation_90"]); [print(n, [t["args"].get("leg_results") for t in r["tools"] if t["name"]=="settle_ticket"], (r.get("final") or {}).get("ticket_result")) for n in ("v1","aa-1","aa-2","aa-3","ab-a") for r in load_run("traces/"+n) if r["case_id"]=="C13"]'
+```
 
 ```bash
 python3 -c 'import sys; sys.path.insert(0,"."); from collections import Counter; from scorer.traces import load_run; n=Counter(len((t.get("result") or {}).get("candidates") or []) for r_ in ("v1","aa-1","ab-a") for r in load_run("traces/"+r_) for t in r["tools"] if t["name"]=="find_match"); e=Counter(t["args"].get("topic") for r_ in ("v1","aa-1","ab-a") for r in load_run("traces/"+r_) for t in r["tools"] if t["name"]=="lookup_rule" and (t.get("result") or {}).get("error")); print(dict(n), dict(e))'
@@ -167,9 +171,9 @@ The starter annotates a float. A scorer here may return `None`, with a reason, w
 
 | Scorer | Half | Definition here |
 |---|---|---|
-| `context_recall` | Retrieval | Needed items retrieved ÷ needed items. Needed: each leg's event (through `get_match_facts`) and each leg's rule topic. A lookup that erred retrieved nothing |
+| `context_recall` | Retrieval | Needed items retrieved ÷ needed items. Needed: each leg's event (through `get_match_facts`), each leg's rule topics, and the ticket-level rules in the spec. A lookup that erred retrieved nothing |
 | `context_precision` | Retrieval | RAGAS-style ranked precision over the retrieved items in call order. An erred lookup, or facts for an event no leg needs, is noise |
-| `faithfulness` | Generation | Supported leg claims ÷ leg claims. A claim is a leg grade and the score its evidence cites; supported means the re-grader agrees using only the facts this run fetched. A grade with no facts fetched is unsupported. Markets code cannot grade are left out and counted |
+| `faithfulness` | Generation | Supported leg claims ÷ leg claims. A claim is a leg grade and the score its evidence cites; supported means the re-grader agrees using only the facts this run fetched. A grade with no facts fetched is unsupported, except a `NEEDS_HUMAN` grade, which is supported. Markets code cannot grade are left out of the rate and counted (ruling 26) |
 | `answer_relevancy` | Generation | The share of four tests that hold: one grade per ticket leg; each grade names that leg's selection; `ticket_result` is in the enum; the final came from `settle_ticket` |
 
 The report prints the two pairs apart, each as a mean with k of n and an interval, then names the weaker half. There is
@@ -202,8 +206,9 @@ no dependency (ruling 8). It holds the dataset path and sha256, the model, both 
 `window_days`), the seed and the output paths.
 
 ```bash
-python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml   # both variants; needs Ollama
-python3 -m scorer.rag report --config packages/rag-eval/assignment-2/config.yaml   # report.md from the traces; no model
+python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml --variant a   # needs Ollama
+python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml --variant b
+python3 -m scorer.rag report --config packages/rag-eval/assignment-2/config.yaml              # report.md from the traces; no model
 ```
 
 Neither command exists until step 8 lands. A test fails when the committed `report.md` is stale, as Week 3's do. The Braintrust uploader is a separate script with the
@@ -239,7 +244,7 @@ steps 3 and 8 into one build PR, and the A/A run is dropped. Every acceptance it
 | No synthetic key came from a model | The generator's tests: the key field is written only by the re-grader, and the model's text never reaches it |
 | v1 does not move | The sha256 test |
 | Each scorer does something | Mutate it, and a named test goes red for that reason |
-| Retrieval is not scored against itself | A test feeds the gold contexts as retrieved and expects the scorer to refuse, as the starter warns |
+| Retrieval is not scored against itself | A record with no tools scores recall 0 against a row that needs items, so gold contexts never stand in as retrieved. The starter warns against feeding them as retrieved; it does not make the scorer refuse |
 | A difference is real | One session, version and digest recorded, the paired interval printed beside every delta |
 | Reports do not go stale | Byte-stable output and a test |
 | Nothing private entered | The pattern sweep on every PR, counts and patterns stated, no hit printed |
@@ -273,7 +278,10 @@ packages/rag-eval/
 
 ## Rulings (the owner's, from Fri 6 Nov 2026)
 
-The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13.
+The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13. `docs/rag-spec.md` asked rulings 14 to
+18, and the owner accepted each as recommended the same day, then set ruling 19. Cursor's cold read of PR #50 asked seven
+questions and the PM seat added an eighth; the owner accepted the PM seat's answers the same day as rulings 20 to 27. Cursor's second read asked two more, and the
+owner answered both as the PM seat recommended, as rulings 28 and 29.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -290,3 +298,19 @@ The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruli
 | 11 | Who gives the cold reads: Codex, as `AGENTS.md` says, or Cursor, as most of Week 3 did? | Codex, unless a ruling names another seat for a PR | |
 | 12 | A field for the owner's hand-checks, apart from `verified_by_beni`? | Yes | Hard Rule 5 |
 | 13 | Who gives the cold read of the PR that lands this plan? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for this PR only. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor will build from this plan's spec, so this read is not independent of that build. The plan holds no row of the golden set and no threshold a build is measured on |
+| 14 | Is the market-to-topic table in `docs/rag-spec.md` the source of every row's needed contexts? | Yes | Recall's denominator is a rubric, and the owner writes rubrics |
+| 15 | Do `X01` and `X02` stay out of v1? | Yes | They are attacks, and ruling 10 keeps attacks out |
+| 16 | May synthetic tickets use the four Champions League matches of 14 Oct that the frozen file holds as scheduled? | Yes | They are the only way to test `unsettled`. They have been played since, so a ticket on them tips nothing (Hard Rule 4), and the grader can only answer UNSETTLED |
+| 17 | Does `void_postponed` go without rows in v1, named as a gap in `dataset.md`? | Yes | No frozen match is postponed, and adding one is an `ESPN_LIVE=1` PR (Hard Rule 3), so it waits for v2. Ruling 27 amends it |
+| 18 | Are the A/B's bars in `docs/rag-spec.md` approved as drafted? | Yes | They are written before any run, as this plan requires |
+| 19 | Who gives PR #50's cold read? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of this PR. Cursor builds steps 3, 4 and 8 from this spec, so this read is not independent of that build |
+| 20 | Is `C13`'s relevancy in `v1` 2/4? | No, 3/4 | The second test reads the final's own numbering, with n its own leg count. The first test already fails a final that drops legs, so reading n from the ticket would charge one fault twice |
+| 21 | Does a boost make a one-leg ticket settled on the score `medium`? | Yes | Difficulty takes the first that holds: `hard`, then `medium`, then `easy`. An edge row is one of the owner's `hand_crafted` rows |
+| 22 | Does `boosted` replace `cash` in the segment? | Yes | A bonus, free-bet or second-chance stake comes first, then a boost, then cash. All 24 real boosts are on cash stakes |
+| 23 | Do ticket-level contexts, which have no leg, sort first? | Yes | `docs/rag-spec.md` writes the whole sort key, so two builds emit the same bytes |
+| 24 | Must the generator's order of draws be pinned before the build? | No | Its lists go in a data file the owner approves in the build PR, a test holds it to the same bytes from the same inputs, and the cuts and the owner's sample are pinned exactly. v1 is fixed by its bytes and its hash, not by a second program drawing it again |
+| 25 | Does the early-payout market stay on `moneyline_3way`? | Yes | It is on `C14`, whose match was postponed and is in no frozen file. A real leg with no frozen event needs no event, and also needs `void_postponed` when its key is `VOID` |
+| 26 | Is a leg whose key is `None` left out of the faithfulness rate? | Yes, and counted | It leaves the numerator and the denominator, and the report prints how many legs left |
+| 27 | Does ruling 17 change to: no synthetic `void_postponed` rows in v1, with `C14` as its one row? | Yes | `C14` is real, its key is verified `VOID`, and under ruling 25 it needs `void_postponed`, so ruling 17's "no rows" was wrong. `dataset.md` names the thin coverage |
+| 28 | Is an unknown key inside `variants.a` refused? | Yes | Each variant object holds `rule_match` alone. A stray key there is how a second setting could differ between A and B unseen, so the A/B's one change depends on the refusal |
+| 29 | Does that refusal also apply inside `langsmith_version` and `braintrust_experiments` once they are objects? | Yes | Each is null or exactly its written keys, so a misspelt key in a recorded version is refused, not kept |
