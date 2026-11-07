@@ -1027,6 +1027,77 @@ class ReviewTests(unittest.TestCase):
             self.assertEqual(key_for_leg(leg, facts), ("W", "shots on target %s" % stats[side]))
             self.assertEqual(key_for_leg(dict(leg, line=stats[side] + 0.5), facts)[0], "L")
 
+    def test_sample_takes_one_row_per_intent_before_filling(self):
+        ids = ["S%03d" % number for number in range(1, 41)]
+        shuffled = list(ids)
+        random.Random("w4-check").shuffle(shuffled)
+        rare = shuffled[-1]
+        rows = [{"case_id": case_id, "intent": "aa" if case_id == rare else "zz"} for case_id in ids]
+        chosen = choose_sample(rows)
+        self.assertEqual(len(chosen), 30)
+        self.assertEqual(len({row["case_id"] for row in chosen}), 30)
+        self.assertEqual(chosen[0]["case_id"], rare)
+        self.assertEqual(chosen[1]["case_id"], shuffled[0])
+        self.assertEqual([row["case_id"] for row in chosen[2:]], [c for c in shuffled[1:] if c != rare][:28])
+        many = [{"case_id": "S%03d" % number, "intent": "i%02d" % number} for number in range(1, 36)]
+        self.assertEqual(len(choose_sample(many)), 35)
+
+    def test_a_scheduled_event_needs_the_unsettled_rule(self):
+        pools = event_pools(frozen_facts())
+        event_id, facts = pools["scheduled"][0]
+        row = {"stake_kind": "cash", "boost_or_token": None, "legs": [{"leg": 1, "market": "Match Result"}],
+               "expected": {"legs": []}}
+        topics = [item["topic"] for item in build_contexts(row, {1: event_id}) if item["kind"] == "rule"]
+        self.assertEqual(topics, ["moneyline_3way", "unsettled"])
+        self.assertEqual(key_for_leg({"market": "Match Result", "selection": facts["home"], "line": None}, facts)[0], "OPEN")
+        with tempfile.TemporaryDirectory() as root:
+            generator = os.path.join(root, "unsettled.json")
+            base = _load(GENERATOR)
+            base["topics"] = {"moneyline_3way": {"events": "completed", "leg_counts": [1], "markets": [
+                {"name": "Match Result", "lines": [None], "selections": ["home"]}]}}
+            base["ticket_gaps"] = {"unsettled": {"leg_topic": "moneyline_3way", "leg_counts": [1],
+                                                 "stake_kinds": ["cash"], "events": "scheduled"}}
+            with open(generator, "w", encoding="utf-8") as handle:
+                json.dump(base, handle)
+            draws = _draws("open", 1, generator, "unsettled")
+            self.assertIsNotNone(draws[0][1])
+            (status, _out, err), out, _cuts = _draft(root, "open", 1, generator, _replies(draws), gap="unsettled")
+            self.assertEqual(status, 0, err)
+            row = _read_jsonl(out)[0]
+            self.assertEqual(row["expected"]["ticket_result"], "UNSETTLED")
+            self.assertIsNone(row["expected"]["net"])
+            self.assertEqual(row["expected"]["legs"], [{"leg": 1, "result": "OPEN"}])
+            self.assertIn({"leg": 1, "kind": "rule", "topic": "unsettled"}, row["contexts"])
+            self.assertEqual(row["ground_truth"].splitlines()[-1], "Ticket must be UNSETTLED with net null.")
+            self.assertEqual(row["difficulty"], "hard")
+
+    def test_key_holds_and_the_pilot_pass_follow_the_row(self):
+        synthetic = {"case_id": "S001", "blend": "synthetic", "expected": {"verified_by_beni": False}}
+        self.assertTrue(key_holds(synthetic, {}, {}))
+        self.assertTrue(key_holds(synthetic, {}, {"S001": {"ok": True}}))
+        self.assertFalse(key_holds(synthetic, {}, {"S001": {"ok": False}}))
+        real = {"case_id": "B10", "blend": "real", "expected": {"verified_by_beni": False}}
+        self.assertFalse(key_holds(real, {"B10": "DISAGREE"}, {}))
+        self.assertTrue(key_holds(real, {"B10": "AGREE"}, {}))
+        self.assertTrue(key_holds(real, {}, {"B10": {"ok": True}}))
+        self.assertTrue(key_holds(dict(real, expected={"verified_by_beni": True}), {}, {}))
+        record = {"final": {"ticket_result": "NEEDS_HUMAN", "net": None}}
+        allows = {"expected": {"ticket_result": "VOID", "net": 0.0, "accept_needs_human": True}}
+        refuses = {"expected": {"ticket_result": "VOID", "net": 0.0, "accept_needs_human": False}}
+        self.assertTrue(_passes(record, allows))
+        self.assertFalse(_passes(record, refuses))
+
+    def test_segment_puts_the_stake_kind_before_the_boost(self):
+        one = [{"leg": 1}]
+        boost = "10% Profit Boost"
+        self.assertEqual(segment_of({"legs": one, "stake_kind": "bonus_bet", "boost_or_token": boost}), "single-bonus_bet")
+        self.assertEqual(segment_of({"legs": one, "stake_kind": "free_bet", "boost_or_token": boost}), "single-free_bet")
+        self.assertEqual(segment_of({"legs": one * 2, "stake_kind": "second_chance", "boost_or_token": boost}), "parlay-second_chance")
+        self.assertEqual(segment_of({"legs": one, "stake_kind": "cash", "boost_or_token": boost}), "single-boosted")
+        self.assertEqual(segment_of({"legs": one, "stake_kind": "cash", "boost_or_token": "no boost"}), "single-cash")
+        with self.assertRaises(GoldenError):
+            segment_of({"legs": one, "stake_kind": "voucher", "boost_or_token": None})
+
     def test_an_edge_row_with_an_extra_key_or_an_unfrozen_event_is_refused(self):
         with open(EDGES, encoding="utf-8") as handle:
             text = handle.read()
@@ -1062,6 +1133,14 @@ class ReviewTests(unittest.TestCase):
                 self.assertEqual(status, 0, err)
                 self.assertEqual(_read_jsonl(out), [])
                 self.assertEqual(_read_jsonl(cuts), [{"case_id": "S001", "reason": "unparseable"}])
+
+    def test_leg_signature_includes_the_selection(self):
+        base = {"contexts": [{"leg": 1, "kind": "event", "event_id": "401861096", "fact": "score_regulation_90"}],
+                "legs": [{"leg": 1, "market": "Total Goals", "line": 2.5, "selection": "Over"}]}
+        other = json.loads(json.dumps(base))
+        other["legs"][0]["selection"] = "Under"
+        self.assertNotEqual(leg_signature(base), leg_signature(other))
+        self.assertEqual(leg_signature(base), (("401861096", "Total Goals", "2.5", "Over"),))
 
 
 if __name__ == "__main__":
