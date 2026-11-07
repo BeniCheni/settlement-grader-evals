@@ -967,6 +967,7 @@ class CommandTests(unittest.TestCase):
                 "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
             ])
             self.assertEqual(status, 2)
+            self.assertEqual(err, "v1.jsonl already holds other bytes\n")
             self.assertEqual(open(v1, "rb").read(), body)
             self.assertEqual(open(copy, "rb").read(), body)
 
@@ -1415,6 +1416,8 @@ class RulingTests(unittest.TestCase):
                 "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
             ])
             self.assertEqual(status, 2)
+            # The refusal names the file that holds the other bytes.
+            self.assertEqual(err, "golden_set.jsonl already holds other bytes\n")
             self.assertFalse(os.path.exists(v1))
             self.assertFalse(os.path.exists(sha))
             self.assertEqual(open(copy, encoding="utf-8").read(), "other\n")
@@ -1424,12 +1427,27 @@ class RulingTests(unittest.TestCase):
             ])
             self.assertEqual(status, 0, err)
             body = open(v1, "rb").read()
+            os.remove(copy)
+            os.mkdir(copy)
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
+            self.assertEqual(status, 2)
+            self.assertEqual(err, "golden_set.jsonl is unreadable\n")
+            self.assertEqual(open(v1, "rb").read(), body)
+            os.rmdir(copy)
+            status, _out, err = _run([
+                "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
+            ])
+            self.assertEqual(status, 0, err)
+            self.assertEqual(open(copy, "rb").read(), body)
             with open(sha, "w", encoding="utf-8") as handle:
                 handle.write("deadbeef  data/golden/v1.jsonl\n")
             status, _out, err = _run([
                 "freeze", "--kept", kept, "--v1", v1, "--sha", sha, "--copy", copy,
             ])
             self.assertEqual(status, 2)
+            self.assertEqual(err, "v1.sha256 already holds other bytes\n")
             self.assertEqual(open(v1, "rb").read(), body)
             self.assertEqual(open(copy, "rb").read(), body)
             self.assertEqual(open(sha, encoding="utf-8").read(), "deadbeef  data/golden/v1.jsonl\n")

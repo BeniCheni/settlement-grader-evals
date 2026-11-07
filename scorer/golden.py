@@ -1655,7 +1655,7 @@ def _holds_other_bytes(path, expected):
         with open(path, "r", encoding="utf-8", newline="") as handle:
             current = handle.read()
     except (OSError, UnicodeError):
-        raise GoldenError("v1 is unreadable") from None
+        raise GoldenError("%s is unreadable" % os.path.basename(path)) from None
     return current != expected
 
 
@@ -1669,7 +1669,7 @@ def cmd_freeze(args):
     targets = ((args.v1, text), (args.sha, sha_text), (args.copy, text))
     for path, expected in targets:
         if _holds_other_bytes(path, expected):
-            raise GoldenError("v1.jsonl already holds other bytes")
+            raise GoldenError("%s already holds other bytes" % os.path.basename(path))
     for path, expected in targets:
         _emit(path, expected)
     return 0
