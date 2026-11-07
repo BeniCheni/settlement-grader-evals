@@ -24,7 +24,7 @@ from scorer.golden import (
 from scorer.golden import _gap_plan, _passes
 from scorer.golden import (
     GoldenError, choose_sample, digit_hit, grade_to_advance, key_holds, leg_signature, segment_of,
-    topic_hit, _boosted_price, _parlay_price, _payout, draw_structure, _gap_plan,
+    topic_hit, _boosted_price, _parlay_price, _payout, draw_structure,
 )
 
 
@@ -1254,6 +1254,20 @@ class RulingTests(unittest.TestCase):
         for market in ("1st Half Total Goals", "First Half Total Goals"):
             leg = {"market": market, "selection": "Over", "line": 0.5}
             self.assertEqual(key_for_leg(leg, facts), check_gold.auto_grade(leg, facts))
+        # Decision C: the exact text passes only with a line. Without one the
+        # reason is the half market's, not auto_grade's.
+        for market in ("1st Half Total Goals", "First Half Total Goals"):
+            leg = {"market": market, "selection": "Over", "line": None}
+            self.assertEqual(key_for_leg(leg, facts), (None, "no branch for this half market"), market)
+            self.assertNotEqual(key_for_leg(leg, facts), check_gold.auto_grade(leg, facts), market)
+        # Only the two exact texts pass. auto_grade would grade each of these
+        # on the first-half score or on the whole match.
+        for market in ("2nd Half Total Goals", "Second Half Total Goals", "1st Half Goals", "First Half Total"):
+            leg = {"market": market, "selection": "Over", "line": 0.5}
+            grade, reason = key_for_leg(leg, facts)
+            self.assertIsNone(grade, market)
+            self.assertEqual(reason, "no branch for this half market")
+            self.assertIn(check_gold.auto_grade(leg, facts)[0], ("W", "L", "P"), market)
 
     def test_a_lost_parlay_says_moot_also_passes(self):
         lost = {
@@ -1310,7 +1324,23 @@ class RulingTests(unittest.TestCase):
         leg_price = row["legs"][0]["leg_price_american"]
         self.assertEqual(row["ticket_price_american"], _boosted_price(leg_price, row["boost_or_token"]))
         self.assertEqual(row["printed_payout"], _payout(row["stake"], row["ticket_price_american"]))
-        self.assertEqual(leg_price, row["legs"][0]["leg_price_american"])
+        # Ruling 32: leg prices stay unboosted. The same seed with no boost
+        # draws the same legs, so their prices are the drawn ones, and the
+        # printed price is that draw's ticket price, boosted.
+        plain = draw_structure(
+            random.Random(seed), "profit_boost", dict(plan, boost=False), pools, generator, "S001", "boost",
+        )
+        self.assertIsNotNone(plain)
+        self.assertEqual(
+            [leg["leg_price_american"] for leg in row["legs"]],
+            [leg["leg_price_american"] for leg in plain["legs"]],
+        )
+        self.assertIn(leg_price, generator["prices"])
+        self.assertEqual(plain["ticket_price_american"], leg_price)
+        self.assertEqual(row["ticket_price_american"], _boosted_price(plain["ticket_price_american"], row["boost_or_token"]))
+        self.assertNotEqual(row["ticket_price_american"], plain["ticket_price_american"])
+        self.assertEqual(plain["printed_payout"], _payout(plain["stake"], leg_price))
+        self.assertIsNone(plain["boost_or_token"])
         parlay = dict(plan, leg_counts=[2])
         two = None
         for seed in range(30):
@@ -1323,6 +1353,16 @@ class RulingTests(unittest.TestCase):
         unboosted = _parlay_price([leg["leg_price_american"] for leg in two["legs"]])
         self.assertEqual(two["ticket_price_american"], _boosted_price(unboosted, two["boost_or_token"]))
         self.assertEqual(two["printed_payout"], _payout(two["stake"], two["ticket_price_american"]))
+        plain_two = draw_structure(
+            random.Random(seed), "profit_boost", dict(parlay, boost=False), pools, generator, "S002", "boost",
+        )
+        self.assertIsNotNone(plain_two)
+        self.assertEqual(
+            [leg["leg_price_american"] for leg in two["legs"]],
+            [leg["leg_price_american"] for leg in plain_two["legs"]],
+        )
+        self.assertEqual(plain_two["ticket_price_american"], unboosted)
+        self.assertNotEqual(two["ticket_price_american"], unboosted)
         eid, winning = next(
             (event_id, facts) for event_id, facts in self._completed()
             if facts.get("score_regulation_90")
