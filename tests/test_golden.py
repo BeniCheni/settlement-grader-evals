@@ -21,7 +21,11 @@ from scorer.golden import (
     frozen_facts, ground_truth, key_for_leg, key_for_ticket, kickoff_et,
     main, market_plain, real_rows, result_word_hit, topics_for_market,
 )
-from scorer.golden import _gap_plan
+from scorer.golden import _gap_plan, _passes
+from scorer.golden import (
+    GoldenError, choose_sample, digit_hit, grade_to_advance, key_holds, leg_signature, segment_of,
+    topic_hit,
+)
 
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -939,6 +943,65 @@ class CommandTests(unittest.TestCase):
             status, _out, err = _run(["freeze", "--kept", kept, "--v1", v1, "--sha", sha])
             self.assertEqual(status, 2)
             self.assertEqual(open(v1, "rb").read(), body)
+
+
+class ReviewTests(unittest.TestCase):
+    """Pinned by the Pass 1 review: each failed before its fix or survived a mutation."""
+
+    def test_the_topic_cut_compares_the_row_not_the_first_topic(self):
+        half_total = {"legs": [{"leg": 1, "market": "1st Half Total Goals", "line": 1.5, "selection": "Over"}]}
+        self.assertFalse(topic_hit(half_total, ["1st Half Total Goals"]))
+        self.assertFalse(topic_hit(half_total, ["First Half Total Goals"]))
+        for wording in ("Half Time/Full Time", "HT/FT double result", "1st Half Over/Under"):
+            self.assertTrue(topic_hit(half_total, [wording]), wording)
+        spread = {"legs": [{"leg": 1, "market": "Spread", "line": -1.5, "selection": "Home"}]}
+        self.assertTrue(topic_hit(spread, ["First team to score"]))
+        self.assertFalse(topic_hit(spread, ["2-Way Handicap"]))
+        with tempfile.TemporaryDirectory() as root:
+            generator = os.path.join(root, "half.json")
+            _write_generator(generator, "first_half", "1st Half Total Goals", (1,), (0.5,), ("over",))
+            draws = _draws("htft", 1, generator, "first_half")
+            self.assertIsNotNone(draws[0][1])
+            replies = _replies(draws, words=lambda row: ["Half Time/Full Time"])
+            (status, _out, err), out, cuts = _draft(root, "htft", 1, generator, replies, gap="first_half")
+            self.assertEqual(status, 0, err)
+            self.assertEqual(_read_jsonl(out), [])
+            self.assertEqual(_read_jsonl(cuts), [{"case_id": "S001", "reason": "topic"}])
+
+    def test_the_digit_cut_reads_every_field_of_the_structure(self):
+        legs = [
+            {"leg": 1, "selection": "Over", "market": "Total Goals", "line": 1.5, "leg_price_american": "+150",
+             "fixture": "Schalke 04 v Hertha", "home": "Schalke 04", "away": "Hertha", "league": "2. Bundesliga",
+             "kickoff_et": "2026-10-01 15:45", "market_wording_on_slip": None},
+            {"leg": 2, "selection": "Home", "market": "Match Result", "line": None, "leg_price_american": "+300",
+             "fixture": "A v B", "home": "A", "away": "B", "league": "Serie A",
+             "kickoff_et": "2026-10-01 15:45", "market_wording_on_slip": None},
+        ]
+        row = {"case_id": "S777", "book": "FanDuel", "bet_type": "Parlay", "stake": 10, "stake_kind": "cash",
+               "boost_or_token": None, "ticket_price_american": "+900", "printed_payout": 100.0,
+               "slip_text": None, "legs": legs}
+        clean = ["Total Goals", "Match Result"]
+        self.assertFalse(digit_hit(row, "two picks", clean))
+        self.assertFalse(digit_hit(row, "two picks", ["2. Bundesliga total over 1.5", "Match Result"]))
+        self.assertFalse(digit_hit(row, "two picks", ["Schalke 04 total goals", "Match Result"]))
+        self.assertFalse(digit_hit(row, "graded 2026-10-14, 10 to win 100", clean))
+        self.assertTrue(digit_hit(row, "two picks", ["Total Goals", "Match Result at +150"]))
+        self.assertTrue(digit_hit(row, "two picks", ["3 goals", "Match Result"]))
+        self.assertTrue(digit_hit(row, "ticket 777", clean))
+        self.assertTrue(digit_hit(row, "two picks", ["Total Goals", "Match Result, pick 3"]))
+
+    def test_a_reply_with_the_wrong_number_of_wordings_is_unparseable(self):
+        with tempfile.TemporaryDirectory() as root:
+            generator = os.path.join(root, "tiny.json")
+            _write_generator(generator, "moneyline_3way", "Match Result", (1,), (None,), ("home",))
+            draws = _draws("count", 1, generator, "moneyline_3way")
+            for name, wordings in (("two", ["Match Result", "Match Result"]), ("none", [])):
+                (status, _out, err), out, cuts = _draft(
+                    os.path.join(root, name), "count", 1, generator, _replies(draws, words=wordings),
+                )
+                self.assertEqual(status, 0, err)
+                self.assertEqual(_read_jsonl(out), [])
+                self.assertEqual(_read_jsonl(cuts), [{"case_id": "S001", "reason": "unparseable"}])
 
 
 if __name__ == "__main__":

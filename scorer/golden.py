@@ -1039,21 +1039,16 @@ def _digit_set(values):
     return found
 
 
-def leg_digits(leg):
-    return _digit_set((
-        leg.get("market"), leg.get("home"), leg.get("away"),
-        leg.get("line"), leg.get("leg_price_american"), leg.get("kickoff_et"),
-    ))
-
-
-def structure_digits(row):
-    found = _digit_set((
-        row.get("stake"), row.get("ticket_price_american"),
-        row.get("boost_or_token"), row.get("printed_payout"),
-    ))
-    for leg in row.get("legs") or []:
-        found |= leg_digits(leg)
-    return found
+def _values_of(obj):
+    """Every scalar inside a structure, depth first."""
+    if isinstance(obj, dict):
+        for value in obj.values():
+            yield from _values_of(value)
+    elif isinstance(obj, (list, tuple)):
+        for value in obj:
+            yield from _values_of(value)
+    elif obj is not None:
+        yield obj
 
 
 def result_word_hit(text):
@@ -1061,12 +1056,19 @@ def result_word_hit(text):
 
 
 def digit_hit(row, slip, wordings):
-    allowed = structure_digits(row)
+    """A digit run in the slip text that is in no field of the structure, or in
+    a leg's wording that is in none of that leg's fields, trips the cut.
+
+    The structure is what the model is shown: ticket_from_case of the row with
+    the wording fields absent. The leading zeros of every run are stripped.
+    """
+    structure = ticket_from_case(row)
+    allowed = _digit_set(_values_of(structure))
     for run in _DIGITS.findall(slip or ""):
         if _strip_zeros(run) not in allowed:
             return True
-    for leg, wording in zip(row.get("legs") or [], wordings):
-        allowed_leg = leg_digits(leg)
+    for leg, wording in zip(structure["legs"], wordings):
+        allowed_leg = _digit_set(_values_of(leg))
         for run in _DIGITS.findall(wording or ""):
             if _strip_zeros(run) not in allowed_leg:
                 return True
@@ -1074,10 +1076,16 @@ def digit_hit(row, slip, wordings):
 
 
 def topic_hit(row, wordings):
+    """A wording that matches no row, or another row than its market, trips the cut.
+
+    A row is what topics_for_market returns, topics and facts together: a
+    half-time/full-time wording on a first-half total shares a first topic
+    and is still another row.
+    """
     for leg, wording in zip(row.get("legs") or [], wordings):
         market = topics_for_market(leg.get("market"))
         words = topics_for_market(wording)
-        if market is None or words is None or market[0][0] != words[0][0]:
+        if market is None or words is None or market != words:
             return True
     return False
 
