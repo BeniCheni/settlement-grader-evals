@@ -1,7 +1,9 @@
 # RAG spec: the retrieval seams, the golden set, the four scorers and the harness
 
 Written Fri 6 Nov 2026 by the PM seat, for steps 3, 4, 6, 7 and 8 of `docs/week-4-package.md`, and revised the same day to
-close Cursor's cold read under the owner's rulings 20 to 29. It is the spec of record for
+close Cursor's cold read under the owner's rulings 20 to 29. Revised again on Sat 7 Nov 2026 to record what PR #51 built for
+steps 3 and 4: its build prompt's fourteen resolutions, the review's fixes, the owner's rulings 30 to 36 and the PM seat's
+decisions A to C. It is the spec of record for
 their build prompts, which follow its merge. `AGENTS.md` outranks it on process, and no line here loosens it. Within that,
 precedence runs: the owner's rulings in the plan, then this spec, then the build prompts, then the plan. Where this spec
 says "contract" the name, format or behaviour is fixed, because a row, a run or a report depends on it; elsewhere the builder
@@ -61,6 +63,34 @@ carry them. Cursor's second read asked 28 and 29, and the owner answered both as
 | 28 | Is an unknown key inside `variants.a` refused? | Yes | Each variant object holds `rule_match` alone. A stray key there is how a second setting could differ between A and B unseen, so the A/B's one change depends on the refusal |
 | 29 | Does that refusal also apply inside `langsmith_version` and `braintrust_experiments` once they are objects? | Yes | Each is null or exactly its written keys, so a misspelt key in a recorded version is refused, not kept |
 
+### The owner's answers on PR #51's review
+
+Claude Code's Pass 1 of PR #51 asked five questions, and the owner accepted the PM seat's answers on Sat 7 Nov 2026 as rulings
+30 to 34. The owner set 35 and 36 the same day, because Codex has no credit for now. The plan's table records them all, and
+the contracts below carry them.
+
+| # | Question | Answer | Why |
+|---|---|---|---|
+| 30 | Is a First Goal Scorer key `NEEDS_HUMAN` when the match's first goal is an own goal? | Yes | `grader/rules.py`'s goalscorer rule says so, where `check_gold.auto_grade` grades it W or L |
+| 31 | Does a cards key count the cards shown, yellow plus red from `team_stats`? | Yes, for the side the market names or for both | The cards rule says cards shown. Its `NEEDS_HUMAN`, when the card list disagrees with `team_stats` and no counting scheme is defined, stays as it is |
+| 32 | Does a boosted synthetic ticket print the boosted price and the payout from it? | Yes | Real slips print the boosted price. The ticket price is the unboosted price's profit, raised by the boost text's percentage, plus 1, as an American price; the printed payout is the stake times its decimal, to cents. Leg prices stay unboosted, and the key still nets from the printed payout, as `profit_boost`'s rule says |
+| 33 | Does an owner's `hand_crafted` row's key hold in the pilot by itself? | Yes | The owner wrote it. It does not set `verified_by_beni`, and Hard Rule 5's count of verified keys does not change |
+| 34 | Does `freeze` write `packages/rag-eval/assignment-1/golden_set.jsonl` beside v1 and its hash? | Yes | The copy is v1's bytes. `freeze` refuses to write over any of the three that holds other bytes, and then writes none, so a freeze never leaves the suite red until a file is copied by hand |
+| 35 | Who gives PR #51's Pass 2? | Cursor on Grok 4.7, in place of Codex, narrowed to answering Pass 1, reading its fixes cold and making rulings 30 to 34; Claude Code then reads Cursor's new commits cold | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` says the builder reviews nothing it built, so Cursor's pass gives no read of its own code. The PM seat sent Claude Code's fixes from that cold read to Cursor at Pass 3, so no line merges read only by its author |
+| 36 | Who gives the cold read of the PM seat's PR that records rulings 30 to 36? | Cursor on Grok 4.7, in place of Codex | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built PR #51, which it describes, so this read is not independent of that build |
+
+### The PM seat's decisions on PR #51's review
+
+Pass 1 also left three readings this spec had not settled. The PM seat decided each on Sat 7 Nov 2026, and the contracts below
+now say them, so they rank as this spec does. None contradicts the text it settles.
+
+- **A.** A lost parlay's ground truth accepts `MOOT` on a leg once another leg is `L`, as `parlay_moot`'s rule and the
+  faithfulness rule already do. ("Ground truth" below.)
+- **B.** A cards key reads a counting scheme from the leg's market only, never from `market_wording_on_slip`, so no word a
+  model writes can change a key. ("The key" below.)
+- **C.** A market that names a half reaches `auto_grade` only when it is on the `half time/` or `ht/ft` row, or is exactly a
+  first-half total goals market with a line; every other half market has no key. ("The key" below.)
+
 ## Step 3: the retrieval seams
 
 ### Nothing changes when idle (contract)
@@ -79,8 +109,15 @@ runners, the seam Week 3 added to `grade_ticket`, so no grader function changes.
   the keys today's hit has, and a miss returns today's `UNKNOWN_TOPIC` result byte for byte. The model sees no new key.
 - **`disabled_rule_runner()`.** Every `lookup_rule` call returns `{"topic": <the normalised key>, "rule": ""}`: the call
   succeeds and carries no rule, as the course's weakened config returns an empty list. Every other tool goes to `call_tool`.
+- **Neither runner raises.** A model can send any arguments, and `grade_ticket` does not catch a runner's exception, so one
+  malformed call would end a run with nothing written. The alias runner resolves a topic only when the arguments are an object
+  whose `topic` is a string or absent; any other `lookup_rule` call goes to `call_tool`, which returns today's error result.
+  The disabled runner treats a topic that is not a string as a missing one. `rule_runner` with any mode but `exact` or `alias`
+  raises `ValueError`; `run_eval.py` refuses such a mode before it builds a runner.
 
-Words are the normalised key split on `_`, without `the`, `a`, `to`, `of`, `and`, `or`, `bet` and `market`.
+Words are the normalised key split on `_`, with empty strings dropped and without `the`, `a`, `to`, `of`, `and`, `or`, `bet`
+and `market`, compared as a set; "shares the most" counts distinct shared words. A null or empty topic normalises to `""`
+and misses, as `lookup_rule`'s does.
 
 **`ALIASES` (contract).** It was written knowing the six misses on record (`match_result`, `anytime_goalscorer`, `total_goals`,
 `both_teams_to_score`, `goals`, `combo`), so B's effect on those six is in sample, and the report says so.
@@ -109,10 +146,16 @@ Words are the normalised key split on `_`, without `the`, `a`, `to`, `of`, `and`
 
 - `--rule-match exact|alias` runs the cases through `rule_runner`, and `run_meta.json` gains `rule_match`. A's run gives
   `exact` explicitly, so both runs record which variant they were.
-- `--disable-tool lookup_rule` runs them through `disabled_rule_runner`, and `run_meta.json` gains `disabled_tools`. Any other
-  tool name is refused with status 2.
-- The two flags exclude each other, and either one with a case that carries `poison`: refused with status 2, nothing written.
-- A cases path ending `.jsonl` is read as one case per line, skipping blank lines. Any other path is read as it is now.
+- `--disable-tool lookup_rule` runs them through `disabled_rule_runner`, and `run_meta.json` gains `disabled_tools`, as
+  `["lookup_rule"]`. Any other tool name is refused with status 2.
+- Refused with status 2, one line on stderr and nothing written: the two flags together; a `--rule-match` other than `exact`
+  or `alias`; either flag with `--guard-input` or `--guard-output`, which no Week 4 run uses; and either flag when any case
+  carries a non-empty `poison` list, as `seam_refusal` reads it, checked over every case before `--only` filters them.
+- `grade_ticket` receives a `tool_runner` only when a flag is given, so a run without one calls it exactly as it does on
+  `main`.
+- A cases path ending `.jsonl` is read as one case per line, skipping blank lines; a line that is not a JSON object makes the
+  file unreadable, with the existing message and status 2. Any other path is read as it is now, and `cases_file` in
+  `run_meta.json` stays a relative path.
 - Neither metadata key appears without its flag.
 
 ### What the step 3 PR must show
@@ -144,12 +187,19 @@ it unchanged, plus these:
 | `question` | `json.dumps(ticket_from_case(row), indent=1, ensure_ascii=False)`: what follows `Grade this ticket:\n` in the model's first message |
 | `contexts` | The needed items, below, as `{"leg", "kind": "event", "event_id", "fact"}` or `{"leg", "kind": "rule", "topic"}`, with `leg` null for a ticket-level rule and `event_id` a string, as in `data/gold_check.json`. Sorted by the key `(0 if leg is null else 1, leg or 0, 0 for an event or 1 for a rule, event_id or topic)`, so ticket-level rules come first (ruling 23) |
 | `ground_truth` | The criteria text, below |
-| `expected` | Real rows: unchanged from `data/gold.json`. Synthetic rows: from `key_for_ticket`. The owner's rows: the owner's |
+| `expected` | Real rows: unchanged from `data/gold.json`. Synthetic rows: from `key_for_ticket`, as `{"ticket_result", "net", "legs": [{"leg", "result"}], "verified_by_beni": false, "accept_needs_human": false, "adjudication": null, "code_check": "key_for_ticket"}`. The owner's rows: the owner's |
 | `difficulty` | The first that holds (ruling 21). `hard`: two or more legs, an `expected.ticket_result` of `NEEDS_HUMAN`, `UNSETTLED` or `VOID`, or `blend` `hand_crafted`, which is what "edge row" means here. `medium`: a leg that is not score-settled, a boosted ticket, or a stake kind other than `cash`. `easy`: otherwise, so one score-settled leg on a cash stake with no boost |
 | `intent` | For one leg, the first topic in the Topics column of its market's row; `parlay` for two or more |
 | `segment` | `single` for one leg or `parlay` for more, a dash, then the first that holds (ruling 22): the stake kind when it is `bonus_bet`, `free_bet` or `second_chance`; `boosted` for a boosted ticket; `cash`. Any other stake kind is refused |
 | `label_checked_by_beni` | True only for a row the owner checked and passed at step 5. It never sets `verified_by_beni` (ruling 12) |
 | `pilot` | `keep`, `no_rule_signal` or `known_failure`, set at step 6, and absent before |
+
+**A synthetic row's other fields (contract).** `category` is `S_synthetic`; `why_interesting` is `synthetic: gap <topic>,
+batch <batch>`; `log_grade` is null; and `bet_type` is one of the values `data/gold.json` already uses, as `generator.json`
+maps them: `DNB` for a single draw-no-bet, `ML` for a single moneyline, `Prop` for any other single, `SGP` for a same-event
+parlay, `Boost-SGP` for a boosted one, and `Parlay` otherwise. Each leg carries `data/gold.json`'s leg fields and no others. A
+leg's event lives only in the row's `contexts`, as the event entry with that leg; `key_for_ticket`, the ground truth and
+`candidates` read it there.
 
 **Two terms (contract).** A ticket is *boosted* when its `boost_or_token` contains `boost`, case ignored, and does not contain
 `no boost`. A leg is *score-settled* when the Fact column of its market's row, below, is `score_regulation_90` alone. On the 30
@@ -204,26 +254,60 @@ match is not final in the frozen facts. A market no row matches is refused by th
 
 ### The key (contract: `key_for_leg`, `key_for_ticket`)
 
-`key_for_leg(leg, facts)` returns `(grade, evidence)` or `(None, reason)`. It calls `check_gold.auto_grade` for every market that
-handles, except one: a handicap on a whole line pushes when the margin plus the line is zero, which `auto_grade` grades as a loss.
-It adds the markets `auto_grade` lacks, each by its rule's text: double chance; cards, as `NEEDS_HUMAN` when the slip defines no
-counting scheme and `team_stats` disagrees with the card list, and otherwise from `team_stats`; team shots on target from
-`team_stats`, and a player's as `NEEDS_HUMAN`; and to advance, from the shootout or extra time when the facts record them.
-`check_gold.py` does not change; the PR body lists every market where the two differ.
+`key_for_leg(leg, facts)` returns `(grade, evidence)` or `(None, reason)`, from the first of these that applies.
+`check_gold.py` does not change.
+
+1. **No facts.** A leg with no event in the row's `contexts` gives `(None, "no frozen event")`. An event id outside the frozen
+   file is refused, `an event is not in the frozen file` with status 2: never a network call and never a traceback.
+2. **A half market (decision C).** A market that, after parenthesised text is removed, names `1st half`, `first half`,
+   `2nd half` or `second half` gives `(None, "no branch for this half market")`, unless it is on the `half time/` or `ht/ft`
+   row, or its plain text is exactly `1st half total goals` or `first half total goals` and the leg has a line. `auto_grade`
+   would grade "1st Half Moneyline" on the whole match, "Second Half Total Goals" as a match total and a team's half total
+   ("Arsenal 1st Half Total Goals", "1st Half Total Goals by Arsenal") on the whole half: a wrong key, not a missing one. The
+   two real markets that name a half, and `generator.json`'s two `first_half` markets, still reach `auto_grade`.
+3. **No topic.** A market that matches no row of the topic table gives `(None, "no topic for this market")`.
+4. **Its own branch,** when the market's first topic is one that `auto_grade` lacks or misreads. These never reach
+   `auto_grade`, and each is `OPEN` while the match is not final.
+   - `double_chance`: from the regulation score.
+   - `cards`: the cards shown, yellow plus red from `team_stats`, for the side the market names or for both (ruling 31). It
+     is `NEEDS_HUMAN` when the card list disagrees with `team_stats` and the market names no counting scheme (`booking point`
+     or `second yellow`). The scheme is read from the market only, never from `market_wording_on_slip`, so no word a model
+     writes can change a key (decision B).
+   - `shots_on_target`: a team's from `team_stats`, for the side the market names or for both; a player's is `NEEDS_HUMAN`.
+     `auto_grade` would grade "Team Total Shots on Target" as a goals total. A team market in `generator.json` names its side,
+     as `{side} Team Total Shots on Target`.
+   - `to_advance`: from the shootout, or from the final score when extra time was played. With neither in the facts there is
+     no grade, because one match's regulation score does not decide a two-legged tie or a "to lift" market.
+5. **A whole-line push.** A handicap or spread on a whole line, when the margin plus the line is zero, gives `P`, which
+   `auto_grade` grades as a loss.
+6. **An own goal first (ruling 30).** A first-goalscorer market on a final match whose first goal is an own goal gives
+   `NEEDS_HUMAN`, as the goalscorer rule says, where `auto_grade` grades `W` or `L`.
+7. Otherwise, `check_gold.auto_grade`.
+
+A test pins each way the two differ, and item 3 of "What the step 4 PR must show" compares them over every market that reaches
+`auto_grade`.
 
 `key_for_ticket(row)` grades every leg against its frozen facts and settles through `grader.tools.settle_ticket` with the row's
-stake, stake kind, price and printed payout. A synthetic row is drafted only when every leg's key is a grade, never `None`.
+stake, stake kind, price and printed payout. It never writes `MOOT`. A synthetic row is drafted only when every leg's key is a
+grade, never `None`.
 
 ### Ground truth (contract)
 
-One line per leg, then one for the ticket. A leg line says the grade it must commit, the fact and rule that decide it, and, for
-a `W` or `L`, that it must never commit the other. A leg with no frozen event names no fact and says `no frozen event` in its
-place. The ticket line says the `ticket_result` it must return, the `net` when the ticket settles, and that `net` is null when it
-does not; when `expected.accept_needs_human` is true, as on `B10` and `C14`, it adds that `NEEDS_HUMAN` also passes, as
-`outcome_match` allows. For example:
+One line per leg, then one for the ticket. A leg line says the grade it must commit, the fact that decides it, and the rule,
+named by its topic (both topics when the leg has two); code paraphrases no rule's text. For a `W` or `L` it adds that the leg
+must never commit the other. A leg with no frozen event names no fact and says `no frozen event` in its place. The ticket line
+says the `ticket_result` it must return, the `net` when the ticket settles, and that `net` is null when it does not; when
+`expected.accept_needs_human` is true, as on `B10` and `C14`, it adds that `NEEDS_HUMAN` also passes, as `outcome_match`
+allows.
+
+**A lost parlay (decision A).** When the key is `LOSS` and the ticket has two or more legs, every leg line ends `MOOT also
+passes once another leg is L.` `parlay_moot`'s rule lets a grader stop at the first loss, and the faithfulness rule accepts
+that `MOOT`. A `W` leg's `Never L` and an `L` leg's `Never W` stay. On a lost parlay's only `L` leg the sentence can never
+apply, because another leg could be `L` only by breaking its own `Never L`: there it is inert, not false. For example:
 
 ```text
-Leg 1 must be L: regulation 2-2 (score_regulation_90); moneyline_3way says a team selection loses on a draw. Never W.
+Leg 1 must be L: regulation 2-2 (score_regulation_90); rule moneyline_3way. Never W. MOOT also passes once another leg is L.
+Leg 2 must be W: halftime 1-0 (score_halftime); rule first_half, totals. Never L. MOOT also passes once another leg is L.
 Ticket must be LOSS with net -10.0.
 ```
 
@@ -232,7 +316,14 @@ Ticket must be LOSS with net -10.0.
 `--gap TOPIC`, `--n` (draws, 1 to 20), `--batch NAME`, `--seed-cases` (five real case ids), `--adapter ollama:llama3.1:8b` or
 `fake:FILE` (ruling 3), and `--out data/golden/drafts/<batch>.jsonl`. A batch draws its choices from
 `random.Random(int(hashlib.sha256(batch.encode()).hexdigest(), 16))`. `--gap void_postponed` is refused: v1 has no synthetic
-row for it (ruling 27).
+row for it (ruling 27). Also refused with status 2: a `--batch` that does not match `^[A-Za-z0-9][A-Za-z0-9._-]*$`, because it
+names a file; a `--gap` that is not a `RULES` key; and `--seed-cases` that are not five real case ids. The fake adapter is
+`scorer.judge`'s, keyed by case id: each draw's case id selects its reply, and a missing reply refuses the batch with status 2.
+`draft` collects every reply first and writes both of its files last.
+
+**Every command (contract).** Each subcommand takes its paths as arguments, with defaults under the repository root found from
+the module's own location, never the working directory, so the tests write only in temporary directories. A command that
+refuses writes nothing.
 
 - **The lists (contract: `data/golden/generator.json`; ruling 24).** Everything the generator draws from is data, not code: for
   each leg topic, its market names, which include the real slips' variants ("Match Result", "Full Time result", "1X2", "BTTS"),
@@ -248,8 +339,14 @@ row for it (ruling 27).
   scheduled one for `unsettled` (ruling 16), the shootout match for `to_advance`. From the lists: the number of legs, each leg's
   market, line and selection, the stake, the price and, for `profit_boost`, a boost text. The stake kind is cash unless the gap
   is a stake topic, and a printed payout is set only for a cash stake. The book, from the names in `data/gold.json`. `kickoff_et`
-  from the facts' `kickoff_utc`, through `zoneinfo`'s `America/New_York`. Every amount is invented, and none is derived from a
-  real one (Hard Rule 1).
+  from the facts' `kickoff_utc`, through `zoneinfo`'s `America/New_York`; a system without that zone is refused with status 2,
+  because the `tzdata` package would be a dependency. Every amount is invented, and none is derived from a real one (Hard
+  Rule 1).
+- **Prices and the payout (contract; ruling 32).** A single's price is its leg's. A parlay's is the product of its legs'
+  decimals, converted back to a whole-number American price. A boosted ticket prints that price's profit, its decimal minus 1,
+  raised by the boost text's percentage, plus 1, as an American price; its legs keep the prices they were drawn with. A cash
+  printed payout is the stake times the printed price's decimal, rounded to cents, and the key nets from it, as
+  `profit_boost`'s rule says.
 - **The model writes only words:** `slip_text` and each leg's `market_wording_on_slip`. It is shown the ticket as
   `ticket_from_case` prints it with those two fields absent, which this spec calls the structure, and the seed rows' wording
   fields, and nothing else. Its reply is a JSON object, `{"slip_text": "...", "market_wording_on_slip": ["...", ...]}`, with one
@@ -280,6 +377,24 @@ evidence. The owner records `labels/golden-check.jsonl`, one `{"case_id", "ok", 
 `wrong_key`, `wording_changes_market`, `duplicate`, `generic` or `other`. The error rate prints as k of n with its Wilson interval.
 A failed row is cut or fixed, and a fixed row is checked again.
 
+### Candidates (contract: `python3 -m scorer.golden candidates`)
+
+It writes `data/golden/candidates.jsonl`, in the row serialisation, from three sources:
+
+1. The 30 real rows of `data/gold.json`, every case id but `X01` and `X02` (ruling 15), with every golden field computed and
+   `label_checked_by_beni` false.
+2. Every row of every `<batch>.jsonl` under `data/golden/drafts/`, left out when the last record for its case id in
+   `labels/golden-check.jsonl` has `ok` false, and with `label_checked_by_beni` true when that record has `ok` true.
+3. The owner's rows, from `data/golden/edges.jsonl` when it exists.
+
+A missing drafts folder, check file or edges file means none. A repeated case id is refused with status 2, and so is an edges
+row of another shape.
+
+**The owner's rows (contract: `data/golden/edges.jsonl`).** One per line: every `data/gold.json` field, with `slip_text`
+optional, plus `case_id` (`E01` upward), `blend` `hand_crafted` and `source` `hand_crafted_by_owner`, and on each leg
+`espn_event`, the event the owner names or null. `candidates` takes the contexts' events from `espn_event`, computes the other
+golden fields, and writes the legs without it. The repository commits no edges file; a test fixture proves the path.
+
 ### The pilot (contract: `python3 -m scorer.golden pilot`)
 
 It reads the candidates and two runs from one session: `traces/w4-pilot-strong`, with no flag, and `traces/w4-pilot-weak`, with
@@ -289,24 +404,31 @@ It reads the candidates and two runs from one session: `traces/w4-pilot-strong`,
 |---|---|---|
 | Pass | Fail | `keep` |
 | Pass | Pass | `no_rule_signal`, kept on its key and its contexts |
-| Fail | either | `known_failure`, kept when the key holds: `verified_by_beni`, or `AGREE` in `data/gold_check.json`, or computed by code and passed in the owner's check where sampled. Otherwise listed for the owner to fix or drop |
+| Fail | either | `known_failure`, kept when the key holds: `verified_by_beni`, or `AGREE` as the row's status in `data/gold_check.json`, or computed by code and not failed in the owner's check (a synthetic row the check did not sample, or whose last record has `ok` true), or the owner's `hand_crafted` row, which holds by itself (ruling 33). Otherwise listed for the owner to fix or drop |
 
-It writes `pilot.md`: each tag's count, every row not kept and why, both run ids and their model digest.
+It writes `data/golden/kept.jsonl`, the kept rows with their `pilot` tag, in the row serialisation, and
+`packages/rag-eval/assignment-1/pilot.md`, where the plan's package puts it: each tag's count, every row not kept and why, both
+run ids, and their model digests and Ollama versions. It refuses with status 2, writing nothing, when the two runs'
+`model_digest` or `ollama_version` differ, when either run lacks a record for a candidate, or when a record's ticket differs
+from `json.loads` of the candidate's `question`, which would mean the run graded another ticket.
 
 ### Freeze (contract: `python3 -m scorer.golden freeze`)
 
-It writes `data/golden/v1.jsonl` from the kept rows and `data/golden/v1.sha256`, one line, `<sha256>  data/golden/v1.jsonl`, the
-format of `data/redteam/frozen.sha256`. It refuses fewer than 150 rows (ruling 1), and refuses to write over a `v1.jsonl` with
-other bytes: new rows go to `v2`. A test fails when v1's bytes differ from its hash, and another when
-`packages/rag-eval/assignment-1/golden_set.jsonl` differs from v1 by a byte.
+It reads `data/golden/kept.jsonl` and writes three files (ruling 34): `data/golden/v1.jsonl`; `data/golden/v1.sha256`, one line,
+`<sha256>  data/golden/v1.jsonl`, the format of `data/redteam/frozen.sha256`; and
+`packages/rag-eval/assignment-1/golden_set.jsonl`, v1's bytes. It refuses fewer than 150 rows (ruling 1). It checks all three
+before it writes any, and when one already holds other bytes it refuses, names that file and writes none: new rows go to `v2`.
+A test holds the repository's files, and proves on temporary ones that it can fail: while `v1.jsonl` is absent, the hash and the
+package's copy must be absent too; once it is present, its bytes must match the hash and the copy must equal them.
 
 ### LangSmith (contract: `uploaders/langsmith_pin.py`, the owner's shell)
 
 Outside `scorer/` and the tests, and never imported by either; it imports `langsmith` inside `main`, which needs the dependency
 paragraph `AGENTS.md` asks for. It reads its key from the environment and prints no part of it. It refuses when v1's bytes do
-not match their hash, creates the dataset `settlement-grader-golden`, adds one example per row (inputs `question`; outputs
-`ground_truth` and `expected`; metadata `case_id`, `blend`, `difficulty`, `intent`, `segment`), tags that version `v1`, reads it
-back with `read_dataset_version(dataset_id=..., tag="v1")`, and prints the dataset id and that version's `as_of`. The SDK's
+not match their hash, creates the dataset `settlement-grader-golden`, and adds one example per row (inputs `question`; outputs
+`ground_truth` and `expected`; metadata `case_id`, `blend`, `difficulty`, `intent`, `segment`). Each example makes a version,
+and `update_dataset_tag` needs a version's exact `as_of`, so it lists the versions with `list_dataset_versions`, tags the latest
+`v1`, reads it back with `read_dataset_version(dataset_id=..., tag="v1")`, and prints the dataset id and that version's `as_of`. The SDK's
 `update_dataset_tag` returns `None` and its `DatasetVersion` carries only `tags` and `as_of`, so that pair is v1's LangSmith
 version: wherever this spec or the plan says "version id", it means the pair. The owner writes it into `dataset.md` and the
 config's `langsmith_version` (ruling 6). The PR body cites the SDK's documentation for each call it makes.
@@ -316,8 +438,9 @@ config's `langsmith_version` (ruling 6). The PR body cites the SDK's documentati
 1. Every distinct market of the 30 real rows maps to the topics a test pins for it, the parenthesised moneyline above among them.
 2. The 30 real rows' boosted count, difficulty, segment and intent counts are the ones under "Two terms"; `C14`'s contexts hold
    no event and hold `void_postponed`; and a row mixing ticket-level and leg rules sorts its ticket-level rules first.
-3. `key_for_leg` agrees with `auto_grade` on every market `auto_grade` decides, over every frozen completed event, except the
-   whole-line handicap push, which a test pins.
+3. `key_for_leg` agrees with `auto_grade` on every market that reaches `auto_grade`, over every frozen completed event, except
+   the whole-line push and the own-goal first goalscorer, which tests pin; and each half market that item 2 of "The key" stops
+   has no key.
 4. For the 30 real rows, the count where `key_for_ticket` agrees with the key in `data/gold.json`, and every disagreement listed in
    the PR body. Only 6 keys are verified, so neither side is called right.
 5. A hostile fake reply carrying `expected`, `ticket_result` or a score changes nothing in the row's `expected`.
@@ -325,7 +448,7 @@ config's `langsmith_version` (ruling 6). The PR body cites the SDK's documentati
    trip nothing.
 7. `generator.json`'s markets each match their own topic's row; one batch drafted twice gives the same bytes, and a second batch
    name changes the structure; `--gap void_postponed` is refused; and `sample` picks the same rows twice, one per intent first.
-8. Byte-stable serialisation, the freeze refusals and both hash tests.
+8. Byte-stable serialisation, the freeze refusals and the test that holds the three v1 files.
 9. `uploaders/` compiles, and no test imports it or reads a key.
 10. At least three mutations named, each turning the suite red for the right reason.
 11. The suite and `compileall` on 3.9 and 3.14, the existing tests unmodified, and the privacy sweep.
@@ -457,7 +580,8 @@ All on the owner's machine, in a fresh clone, with `private/` and `data/espn_cac
 | `w4-a`, `w4-b` | `python3 -m scorer.rag run` with `--variant a`, then `b` | 9 |
 
 `data/golden/candidates.jsonl` holds the 30 real rows, the synthetic rows that survived the cuts and the owner's check, and the
-owner's edge rows.
+owner's edge rows; `python3 -m scorer.golden candidates` writes it. After the two pilot runs, `pilot` writes
+`data/golden/kept.jsonl` and `pilot.md`, and `freeze` writes v1, its hash and the package's copy from the kept rows.
 
 ## Departures from the plan
 
