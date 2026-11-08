@@ -220,11 +220,26 @@ class _World:
         return ["report", "--config", self.config_path, "--root", self.root]
 
 
+def _config_hash_holds(root):
+    """True while dataset_sha256 is null, or when it equals data/golden/v1.sha256 and v1's bytes."""
+    config = load_config(os.path.join(root, DEFAULT_CONFIG))
+    if config["dataset_sha256"] is None:
+        return True
+    sha_path = os.path.join(root, "data", "golden", "v1.sha256")
+    v1_path = os.path.join(root, config["dataset"])
+    if not os.path.isfile(sha_path) or not os.path.isfile(v1_path):
+        return False
+    with open(sha_path, encoding="utf-8") as handle:
+        recorded = handle.read().split()[0]
+    with open(v1_path, "rb") as handle:
+        digest = hashlib.sha256(handle.read()).hexdigest()
+    return config["dataset_sha256"] == recorded == digest
+
+
 class ConfigTests(unittest.TestCase):
-    def test_the_committed_config_matches_the_contract_and_a_null_hash_holds(self):
+    def test_the_committed_config_matches_the_contract_in_every_lifecycle_state(self):
         config = load_config(os.path.join(ROOT, DEFAULT_CONFIG))
         self.assertEqual(config["dataset"], "data/golden/v1.jsonl")
-        self.assertIsNone(config["dataset_sha256"])
         self.assertEqual(config["model"], "qwen3:8b")
         self.assertEqual(config["variants"]["a"], {"rule_match": "exact"})
         self.assertEqual(config["variants"]["b"], {"rule_match": "alias"})
@@ -235,14 +250,39 @@ class ConfigTests(unittest.TestCase):
             "outcome_fall_hi_at_most": 0.05,
             "recall_lo_above": 0.0,
         })
-        self.assertIsNone(config["langsmith_version"])
-        self.assertIsNone(config["braintrust_experiments"])
-        sha_path = os.path.join(ROOT, "data", "golden", "v1.sha256")
-        if config["dataset_sha256"] is None:
-            return
-        with open(sha_path, encoding="utf-8") as handle:
-            digest = handle.read().split()[0]
-        self.assertEqual(config["dataset_sha256"], digest)
+        self.assertEqual(config["statement"], "reports/rag-statement.md")
+        self.assertEqual(config["report"], "packages/rag-eval/assignment-2/report.md")
+        self.assertEqual(config["json"], "reports/rag.json")
+        # dataset_sha256 is null until the PM writes v1's hash after the freeze; from
+        # then on it equals data/golden/v1.sha256 and the sha256 of v1's bytes.
+        self.assertTrue(_config_hash_holds(ROOT))
+        # The two ids are null until the owner fills them. load_config has already
+        # refused any other shape, so a filled value holds exactly its written keys.
+        if config["langsmith_version"] is not None:
+            self.assertEqual(set(config["langsmith_version"]), {"as_of", "dataset_id"})
+        if config["braintrust_experiments"] is not None:
+            self.assertEqual(set(config["braintrust_experiments"]), {"a", "b"})
+
+    def test_the_hash_check_can_fail(self):
+        with tempfile.TemporaryDirectory() as root:
+            world = _World(root)
+            sha_path = os.path.join(root, "data", "golden", "v1.sha256")
+            # The hash is written but v1.sha256 is not.
+            self.assertFalse(_config_hash_holds(root))
+            with open(sha_path, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write("%s  data/golden/v1.jsonl\n" % world.digest)
+            self.assertTrue(_config_hash_holds(root))
+            with open(sha_path, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write("%s  data/golden/v1.jsonl\n" % ("0" * 64))
+            self.assertFalse(_config_hash_holds(root))
+            with open(sha_path, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write("%s  data/golden/v1.jsonl\n" % world.digest)
+            # v1's bytes moved under the hash.
+            with open(os.path.join(root, "data", "golden", "v1.jsonl"), "ab") as handle:
+                handle.write(b" ")
+            self.assertFalse(_config_hash_holds(root))
+            _dump(world.config_path, _config(dataset_sha256=None))
+            self.assertTrue(_config_hash_holds(root))
 
     def test_unknown_and_missing_keys_are_refused(self):
         with tempfile.TemporaryDirectory() as root:
@@ -461,13 +501,32 @@ class RunTests(unittest.TestCase):
 
 
 class ReportTests(unittest.TestCase):
-    def test_report_on_the_committed_config_refuses(self):
-        status, _out, err = _run(["report"])
-        self.assertEqual(status, 2)
-        self.assertEqual(err, "dataset_sha256 is null\n")
-        self.assertFalse(os.path.exists(os.path.join(ROOT, "reports", "rag.json")))
-        self.assertFalse(os.path.exists(os.path.join(
-            ROOT, "packages", "rag-eval", "assignment-2", "report.md")))
+    def test_the_committed_config_reports_only_once_both_runs_exist(self):
+        config = load_config(os.path.join(ROOT, DEFAULT_CONFIG))
+        report_path = os.path.join(ROOT, config["report"])
+        json_path = os.path.join(ROOT, config["json"])
+        runs_present = all(
+            os.path.isdir(os.path.join(ROOT, "traces", config["runs"][variant]))
+            for variant in ("a", "b"))
+        if config["dataset_sha256"] is None:
+            # Before the freeze: the command refuses before it reads a run, and writes nothing.
+            status, out, err = _run(["report"])
+            self.assertEqual(status, 2)
+            self.assertEqual(out, "")
+            self.assertEqual(err, "dataset_sha256 is null\n")
+        elif not runs_present:
+            # After the hash and before step 9's runs: the refusal names the missing run.
+            # prepare_report writes nothing, where the command would write into this tree
+            # once both runs exist.
+            with self.assertRaises(rag.ReportError) as caught:
+                rag.prepare_report(config, ROOT, os.path.join(ROOT, DEFAULT_CONFIG))
+            self.assertRegex(str(caught.exception), r"^variant [ab] run is missing$")
+        if config["dataset_sha256"] is None or not runs_present:
+            self.assertFalse(os.path.exists(report_path))
+            self.assertFalse(os.path.exists(json_path))
+        # In every state the committed files match the runs: absent while a run is, and
+        # equal to report's output once both runs, the statement and the report are in.
+        self.assertTrue(report_files_hold(ROOT))
 
     def test_a_fixture_report_is_byte_stable_and_prints_no_amount(self):
         with tempfile.TemporaryDirectory() as root:
@@ -714,11 +773,6 @@ class ReportTests(unittest.TestCase):
             self.assertNotIn(DEFAULT_CONFIG, text)
             document = json.load(open(json_path, encoding="utf-8"))
             self.assertEqual(document["commands"][2], "python3 -m scorer.rag report --config other.json")
-
-    def test_the_committed_report_is_absent_while_its_runs_are(self):
-        self.assertFalse(os.path.isdir(os.path.join(ROOT, "traces", "w4-a")))
-        self.assertFalse(os.path.isdir(os.path.join(ROOT, "traces", "w4-b")))
-        self.assertTrue(report_files_hold(ROOT))
 
     def test_the_stale_check_fails_when_the_report_exists_without_its_runs(self):
         with tempfile.TemporaryDirectory() as root:
