@@ -651,6 +651,31 @@ class ReportTests(unittest.TestCase):
                 with self.subTest(message=message.strip()):
                     refuse(message, mutate)
 
+    def test_report_refuses_a_config_outside_the_root_and_names_the_one_it_used(self):
+        with tempfile.TemporaryDirectory() as root, tempfile.TemporaryDirectory() as elsewhere:
+            world = _World(root)
+            report_path = os.path.join(root, "packages", "rag-eval", "assignment-2", "report.md")
+            json_path = os.path.join(root, "reports", "rag.json")
+            outside = os.path.join(elsewhere, "config.yaml")
+            shutil.copyfile(world.config_path, outside)
+            status, out, err = _run(["report", "--config", outside, "--root", root])
+            self.assertEqual(status, 2)
+            self.assertEqual(err, "config is outside the root\n")
+            self.assertEqual(out, "")
+            self.assertFalse(os.path.exists(report_path))
+            self.assertFalse(os.path.exists(json_path))
+            # Inside the root, the printed commands name the file that was used.
+            inside = os.path.join(root, "other.json")
+            shutil.copyfile(world.config_path, inside)
+            status, _out, err = _run(["report", "--config", inside, "--root", root])
+            self.assertEqual(status, 0, err)
+            with open(report_path, encoding="utf-8") as handle:
+                text = handle.read()
+            self.assertIn("python3 -m scorer.rag report --config other.json\n", text)
+            self.assertNotIn(DEFAULT_CONFIG, text)
+            document = json.load(open(json_path, encoding="utf-8"))
+            self.assertEqual(document["commands"][2], "python3 -m scorer.rag report --config other.json")
+
     def test_the_committed_report_is_absent_while_its_runs_are(self):
         self.assertFalse(os.path.isdir(os.path.join(ROOT, "traces", "w4-a")))
         self.assertFalse(os.path.isdir(os.path.join(ROOT, "traces", "w4-b")))

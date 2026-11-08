@@ -694,14 +694,19 @@ def _outcome_matches(row, record):
 
 
 def _command_label(config_path, root):
+    """The config's path under the root, as the report's commands print it.
+
+    A config outside the root is refused: the commands must name the file
+    that was used, and a path outside the repository cannot be printed in a
+    byte-stable report.
+    """
     if not config_path:
         return DEFAULT_CONFIG
-    absolute = os.path.abspath(config_path)
-    root_abs = os.path.abspath(root)
-    prefix = root_abs + os.sep
-    if absolute.startswith(prefix):
-        return absolute[len(prefix):].replace(os.sep, "/")
-    return DEFAULT_CONFIG
+    absolute = os.path.realpath(config_path)
+    prefix = os.path.realpath(root) + os.sep
+    if not absolute.startswith(prefix):
+        raise ReportError("config is outside the root")
+    return absolute[len(prefix):].replace(os.sep, "/")
 
 
 def _variant_flags(meta, run_id):
@@ -714,6 +719,7 @@ def _variant_flags(meta, run_id):
 
 def prepare_report(config, root, config_path=None):
     """(markdown, canonical json). ReportError before either string exists."""
+    label = _command_label(config_path, root)
     reason = _refuse_dataset(root, config)
     if reason:
         raise ReportError(reason)
@@ -830,7 +836,6 @@ def prepare_report(config, root, config_path=None):
         })
     langsmith = config["langsmith_version"]
     experiments = config["braintrust_experiments"]
-    label = _command_label(config_path, root)
     document = {
         "ab": ab,
         "braintrust_experiments": experiments,
