@@ -792,6 +792,41 @@ class ReportTests(unittest.TestCase):
                 with self.subTest(message=message.strip()):
                     refuse(message, mutate)
 
+    def test_retrieval_and_generation_print_as_separate_tables(self):
+        # Ruling 39. Each variant prints two tables, one row per scorer. The
+        # A/B, the candidates and the runs stay lines.
+        with tempfile.TemporaryDirectory() as root:
+            world = _World(root)
+            status, _out, err = _run(world.report_argv())
+            self.assertEqual(status, 0, err)
+            report_path = os.path.join(root, "packages", "rag-eval", "assignment-2", "report.md")
+            with open(report_path, encoding="utf-8") as handle:
+                text = handle.read()
+        header = "| scorer | mean | scored | none | interval | k of n |"
+        rule = "| --- | --- | --- | --- | --- | --- |"
+        self.assertEqual(text.count(header), 4)
+        self.assertEqual(text.count(rule), 4)
+        self.assertNotIn("\ncontext_recall mean ", text)
+        self.assertNotIn("\nfaithfulness mean ", text)
+        for variant in ("a", "b"):
+            section = text.split("## Variant %s\n" % variant, 1)[1].split("\n## ", 1)[0]
+            retrieval, generation = section.split("### Generation\n", 1)
+            self.assertIn("### Retrieval\n", retrieval)
+            self.assertIn("| context_recall |", retrieval)
+            self.assertIn("| context_precision |", retrieval)
+            self.assertNotIn("| faithfulness |", retrieval)
+            self.assertIn("| faithfulness |", generation)
+            self.assertIn("legs left ", generation)
+            self.assertIn("| answer_relevancy |", generation)
+            self.assertNotIn("| context_recall |", generation)
+        ab = text.split("## A/B\n", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("\ncontext_recall delta ", ab)
+        self.assertNotIn(header, ab)
+        candidates = text.split("## Groundedness candidates\n", 1)[1].split("\n## ", 1)[0]
+        self.assertNotIn(header, candidates)
+        runs = text.split("## Runs\n", 1)[1].split("\n## ", 1)[0]
+        self.assertNotIn(header, runs)
+
     def test_the_bars_read_their_bounds_and_the_verdict_needs_all_three(self):
         ids = ["S%03d" % index for index in range(1, 81)]
         with tempfile.TemporaryDirectory() as root:

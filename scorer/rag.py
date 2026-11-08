@@ -912,7 +912,12 @@ def prepare_report(config, root, config_path=None):
     return _markdown(statement, document), canonical_json(document)
 
 
-def _rate_line(name, block):
+_TABLE_HEADER = "| scorer | mean | scored | none | interval | k of n |"
+_TABLE_RULE = "| --- | --- | --- | --- | --- | --- |"
+
+
+def _table_row(name, block):
+    """One scorer row. Faithfulness keeps the legs-left count on the same row."""
     interval = "none"
     if block["lo"] is not None:
         interval = "[%s, %s]" % (_fmt(block["lo"]), _fmt(block["hi"]))
@@ -922,13 +927,13 @@ def _rate_line(name, block):
         "faithfulness": ("supported", "claims"),
         "answer_relevancy": ("held", "tests"),
     }[name]
-    line = "%s mean %s scored %s none %s interval %s %s %s of %s %s" % (
-        name, _fmt(block["mean"]), _count(block["scored"]), _count(block["none"]),
-        interval, left, _count(block["k"]), _count(block["n"]), right,
-    )
+    detail = "%s %s of %s %s" % (left, _count(block["k"]), _count(block["n"]), right)
     if "legs_left" in block:
-        line += " legs left %s" % _count(block["legs_left"])
-    return line
+        detail += " legs left %s" % _count(block["legs_left"])
+    return "| %s | %s | %s | %s | %s | %s |" % (
+        name, _fmt(block["mean"]), _count(block["scored"]), _count(block["none"]),
+        interval, detail,
+    )
 
 
 def _bar_phrase(kind, bar):
@@ -962,15 +967,19 @@ def _markdown(statement, document):
         lines.append("")
         lines.append("### Retrieval")
         lines.append("")
+        lines.append(_TABLE_HEADER)
+        lines.append(_TABLE_RULE)
         retrieval = document["variants"][variant]["retrieval"]
-        lines.append(_rate_line("context_recall", retrieval["context_recall"]))
-        lines.append(_rate_line("context_precision", retrieval["context_precision"]))
+        lines.append(_table_row("context_recall", retrieval["context_recall"]))
+        lines.append(_table_row("context_precision", retrieval["context_precision"]))
         lines.append("")
         lines.append("### Generation")
         lines.append("")
+        lines.append(_TABLE_HEADER)
+        lines.append(_TABLE_RULE)
         generation = document["variants"][variant]["generation"]
-        lines.append(_rate_line("faithfulness", generation["faithfulness"]))
-        lines.append(_rate_line("answer_relevancy", generation["answer_relevancy"]))
+        lines.append(_table_row("faithfulness", generation["faithfulness"]))
+        lines.append(_table_row("answer_relevancy", generation["answer_relevancy"]))
         lines.append("")
     lines.append("## Weaker half")
     lines.append("")
