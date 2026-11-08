@@ -281,7 +281,9 @@ packages/rag-eval/
 The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruling 13. `docs/rag-spec.md` asked rulings 14 to
 18, and the owner accepted each as recommended the same day, then set ruling 19. Cursor's cold read of PR #50 asked seven
 questions and the PM seat added an eighth; the owner accepted the PM seat's answers the same day as rulings 20 to 27. Cursor's second read asked two more, and the
-owner answered both as the PM seat recommended, as rulings 28 and 29.
+owner answered both as the PM seat recommended, as rulings 28 and 29. On Sat 7 Nov 2026, Claude Code's Pass 1 of PR #51 asked
+five questions, and the owner accepted the PM seat's answers as rulings 30 to 34; the owner set rulings 35 and 36 the same
+day, because Codex has no credit for now.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -314,3 +316,10 @@ owner answered both as the PM seat recommended, as rulings 28 and 29.
 | 27 | Does ruling 17 change to: no synthetic `void_postponed` rows in v1, with `C14` as its one row? | Yes | `C14` is real, its key is verified `VOID`, and under ruling 25 it needs `void_postponed`, so ruling 17's "no rows" was wrong. `dataset.md` names the thin coverage |
 | 28 | Is an unknown key inside `variants.a` refused? | Yes | Each variant object holds `rule_match` alone. A stray key there is how a second setting could differ between A and B unseen, so the A/B's one change depends on the refusal |
 | 29 | Does that refusal also apply inside `langsmith_version` and `braintrust_experiments` once they are objects? | Yes | Each is null or exactly its written keys, so a misspelt key in a recorded version is refused, not kept |
+| 30 | Is a First Goal Scorer key `NEEDS_HUMAN` when the match's first goal is an own goal? | Yes | `grader/rules.py`'s goalscorer rule says so, where `check_gold.auto_grade` grades it W or L |
+| 31 | Does a cards key count the cards shown, yellow plus red from `team_stats`? | Yes, for the side the market names or for both | The cards rule says cards shown. Its `NEEDS_HUMAN`, when the card list disagrees with `team_stats` and no counting scheme is defined, stays as it is |
+| 32 | Does a boosted synthetic ticket print the boosted price and the payout from it? | Yes | Real slips print the boosted price. The ticket price is the unboosted price's profit, raised by the boost text's percentage, plus 1, as an American price; the printed payout is the stake times its decimal, to cents. Leg prices stay unboosted, and the key still nets from the printed payout, as `profit_boost`'s rule says |
+| 33 | Does an owner's `hand_crafted` row's key hold in the pilot by itself? | Yes | The owner wrote it. It does not set `verified_by_beni`, and Hard Rule 5's count of verified keys does not change |
+| 34 | Does `freeze` write `packages/rag-eval/assignment-1/golden_set.jsonl` beside v1 and its hash? | Yes | The copy is v1's bytes. `freeze` refuses to write over any of the three that holds other bytes, and then writes none, so a freeze never leaves the suite red until a file is copied by hand |
+| 35 | Who gives PR #51's Pass 2? | Cursor on Grok 4.7, in place of Codex, narrowed to answering Pass 1, reading its fixes cold and making rulings 30 to 34; Claude Code then reads Cursor's new commits cold | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` says the builder reviews nothing it built, so Cursor's pass gives no read of its own code. The PM seat sent Claude Code's fixes from that cold read to Cursor at Pass 3, so no line merges read only by its author |
+| 36 | Who gives the cold read of the PM seat's PR that records rulings 30 to 36? | Cursor on Grok 4.7, in place of Codex | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built PR #51, which it describes, so this read is not independent of that build |
