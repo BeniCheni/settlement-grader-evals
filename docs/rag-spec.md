@@ -487,7 +487,8 @@ config's `langsmith_version` (ruling 6). The PR body cites the SDK's documentati
 
 From a record's `tools`, in call order: a `get_match_facts` call whose result has no error and has an `event_id` gives
 `("event", str(event_id))`; a `lookup_rule` call whose result has no error gives `("rule", the topic its result resolved)`, so
-the alias variant is credited with the rule it fetched; and a `lookup_rule` call whose result has an error gives
+the alias variant is credited with the rule it fetched, and such a result with no string `topic` gives no item; and a
+`lookup_rule` call whose result has an error gives
 `("rule_error", the requested topic)`. A result that is not a dict counts as an error. When the requested topic is not a string,
 the id is `json.dumps` of it with `sort_keys=True`, or of null when it is missing or the call's `args` are not a dict, so the
 item is hashable and byte-stable and sits as a non-relevant position in precision (ruling 40). Such an id may equal the string of
@@ -510,7 +511,7 @@ returns each value with its reason, plus faithfulness's claims, supported claims
 |---|---|---|
 | `context_recall` | Retrieval | Needed items found among the retrieved ÷ needed items. `None` when nothing is needed |
 | `context_precision` | Retrieval | Over the retrieved list, the sum of precision at k at each relevant position ÷ the number of relevant positions; 0 when none is relevant or nothing was retrieved. `None` when nothing is needed |
-| `faithfulness` | Generation | Supported claims ÷ claims. A leg is one claim when any grade is committed for it, by `checks._committed`, and it is supported only when every grade committed for it is. A grade is supported when: with no usable facts for the leg, it is `NEEDS_HUMAN`; when it is `MOOT`, another leg has a committed `L`; otherwise it equals `key_for_leg` on those facts. A leg whose key is `None` leaves both the numerator and the denominator, and the count of such legs is kept for the report (ruling 26). A score the final's evidence cites for a leg, either way round, is one more claim, supported when it equals that leg's `score_regulation_90`, `score_halftime` or `score_final`. `None` when there is no claim |
+| `faithfulness` | Generation | Supported claims ÷ claims. A leg is one claim when any grade is committed for it, by `checks._committed`, and it is supported only when every grade committed for it is. A grade is supported when: with no usable facts for the leg, it is `NEEDS_HUMAN`; when it is `MOOT`, another leg has a committed `L`; otherwise it equals `key_for_leg` on those facts. A leg with usable facts and a key of `None` leaves both the numerator and the denominator, and the count of such legs is kept for the report (ruling 26). A score the final's evidence cites for a leg, either way round, is one more claim, supported when it equals that leg's `score_regulation_90`, `score_halftime` or `score_final`. `None` when there is no claim |
 | `answer_relevancy` | Generation | The share of four tests that hold: the final has one leg per ticket leg; its legs are numbered 1 to n in order, n being the final's own leg count, so an empty list passes this test and fails the first (ruling 20); its `ticket_result` is one of the six the system prompt names; and it equals the `ticket_result` of the last `settle_ticket` call that did not err. 0 with no final |
 
 **Faithfulness, as built.** A leg's facts are `_best_facts` of the record's ticket leg over `_facts_seen(record)`, and its key is
@@ -519,7 +520,7 @@ raise `KeyError`, `TypeError` or `ValueError` on them; any other exception propa
 committed grade is supported only when it is `NEEDS_HUMAN`; with usable facts and a key of `None`, the leg leaves the rate, its
 score claims with it, and is counted (ruling 26); a `MOOT` grade is supported when another leg has a committed `L`; any other
 grade is supported when it equals the key. The rule on a raise is the PM seat's: a run that never fetched the fact a market
-settles on made that grade without facts. `B05`'s leg 4, "1st Half Total Goals", shows it in `aa-1`, where a `find_match`
+settles on made that grade without facts, so the leg stays in the rate. `B05`'s leg 4, "1st Half Total Goals", shows it in `aa-1`, where a `find_match`
 full-time score is the leg's only fact and `key_for_leg` raises `KeyError` on `score_halftime`.
 
 A score claim is each distinct score in the evidence of every final leg whose `leg` equals that leg's number: two runs of one or
@@ -586,9 +587,11 @@ refused at the top level; inside `variants`, `runs`, `bootstrap` and `bars`; ins
 `rule_match` alone (ruling 28); and inside `langsmith_version` and `braintrust_experiments` once they are not null (ruling 29).
 
 `dataset_sha256` is null until the PM seat writes v1's hash into it after the freeze; a non-null hash must equal the one in
-`data/golden/v1.sha256`, and a test holds that. A value of the wrong type is refused too: `rule_match` is `exact` or `alias`; a run
+`data/golden/v1.sha256`, and a test holds that. A config that cannot be read as JSON is refused, and so is a value of the wrong
+type: `dataset_sha256` is null or a string; `model` is a non-empty string; `rule_match` is `exact` or `alias`; a run
 id matches `^[A-Za-z0-9][A-Za-z0-9._-]*$`; `n_boot` is a positive int and `seed` an int, neither a bool; each bar is a number and
-not a bool; each path is a non-empty string, relative to the repository root, with no `..` part; and each value in a filled
+not a bool; each path is a non-empty string, relative to the repository root, that does not begin with `~` and has no `..` part;
+and each value in a filled
 `langsmith_version` or `braintrust_experiments` is a non-empty string. The root comes from the module's own location, never the
 working directory. The tests on the committed config hold in every planned state, so no later commit turns the suite red: v1's
 hash written in; the two ids filled; and the statement, both runs and the report committed.
@@ -611,8 +614,9 @@ the variant's `--rule-match`. `run_eval` writes under its own repository root, s
 
 - a config this contract refuses, or one outside the repository root, because the commands it prints must name the file used
   and a path outside the repository cannot be printed in a byte-stable report;
-- a null `dataset_sha256`, or v1's bytes not matching it;
-- a run directory, its `run_meta.json` or its `settlement-traces.json` missing;
+- a null `dataset_sha256`, a missing v1, or v1's bytes not matching the hash;
+- a v1 that cannot be read: a line that is not a JSON object, or a `case_id` that is missing, not a string or repeated;
+- a run directory missing, or its `run_meta.json` or `settlement-traces.json` missing or unreadable;
 - `model_digest` or `ollama_version` missing from either run's `run_meta.json`;
 - a `run_meta.json` whose `model` differs from the config's, whose `cases_file` differs from `dataset`, or whose `rule_match`
   differs from its variant's;
@@ -642,8 +646,9 @@ on the six misses, and that 30 rows are tickets the earlier runs used.
 
 Each variant prints its retrieval pair and its generation pair as two Markdown tables, one row per scorer, with the columns
 scorer, mean, scored, none, interval and k of n; faithfulness's legs left sit in its k-of-n cell (ruling 39). The weaker half is
-named per variant (ruling 38), and a tie, or a half with no scored case, names neither half and says why. The A/B, the candidates
-and the runs print as lines. Means and interval bounds print to three decimals and counts as integers, and the verdict words are
+named per variant (ruling 38). A tie names neither half and says so. So does a half where either scorer's mean is `None`: its
+reason says that half has no scored case, even when its other scorer has a mean, as the generation half's does when no case has a
+faithfulness claim. The A/B, the candidates and the runs print as lines. Means and interval bounds print to three decimals and counts as integers, and the verdict words are
 `ship` and `no-ship`. `reports/rag.json` goes through `stats.canonical_json`, cases go in `case_id` order, and no stake, price,
 payout or net is printed. The candidates print A's four scores and the `tool_calls` of A's record. The statement,
 `reports/rag-statement.md`, is the PM seat's, written after the runs.
@@ -666,7 +671,7 @@ carries either error (ruling 41). Neither `scorer/` nor the tests import it, and
 1. Each worked example above as a test, and the hand example.
 2. A record with no tools scores recall 0 against a row with needed items, so the gold never stands in for the retrieved.
    Two legs on one match need its event once.
-3. A leg whose key is `None` leaves both sides of the faithfulness rate and is counted, and a final with no legs passes
+3. A leg with usable facts and a key of `None` leaves both sides of the faithfulness rate and is counted, and a final with no legs passes
    relevancy's numbering test and fails its first.
 4. At least three mutations named, each turning the suite red for the right reason, among them: recall counting `find_match`
    candidates, faithfulness passing a grade made with no facts, and the bootstrap reusing one index.
@@ -705,6 +710,9 @@ owner's edge rows; `python3 -m scorer.golden candidates` writes it. After the tw
   `check_gold.auto_grade` is only the last of them; `key_for_ticket` then settles through `settle_ticket`. What that row
   proves still holds: every synthetic key is written by code, and no text a model writes reaches it.
 
+- **An erred lookup stays in the retrieved list.** The plan's `context_recall` cell says a lookup that erred retrieved nothing.
+  For recall that holds, because a `rule_error` item is never a needed pair. For precision it stays as a retrieved, non-relevant
+  position, which the plan's `context_precision` cell calls noise, and ruling 40 extends that to a topic that is not a string.
 - **`faithfulness` asks `key_for_leg`, not the re-grader alone.** The plan says a claim is supported when "the re-grader agrees
   using only the facts this run fetched". The scorer calls `key_for_leg` on those facts, so a grade is held to the same key a row
   carries, and `check_gold.auto_grade` is only the last of that function's steps. On the four worked examples, calling `auto_grade`

@@ -211,7 +211,7 @@ python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml
 python3 -m scorer.rag report --config packages/rag-eval/assignment-2/config.yaml              # report.md from the traces; no model
 ```
 
-Neither command exists until step 8 lands. A test fails when the committed `report.md` is stale, as Week 3's do. The Braintrust uploader is a separate script with the
+Both commands landed with step 8, in PR #53. A test fails when the committed `report.md` is stale, as Week 3's do. The Braintrust uploader is a separate script with the
 `braintrust` dependency, outside `scorer/` and CI. The owner runs it in their own shell, it logs the same per-case scores as
 one experiment per variant, and the report records the experiment ids.
 
