@@ -133,3 +133,36 @@ def meets_bar(counts, min_agreement=None, min_kappa=None):
 def canonical_json(obj):
     """Byte-stable JSON: sorted keys, no ASCII escaping, trailing newline, no timestamps."""
     return json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+
+
+def paired_bootstrap(a, b, n_boot=10000, seed=7):
+    """(mean of b - a, lower, upper) from one Random(seed).
+
+    Each resample draws n times with rng.choice over the paired differences.
+    The resample means are sorted. lo is index int(0.025 * n_boot) and hi is
+    index int(0.975 * n_boot). mean_delta is the observed mean, not the
+    bootstrap's mean. Unequal or empty inputs raise ValueError.
+    """
+    if len(a) != len(b) or len(a) == 0:
+        raise ValueError("paired_bootstrap needs equal, non-empty inputs")
+    import random
+    differences = [b[i] - a[i] for i in range(len(a))]
+    observed = sum(differences) / float(len(differences))
+    rng = random.Random(seed)
+    means = []
+    width = len(differences)
+    for _sample in range(n_boot):
+        total = 0.0
+        for _draw in range(width):
+            total += rng.choice(differences)
+        means.append(total / float(width))
+    means.sort()
+    lo = means[int(0.025 * n_boot)]
+    hi = means[int(0.975 * n_boot)]
+    return (observed, lo, hi)
+
+
+def bootstrap_mean(xs, n_boot, seed):
+    """paired_bootstrap of xs against zeros."""
+    zeros = [0.0] * len(xs)
+    return paired_bootstrap(zeros, list(xs), n_boot=n_boot, seed=seed)
