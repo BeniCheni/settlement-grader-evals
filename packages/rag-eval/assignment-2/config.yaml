@@ -1,0 +1,21 @@
+{
+  "dataset": "data/golden/v1.jsonl",
+  "dataset_sha256": null,
+  "model": "qwen3:8b",
+  "variants": {
+    "a": {"rule_match": "exact"},
+    "b": {"rule_match": "alias"}
+  },
+  "runs": {"a": "w4-a", "b": "w4-b"},
+  "bootstrap": {"n_boot": 10000, "seed": 7},
+  "bars": {
+    "recall_lo_above": 0.0,
+    "faithfulness_lo_at_least": -0.05,
+    "outcome_fall_hi_at_most": 0.05
+  },
+  "statement": "reports/rag-statement.md",
+  "report": "packages/rag-eval/assignment-2/report.md",
+  "json": "reports/rag.json",
+  "langsmith_version": null,
+  "braintrust_experiments": null
+}
