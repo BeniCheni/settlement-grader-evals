@@ -3,7 +3,8 @@
 Written Fri 6 Nov 2026 by the PM seat, for steps 3, 4, 6, 7 and 8 of `docs/week-4-package.md`, and revised the same day to
 close Cursor's cold read under the owner's rulings 20 to 29. Revised again on Sat 7 Nov 2026 to record what PR #51 built for
 steps 3 and 4: its build prompt's fourteen resolutions, the review's fixes, the owner's rulings 30 to 36 and the PM seat's
-decisions A to C. It is the spec of record for
+decisions A to C. Revised again on Sun 8 Nov 2026 to record what PR #53 built for step 8: its build prompt's sixteen
+resolutions, the reviews' fixes and the owner's rulings 37 to 45. It is the spec of record for
 their build prompts, which follow its merge. `AGENTS.md` outranks it on process, and no line here loosens it. Within that,
 precedence runs: the owner's rulings in the plan, then this spec, then the build prompts, then the plan. Where this spec
 says "contract" the name, format or behaviour is fixed, because a row, a run or a report depends on it; elsewhere the builder
@@ -90,6 +91,30 @@ now say them, so they rank as this spec does. None contradicts the text it settl
   model writes can change a key. ("The key" below.)
 - **C.** A market that names a half reaches `auto_grade` only when it is on the `half time/` or `ht/ft` row, or is exactly a
   first-half total goals market with a line; every other half market has no key. ("The key" below.)
+
+### The owner's answers on PR #53's review
+
+Claude Code's Pass 1 of PR #53 asked five questions, and the owner accepted the PM seat's answers on Sun 8 Nov 2026 as rulings
+37 to 41. The owner set 42 the same day, because Codex has no credit for now. Claude Code's cold read of Cursor's Pass 2 commits
+asked 43, and the two vendors differed on the severity that 44 settles; the owner answered both as the PM seat recommended, then
+set 45. The plan's table records them all, and the contracts below carry them. Ruling 43's count comes from this command, which
+printed `15 659 0` (run directories, `lookup_rule` calls, non-string topics) at `20c3291`:
+
+```bash
+python3 -c 'import os; from scorer.traces import load_run; ds=[d for d in sorted(os.listdir("traces")) if os.path.exists("traces/%s/settlement-traces.json"%d)]; ts=[t for d in ds for r in load_run("traces/"+d) for t in r.get("tools") or [] if t.get("name")=="lookup_rule"]; print(len(ds), len(ts), sum(not isinstance((t.get("args") or {}).get("topic"), str) for t in ts))'
+```
+
+| # | Question | Answer | Why |
+|---|---|---|---|
+| 37 | Does `report` refuse a pair of runs whose `run_meta.json` differ anywhere but `run_id`, `rule_match` and `outcome_matches`? | Yes | The A/B's one change has to be `rule_match`. The two session checks this spec named let every other setting differ unseen |
+| 38 | Is the weaker half named per variant? | Yes, as the report prints it | Each variant has its own means, so the weaker half can differ between them |
+| 39 | May the retrieval pair and the generation pair print as plain lines? | No, in separate tables | The report contract says separate tables, and the change is small |
+| 40 | Is a `lookup_rule` error whose requested topic is not a string a retrieved, non-relevant item? | Yes | The plan calls an erred lookup noise, and dropping the call could raise precision for a model that sent a malformed topic |
+| 41 | Does the Braintrust uploader print no experiment id when any case carries a scorer error? | Yes | `Eval` completes when a scorer raises, so without the refusal a partly failed experiment could be pinned |
+| 42 | Who gives PR #53's Pass 2? | Cursor on Grok 4.7, in place of Codex, in the shape of ruling 35; Claude Code then reads Cursor's new commits cold | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` says the builder reviews nothing it built, so Cursor's pass gives no read of its own code. The PM seat sent Claude Code's commits from that cold read to Cursor at Pass 3, so no line merges read only by its author |
+| 43 | Under ruling 40, may a non-string topic share an id with the string of its JSON, so that the integer 3 and the string "3", or a missing topic and the string "null", count once in one record? | Yes | It takes one ticket sending the same topic both ways, and at `20c3291` none of the 659 recorded `lookup_rule` calls has a non-string topic |
+| 44 | What severity does PR #53's Pass 1 finding 5 carry, a `report` that named the default config when `--config` sat outside the repository? | Medium | The review skill's table calls a wrong claim medium and does not weigh how reachable it is. The fix stands either way |
+| 45 | Who gives the cold read of the PM seat's PR that records rulings 37 to 45? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built PR #53, which it describes, so this read is not independent of that build |
 
 ## Step 3: the retrieval seams
 
@@ -460,26 +485,53 @@ config's `langsmith_version` (ruling 6). The PR body cites the SDK's documentati
 
 ### Retrieved items (contract)
 
-From a record's `tools`, in call order: a `get_match_facts` call whose result has no error gives `("event", event_id)`; a
-`lookup_rule` call gives `("rule", topic)` when its result has no error, and `("rule_error", the requested topic)` when it has
-one. A repeat of an item already listed is dropped. `find_match` and `settle_ticket` give no item. Retrieved items come from the
-record and never from the row: the row's `contexts` are needed items only, as the course starter warns.
+From a record's `tools`, in call order: a `get_match_facts` call whose result has no error and has an `event_id` gives
+`("event", str(event_id))`; a `lookup_rule` call whose result has no error gives `("rule", the topic its result resolved)`, so
+the alias variant is credited with the rule it fetched; and a `lookup_rule` call whose result has an error gives
+`("rule_error", the requested topic)`. A result that is not a dict counts as an error. When the requested topic is not a string,
+the id is `json.dumps` of it with `sort_keys=True`, or of null when it is missing or the call's `args` are not a dict, so the
+item is hashable and byte-stable and sits as a non-relevant position in precision (ruling 40). Such an id may equal the string of
+its JSON, and the two then count once in one record (ruling 43). A repeat of a `(kind, id)` pair is dropped, the first kept.
+`find_match` and `settle_ticket` give no item. Retrieved items come from the record and never from the row: the row's `contexts`
+are needed items only, as the course starter warns.
 
 ### The scorers (contract: `scorer/rag.py`)
 
-Needed items are the row's `contexts` as distinct `(kind, id)` pairs, `id` being the event id or the topic, so two legs on one
-match need its event once. A retrieved item is relevant when its pair is needed; a `rule_error` item never is.
+Needed items are the row's `contexts` as distinct `(kind, id)` pairs in the order of the contexts, first kept, `id` being the
+event id or the topic, so two legs on one match need its event once. A retrieved item is relevant when its pair is needed; a `rule_error` item never is.
 
 Each is `f(output, expected, metadata, **kwargs)` and returns a float from 0 to 1, or `None` when it does not apply, with the
 reason kept for the report. `output` is `{"answer", "retrieved_contexts", "record"}`, the final, the items and the `load_run`
 record; `expected` is the row's `ground_truth`; `metadata` is `{"question", "ground_truth_contexts", "row"}`, the starter's names.
+Each of the four public scorers returns a float or `None` and nothing else, so Braintrust can call it. `score_case(row, record)`
+returns each value with its reason, plus faithfulness's claims, supported claims and legs left, and the public scorers go through it.
 
 | Scorer | Half | Rule |
 |---|---|---|
 | `context_recall` | Retrieval | Needed items found among the retrieved ÷ needed items. `None` when nothing is needed |
 | `context_precision` | Retrieval | Over the retrieved list, the sum of precision at k at each relevant position ÷ the number of relevant positions; 0 when none is relevant or nothing was retrieved. `None` when nothing is needed |
-| `faithfulness` | Generation | Supported claims ÷ claims. A leg is one claim when any grade is committed for it, by `checks._committed`, and it is supported only when every grade committed for it is. A grade is supported when: with no facts for the leg (`_best_facts` over `_facts_seen`), it is `NEEDS_HUMAN`; when it is `MOOT`, another leg has a committed `L`; otherwise it equals `key_for_leg` on those facts. A leg whose key is `None` leaves both the numerator and the denominator, and the count of such legs is kept for the report (ruling 26). A score the final's evidence cites for a leg, either way round, is one more claim, supported when it equals that leg's `score_regulation_90`, `score_halftime` or `score_final`. `None` when there is no claim |
+| `faithfulness` | Generation | Supported claims ÷ claims. A leg is one claim when any grade is committed for it, by `checks._committed`, and it is supported only when every grade committed for it is. A grade is supported when: with no usable facts for the leg, it is `NEEDS_HUMAN`; when it is `MOOT`, another leg has a committed `L`; otherwise it equals `key_for_leg` on those facts. A leg whose key is `None` leaves both the numerator and the denominator, and the count of such legs is kept for the report (ruling 26). A score the final's evidence cites for a leg, either way round, is one more claim, supported when it equals that leg's `score_regulation_90`, `score_halftime` or `score_final`. `None` when there is no claim |
 | `answer_relevancy` | Generation | The share of four tests that hold: the final has one leg per ticket leg; its legs are numbered 1 to n in order, n being the final's own leg count, so an empty list passes this test and fails the first (ruling 20); its `ticket_result` is one of the six the system prompt names; and it equals the `ticket_result` of the last `settle_ticket` call that did not err. 0 with no final |
+
+**Faithfulness, as built.** A leg's facts are `_best_facts` of the record's ticket leg over `_facts_seen(record)`, and its key is
+`key_for_leg` of the row's leg on those facts. The facts are usable when `_best_facts` returned some and `key_for_leg` did not
+raise `KeyError`, `TypeError` or `ValueError` on them; any other exception propagates. The order is: with no usable facts, a
+committed grade is supported only when it is `NEEDS_HUMAN`; with usable facts and a key of `None`, the leg leaves the rate, its
+score claims with it, and is counted (ruling 26); a `MOOT` grade is supported when another leg has a committed `L`; any other
+grade is supported when it equals the key. The rule on a raise is the PM seat's: a run that never fetched the fact a market
+settles on made that grade without facts. `B05`'s leg 4, "1st Half Total Goals", shows it in `aa-1`, where a `find_match`
+full-time score is the leg's only fact and `key_for_leg` raises `KeyError` on `score_halftime`.
+
+A score claim is each distinct score in the evidence of every final leg whose `leg` equals that leg's number: two runs of one or
+two digits joined by a hyphen or an en dash, spaces allowed around it, with no digit, hyphen or en dash directly before or after,
+so the 10-14 inside 2026-10-14 is not a score. It is supported when it equals, either way round, a score in the facts
+`_best_facts` returned, usable or not; with no facts it is unsupported. `_committed` takes the final's legs by position, and the
+score claims take them by their `leg` number.
+
+**`answer_relevancy`, as built.** A final that is not a dict scores 0. Legs that are not a list count as an empty list. The
+numbering test needs each entry to be a dict whose `leg` is its position, 1 to n. `ticket_result` is compared exactly with `WIN`,
+`LOSS`, `PUSH`, `VOID`, `UNSETTLED` and `NEEDS_HUMAN`, and exactly with the `ticket_result` of the last `settle_ticket` call whose
+result has no error; with no such call that test fails.
 
 **Worked examples, each a test on a recorded run:**
 
@@ -489,6 +541,8 @@ record; `expected` is the row's `ground_truth`; `metadata` is `{"question", "gro
 | `aa-1`, `C09` | Right answer, LOSS, with no tool call: four grades and no facts | recall 0, faithfulness 0/4, relevancy 3/4 |
 | `v1`, `C09` | Facts read for all four legs; leg 4 committed P where the facts say L | faithfulness 7/8 |
 | `v1`, `C13` | Facts read (0-0); legs committed W, L, L where they say L, W, W; right answer, LOSS; the final lists one leg of three, numbered 1 | faithfulness 1/4, relevancy 3/4 (ruling 20) |
+| `aa-1`, `B05` | Leg 4 committed L with only a full-time score as its facts, so `key_for_leg` raises and the L was made with no usable facts | faithfulness 2/5 |
+| `v1`, `B05` | No final | faithfulness `None`, no claim; relevancy 0 |
 
 And one by hand: needed `{event E1, moneyline_3way}`, retrieved `[rule_error match_result, event E1, rule moneyline_3way]`:
 relevant positions 2 and 3, precision `(1/2 + 2/3) / 2 = 0.583`, recall 1.
@@ -512,6 +566,11 @@ report prints how many left. B ships only when all three hold, and the report pr
 | Faithfulness | Its interval's lower bound is −0.05 or more |
 | Outcome | On `outcome_match`, `paired_difference`'s upper bound on the fall is 0.05 or less: B loses at most 5 points |
 
+Recall holds when the lower bound is greater than `recall_lo_above`, faithfulness when its lower bound is at least
+`faithfulness_lo_at_least`, and outcome when the upper bound on the fall is at most `outcome_fall_hi_at_most`. Outcome counts use
+`outcome_match` as `run_eval.main` calls it: a, the cases both variants match; b, those only A matches; c, those only B matches;
+d, neither. A bar with no pairs, or a `paired_difference` of `None`, does not hold.
+
 A recall interval that crosses zero is no-ship and still meets the course, which accepts a correctly reported null.
 
 ### The config (contract: `packages/rag-eval/assignment-2/config.yaml`)
@@ -526,6 +585,14 @@ each null until the owner fills it: `langsmith_version` as `{"dataset_id", "as_o
 refused at the top level; inside `variants`, `runs`, `bootstrap` and `bars`; inside `variants.a` and `variants.b`, which hold
 `rule_match` alone (ruling 28); and inside `langsmith_version` and `braintrust_experiments` once they are not null (ruling 29).
 
+`dataset_sha256` is null until the PM seat writes v1's hash into it after the freeze; a non-null hash must equal the one in
+`data/golden/v1.sha256`, and a test holds that. A value of the wrong type is refused too: `rule_match` is `exact` or `alias`; a run
+id matches `^[A-Za-z0-9][A-Za-z0-9._-]*$`; `n_boot` is a positive int and `seed` an int, neither a bool; each bar is a number and
+not a bool; each path is a non-empty string, relative to the repository root, with no `..` part; and each value in a filled
+`langsmith_version` or `braintrust_experiments` is a non-empty string. The root comes from the module's own location, never the
+working directory. The tests on the committed config hold in every planned state, so no later commit turns the suite red: v1's
+hash written in; the two ids filled; and the statement, both runs and the report committed.
+
 ### The commands (contract)
 
 ```bash
@@ -534,10 +601,34 @@ python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml
 python3 -m scorer.rag report --config packages/rag-eval/assignment-2/config.yaml              # no model
 ```
 
-`run` refuses when v1's bytes do not match `dataset_sha256`, or when the run directory exists, and then runs `run_eval.py` over
-v1 with the variant's `--rule-match`. `report` calls no model. It refuses when the two runs' `model_digest` or `ollama_version`
-differ, or when a v1 case has no record in either, and writes the report and its JSON, byte-stable. A test fails when the
-committed report is stale once its runs exist.
+`run` refuses with status 2, one line on stderr, nothing written and no model called: a config this contract refuses; a
+`--variant` other than `a` or `b`; a null `dataset_sha256`, a missing v1, or v1's bytes not matching the hash; or a run directory
+that exists. Otherwise it calls `run_eval.main` in process over the file whose bytes it just hashed, with the run id, the model and
+the variant's `--rule-match`. `run_eval` writes under its own repository root, so no test lets `run` reach the real
+`run_eval.main`.
+
+`report` calls no model. It refuses the same way, writing nothing, on any of these:
+
+- a config this contract refuses, or one outside the repository root, because the commands it prints must name the file used
+  and a path outside the repository cannot be printed in a byte-stable report;
+- a null `dataset_sha256`, or v1's bytes not matching it;
+- a run directory, its `run_meta.json` or its `settlement-traces.json` missing;
+- `model_digest` or `ollama_version` missing from either run's `run_meta.json`;
+- a `run_meta.json` whose `model` differs from the config's, whose `cases_file` differs from `dataset`, or whose `rule_match`
+  differs from its variant's;
+- the two runs' `model_digest` or `ollama_version` differing, or their `run_meta.json` differing anywhere else but `run_id`,
+  `rule_match` and `outcome_matches` (ruling 37);
+- two records for one case in a run, a record for a case v1 does not hold, or a v1 case with no record in either run;
+- a record whose ticket differs from `json.loads` of its row's question; and
+- the statement file missing or blank.
+
+Otherwise it writes the report and its JSON, byte-stable. While either run directory is absent, the config's report and JSON must
+be absent; once both runs are present, the committed files must equal `report`'s output byte for byte. A second test proves on
+temporary files that this check can fail.
+
+Each subcommand takes `--config` and `--root`, defaulting from the module's location, and the tests pass temporary paths. The
+contract's commands never pass `--root`. `run --root` checks its config, v1 and the run directory under that root while `run_eval`
+writes under its own, so a run made that way is not one `report --root` will find.
 
 ### The report (contract)
 
@@ -549,12 +640,26 @@ case where A's outcome matches and recall or faithfulness is below 1, with its s
 digest, Ollama version and flags; and the commands. Every rate prints k of n. Faithfulness also prints how many legs a `None` key left out of its rate (ruling 26). The statement says the alias table is in sample
 on the six misses, and that 30 rows are tickets the earlier runs used.
 
+Each variant prints its retrieval pair and its generation pair as two Markdown tables, one row per scorer, with the columns
+scorer, mean, scored, none, interval and k of n; faithfulness's legs left sit in its k-of-n cell (ruling 39). The weaker half is
+named per variant (ruling 38), and a tie, or a half with no scored case, names neither half and says why. The A/B, the candidates
+and the runs print as lines. Means and interval bounds print to three decimals and counts as integers, and the verdict words are
+`ship` and `no-ship`. `reports/rag.json` goes through `stats.canonical_json`, cases go in `case_id` order, and no stake, price,
+payout or net is printed. The candidates print A's four scores and the `tool_calls` of A's record. The statement,
+`reports/rag-statement.md`, is the PM seat's, written after the runs.
+
 ### Braintrust (contract: `uploaders/braintrust_eval.py`, the owner's shell)
 
 Outside `scorer/` and the tests, like the LangSmith script. One `Eval` per variant in the project `settlement-grader-rag`, named
 for its run id; the data are v1's rows; the task replays the recorded output for each case from that run's traces and calls no
 model; the scores are the four functions from `scorer.rag`. It prints each experiment's id, which the owner writes into the
 config's `braintrust_experiments` (ruling 7).
+
+Before it imports the package it reads the pair through `scorer.rag.load_pair`, so it refuses every pair `report` refuses. It reads
+its key from the environment and prints no part of it. Each example is v1's question as input, its `ground_truth` as expected, and
+`{question, ground_truth_contexts, row}` as metadata; the task returns the recorded `{answer, retrieved_contexts, record}`. `Eval`
+completes when a task or a scorer raises, so the uploader reads each case's result and prints no id for an experiment where any case
+carries either error (ruling 41). Neither `scorer/` nor the tests import it, and PR #53 did not run it.
 
 ### What the step 8 PR must show
 
@@ -599,6 +704,11 @@ owner's edge rows; `python3 -m scorer.golden candidates` writes it. After the tw
   the key field is written only by the re-grader. `key_for_leg` takes the seven steps "The key" lists, and
   `check_gold.auto_grade` is only the last of them; `key_for_ticket` then settles through `settle_ticket`. What that row
   proves still holds: every synthetic key is written by code, and no text a model writes reaches it.
+
+- **`faithfulness` asks `key_for_leg`, not the re-grader alone.** The plan says a claim is supported when "the re-grader agrees
+  using only the facts this run fetched". The scorer calls `key_for_leg` on those facts, so a grade is held to the same key a row
+  carries, and `check_gold.auto_grade` is only the last of that function's steps. On the four worked examples, calling `auto_grade`
+  in its place changes nothing, and `test_auto_grade_in_place_of_the_key_changes_none_of_the_four` holds that.
 
 ## Out of scope here
 
