@@ -627,6 +627,12 @@ class ReportTests(unittest.TestCase):
             for word in ("mean ", "interval ", "scored ", "paired ", "left "):
                 self.assertIn(word, decoded)
             self.assertIn("supported 2 of 2 claims legs left 0", decoded)
+            # The header holds "mean", "scored" and "interval" too, so the rows are pinned
+            # whole: S002 retrieved the one needed rule and S001 retrieved nothing.
+            self.assertIn("| context_recall | 0.500 | 2 | 0 | [0.000, 1.000] | found 1 of 2 needed |\n", decoded)
+            self.assertIn("| context_precision | 0.500 | 2 | 0 | [0.000, 1.000] | relevant 1 of 1 retrieved |\n", decoded)
+            self.assertIn("| faithfulness | 1.000 | 2 | 0 | [1.000, 1.000] | supported 2 of 2 claims legs left 0 |\n", decoded)
+            self.assertIn("| answer_relevancy | 1.000 | 2 | 0 | [1.000, 1.000] | held 8 of 8 tests |\n", decoded)
 
     def test_recall_does_not_hold_at_exactly_zero_and_an_empty_difference_does_not(self):
         self.assertFalse(recall_bar_holds(0.0, 1, 0.0))
@@ -826,6 +832,69 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn(header, candidates)
         runs = text.split("## Runs\n", 1)[1].split("\n## ", 1)[0]
         self.assertNotIn(header, runs)
+
+    def test_every_table_cell_prints_its_column_for_each_variant(self):
+        # Ruling 39's rows. A table that prints the wrong number under the right
+        # header must turn this red, so every cell of every row is pinned for a
+        # world where the two variants differ on every scorer: A retrieves the
+        # needed rule on S001 and S002 only, B on all four, and B's S003 has no
+        # final. Means and k of n are hand-derived; an interval that is not a point
+        # is read from the JSON and must bracket its mean.
+        ids = ["S001", "S002", "S003", "S004"]
+        header = "| scorer | mean | scored | none | interval | k of n |"
+        rule = "| --- | --- | --- | --- | --- | --- |"
+        with tempfile.TemporaryDirectory() as root:
+            cases = [(case_id, case_id in ("S001", "S002"), True, True, True) for case_id in ids]
+            document, text = _report_of(self, root, _world_of(root, cases, no_final_in_b=("S003",)))
+            a_recall = document["variants"]["a"]["retrieval"]["context_recall"]
+            a_precision = document["variants"]["a"]["retrieval"]["context_precision"]
+            b_relevancy = document["variants"]["b"]["generation"]["answer_relevancy"]
+            for block, mean in ((a_recall, 0.5), (a_precision, 0.5), (b_relevancy, 0.75)):
+                self.assertEqual(block["mean"], mean)
+                self.assertLess(block["lo"], mean)
+                self.assertGreater(block["hi"], mean)
+            spread = {
+                "a_recall": "[%.3f, %.3f]" % (a_recall["lo"], a_recall["hi"]),
+                "a_precision": "[%.3f, %.3f]" % (a_precision["lo"], a_precision["hi"]),
+                "b_relevancy": "[%.3f, %.3f]" % (b_relevancy["lo"], b_relevancy["hi"]),
+            }
+            expected = {
+                "a": (
+                    "| context_recall | 0.500 | 4 | 0 | %s | found 2 of 4 needed |" % spread["a_recall"],
+                    "| context_precision | 0.500 | 4 | 0 | %s | relevant 2 of 2 retrieved |" % spread["a_precision"],
+                    "| faithfulness | 1.000 | 4 | 0 | [1.000, 1.000] | supported 4 of 4 claims legs left 0 |",
+                    "| answer_relevancy | 1.000 | 4 | 0 | [1.000, 1.000] | held 16 of 16 tests |",
+                ),
+                "b": (
+                    "| context_recall | 1.000 | 4 | 0 | [1.000, 1.000] | found 4 of 4 needed |",
+                    "| context_precision | 1.000 | 4 | 0 | [1.000, 1.000] | relevant 4 of 4 retrieved |",
+                    "| faithfulness | 1.000 | 3 | 1 | [1.000, 1.000] | supported 3 of 3 claims legs left 0 |",
+                    "| answer_relevancy | 0.750 | 4 | 0 | %s | held 12 of 16 tests |" % spread["b_relevancy"],
+                ),
+            }
+            for variant in ("a", "b"):
+                section = text.split("## Variant %s\n" % variant, 1)[1].split("\n## ", 1)[0]
+                recall, precision, faith, relevancy = expected[variant]
+                self.assertEqual(
+                    section,
+                    "\n### Retrieval\n\n%s\n%s\n%s\n%s\n\n### Generation\n\n%s\n%s\n%s\n%s\n" % (
+                        header, rule, recall, precision, header, rule, faith, relevancy))
+        # A scorer with no scored case prints none for its mean and its interval, and
+        # the table stays six cells wide on every line.
+        with tempfile.TemporaryDirectory() as root:
+            cases = [(case_id, True, True, True, True) for case_id in ids]
+            document, text = _report_of(self, root, _world_of(root, cases, no_final_in_b=tuple(ids)))
+            section = text.split("## Variant b\n", 1)[1].split("\n## ", 1)[0]
+            self.assertIn(
+                "\n### Generation\n\n%s\n%s\n"
+                "| faithfulness | none | 0 | 4 | none | supported 0 of 0 claims legs left 0 |\n"
+                "| answer_relevancy | 0.000 | 4 | 0 | [0.000, 0.000] | held 0 of 16 tests |\n" % (header, rule),
+                section)
+            table_lines = [line for line in text.split("\n") if line.startswith("|")]
+            self.assertEqual(len(table_lines), 16)
+            for line in table_lines:
+                self.assertEqual(len(line.split(" | ")), 6, line)
+                self.assertTrue(line.startswith("| ") and line.endswith(" |"), line)
 
     def test_the_bars_read_their_bounds_and_the_verdict_needs_all_three(self):
         ids = ["S%03d" % index for index in range(1, 81)]
