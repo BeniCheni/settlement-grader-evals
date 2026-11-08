@@ -155,10 +155,7 @@ def _precision(needed, retrieved):
     if not retrieved:
         return 0.0, "0 of 0", 0, 0
     needed_set = set(needed)
-    flags = []
-    for item in retrieved:
-        # A rule_error is never relevant, even when its topic was needed.
-        flags.append(item[0] != "rule_error" and item in needed_set)
+    flags = [item in needed_set for item in retrieved]
     positions = [index for index, flag in enumerate(flags, start=1) if flag]
     if not positions:
         return 0.0, "0 of %d" % len(retrieved), 0, len(retrieved)
