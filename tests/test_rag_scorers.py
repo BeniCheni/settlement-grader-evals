@@ -278,6 +278,17 @@ class ScorerRuleTests(unittest.TestCase):
         self.assertEqual(scored["context_recall"]["value"], 1.0)
         record["tools"][0]["args"]["topic"] = {"a": 2, "b": 1}
         self.assertEqual(retrieved_items(record)[0], ("rule_error", dumped))
+        # Args that are not a dict have no topic: the call is recorded as it was
+        # made, call_tool answers it with an error, and the item is the null one.
+        for args in (["moneyline_3way"], "moneyline_3way", None):
+            malformed = {"tools": [
+                {"name": "lookup_rule", "args": args, "result": {"error": "AttributeError"}},
+                {"name": "lookup_rule", "args": {"topic": "moneyline_3way"},
+                 "result": {"topic": "moneyline_3way", "rule": "text"}},
+            ], "ticket": {"legs": []}, "final": None}
+            self.assertEqual(
+                retrieved_items(malformed), [("rule_error", "null"), ("rule", "moneyline_3way")])
+            self.assertEqual(score_case(row, malformed)["context_precision"]["reason"], "1 of 2")
 
     def test_a_facts_result_with_an_error_or_no_event_gives_no_item(self):
         record = {"tools": [
