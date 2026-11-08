@@ -151,8 +151,9 @@ and misses, as `lookup_rule`'s does.
 - Refused with status 2, one line on stderr and nothing written: the two flags together; a `--rule-match` other than `exact`
   or `alias`; either flag with `--guard-input` or `--guard-output`, which no Week 4 run uses; and either flag when any case
   carries a non-empty `poison` list, as `seam_refusal` reads it, checked over every case before `--only` filters them.
-- `grade_ticket` receives a `tool_runner` only when a flag is given, so a run without one calls it exactly as it does on
-  `main`.
+- `grade_ticket` receives `rule_runner` with `--rule-match` and `disabled_rule_runner` with `--disable-tool`. With neither
+  flag it receives what it did before the seams: `poison_runner` for a case with a non-empty `poison` list, and no
+  `tool_runner` for any other case, so a run without a flag calls it exactly as `main` did at `e7680d5`.
 - A cases path ending `.jsonl` is read as one case per line, skipping blank lines; a line that is not a JSON object makes the
   file unreadable, with the existing message and status 2. Any other path is read as it is now, and `cases_file` in
   `run_meta.json` stays a relative path.
@@ -303,7 +304,9 @@ allows.
 **A lost parlay (decision A).** When the key is `LOSS` and the ticket has two or more legs, every leg line ends `MOOT also
 passes once another leg is L.` `parlay_moot`'s rule lets a grader stop at the first loss, and the faithfulness rule accepts
 that `MOOT`. A `W` leg's `Never L` and an `L` leg's `Never W` stay. On a lost parlay's only `L` leg the sentence can never
-apply, because another leg could be `L` only by breaking its own `Never L`: there it is inert, not false. For example:
+apply, because every other leg's line asks for a grade that is not `L`: a `W` leg's also says `Never L`, and a `MOOT` leg's
+asks for `MOOT`. Another leg could be `L` only by breaking its own line, so there the sentence is inert, not false. For
+example:
 
 ```text
 Leg 1 must be L: regulation 2-2 (score_regulation_90); rule moneyline_3way. Never W. MOOT also passes once another leg is L.
@@ -591,6 +594,11 @@ owner's edge rows; `python3 -m scorer.golden candidates` writes it. After the tw
   selection, but the final the system prompt asks for has no selection field.
 - **`faithfulness` reads the `settle_ticket` call as well as the final.** The plan said "the facts this run fetched", which
   stands; it did not say which grades. `C13` shows why: its final lists one leg, and its settlement committed three.
+- **A synthetic key's leg grades come from `key_for_leg`, not from the re-grader alone.** The plan's "Key from" cell for a
+  synthetic row names `check_gold.py`'s re-grader and `settle_ticket`, and its "No synthetic key came from a model" row says
+  the key field is written only by the re-grader. `key_for_leg` takes the seven steps "The key" lists, and
+  `check_gold.auto_grade` is only the last of them; `key_for_ticket` then settles through `settle_ticket`. What that row
+  proves still holds: every synthetic key is written by code, and no text a model writes reaches it.
 
 ## Out of scope here
 
