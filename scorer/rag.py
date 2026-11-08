@@ -1063,8 +1063,12 @@ def cmd_run(args):
     if os.path.exists(run_dir):
         sys.stderr.write("run already exists\n")
         return 2
+    # run_eval opens its cases path from the working directory, so it gets the
+    # path of the file whose bytes were just checked, not a path relative to
+    # wherever this command was started. From the repository root run_eval
+    # still records cases_file as data/golden/v1.jsonl, which report compares.
     argv = [
-        config["dataset"],
+        os.path.join(args.root, config["dataset"]),
         "--run-id", config["runs"][args.variant],
         "--model", config["model"],
         "--rule-match", config["variants"][args.variant]["rule_match"],

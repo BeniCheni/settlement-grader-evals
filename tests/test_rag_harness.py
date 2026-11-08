@@ -346,13 +346,50 @@ class RunTests(unittest.TestCase):
                     self.assertEqual(status, 0, err)
                     self.assertEqual(err, "")
                     self.assertEqual(called["argv"], [
-                        "data/golden/v1.jsonl",
+                        os.path.join(root, "data", "golden", "v1.jsonl"),
                         "--run-id", run_id,
                         "--model", "qwen3:8b",
                         "--rule-match", rule_match,
                     ])
                     self.assertIsNone(called["opener"])
         finally:
+            run_eval.main = original
+
+    def test_run_hands_run_eval_the_file_it_hashed_from_any_directory(self):
+        # run_eval opens the cases path from the working directory. A relative
+        # path would make run check one file and grade another, or none, when
+        # the command is not started from the root.
+        seen = {}
+
+        def fake(argv=None, opener=None):
+            seen["path"] = argv[0]
+            if os.path.isfile(argv[0]):
+                with open(argv[0], "rb") as handle:
+                    seen["digest"] = hashlib.sha256(handle.read()).hexdigest()
+            else:
+                seen["digest"] = None
+            return 0
+
+        original = run_eval.main
+        run_eval.main = fake
+        here = os.getcwd()
+        try:
+            with tempfile.TemporaryDirectory() as root, tempfile.TemporaryDirectory() as elsewhere:
+                world = _World(root)
+                shutil.rmtree(os.path.join(root, "traces", "w4-a"))
+                os.chdir(elsewhere)
+                try:
+                    status, _out, err = _run([
+                        "run", "--config", world.config_path, "--root", root, "--variant", "a",
+                    ])
+                finally:
+                    os.chdir(here)
+                self.assertEqual(status, 0, err)
+                self.assertEqual(seen["digest"], world.digest)
+                self.assertEqual(
+                    os.path.relpath(seen["path"], root), os.path.join("data", "golden", "v1.jsonl"))
+        finally:
+            os.chdir(here)
             run_eval.main = original
 
     def test_run_refusals_do_not_call_main_or_write(self):
