@@ -4,7 +4,8 @@ Retrieved items come from a record's tool calls. Needed items come from the
 row's contexts. A scorer never treats the row's contexts as what the run
 retrieved. No function here calls a model. `run` is the only command that
 reaches `run_eval.main`, and only after the config, the hash and the run
-directory have been accepted.
+directory have been accepted. `load_pair` applies every refusal of the two
+runs; `report` and the Braintrust uploader both read the pair through it.
 
 The report's verdict words are `ship` and `no-ship`.
 """
@@ -717,9 +718,40 @@ def _variant_flags(meta, run_id):
     return flags
 
 
-def prepare_report(config, root, config_path=None):
-    """(markdown, canonical json). ReportError before either string exists."""
-    label = _command_label(config_path, root)
+# run_meta keys that may differ between the two runs of one A/B.
+_PAIR_FREE_KEYS = ("outcome_matches", "rule_match", "run_id")
+
+
+def _check_pair(metas):
+    """The two runs are one session and one condition, apart from rule_match.
+
+    The digest and the Ollama version are the spec's two checks. Every other
+    run_meta key but run_id, rule_match and outcome_matches must agree too: a
+    pair whose system_prompt, think, drop_fields, budgets or guards differ is
+    not the A/B. run passes none of those flags, so a pair it made never
+    differs there.
+    """
+    left = metas["a"]
+    right = metas["b"]
+    if left["model_digest"] != right["model_digest"]:
+        raise ReportError("model_digest differs")
+    if left["ollama_version"] != right["ollama_version"]:
+        raise ReportError("ollama_version differs")
+    for key in sorted(set(left) | set(right)):
+        if key in _PAIR_FREE_KEYS:
+            continue
+        if key not in left or key not in right or left[key] != right[key]:
+            raise ReportError("run_meta %s differs" % key)
+
+
+def load_pair(config, root):
+    """(rows, metas, records) once every refusal has passed; ReportError otherwise.
+
+    rows are v1 in case_id order; metas and records are keyed by variant, and
+    records[variant] by case_id. report and uploaders/braintrust_eval.py both
+    read the pair through this, so the uploader cannot accept a pair that
+    report refuses.
+    """
     reason = _refuse_dataset(root, config)
     if reason:
         raise ReportError(reason)
@@ -737,10 +769,14 @@ def prepare_report(config, root, config_path=None):
         _tickets_match(rows, found)
         metas[variant] = meta
         records[variant] = found
-    if metas["a"]["model_digest"] != metas["b"]["model_digest"]:
-        raise ReportError("model_digest differs")
-    if metas["a"]["ollama_version"] != metas["b"]["ollama_version"]:
-        raise ReportError("ollama_version differs")
+    _check_pair(metas)
+    return rows, metas, records
+
+
+def prepare_report(config, root, config_path=None):
+    """(markdown, canonical json). ReportError before either string exists."""
+    label = _command_label(config_path, root)
+    rows, metas, records = load_pair(config, root)
     statement = _read_statement(os.path.join(root, config["statement"]))
     scored = {}
     for variant in _VARIANT_KEYS:

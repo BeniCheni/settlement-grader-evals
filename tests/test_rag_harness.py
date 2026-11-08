@@ -619,6 +619,21 @@ class ReportTests(unittest.TestCase):
                     os.path.join(root, "traces", "w4-a"), "w4-a", "exact",
                     [changed, current.records["S002"]])
 
+            def differ_think(_current):
+                _meta("b", think=True)
+
+            def differ_prompt(_current):
+                _meta("b", system_prompt="another prompt")
+
+            def extra_drop(_current):
+                _meta("a", drop_fields=["slip_text"])
+
+            def extra_guard(_current):
+                _meta("b", guard_output=["o1"])
+
+            def differ_budgets(_current):
+                _meta("a", budgets={"max_turns": 1})
+
             def blank_statement(_current):
                 path = os.path.join(root, "reports", "rag-statement.md")
                 with open(path, "w", encoding="utf-8") as handle:
@@ -644,12 +659,36 @@ class ReportTests(unittest.TestCase):
                 ("a record for a case v1 does not hold\n", unknown),
                 ("a v1 case has no record\n", missing_case),
                 ("a record ticket differs from its question\n", wrong_ticket),
+                ("run_meta think differs\n", differ_think),
+                ("run_meta system_prompt differs\n", differ_prompt),
+                ("run_meta drop_fields differs\n", extra_drop),
+                ("run_meta guard_output differs\n", extra_guard),
+                ("run_meta budgets differs\n", differ_budgets),
                 ("statement is blank\n", blank_statement),
                 ("statement is missing\n", missing_statement),
             )
             for message, mutate in pairs:
                 with self.subTest(message=message.strip()):
                     refuse(message, mutate)
+
+    def test_load_pair_returns_what_report_and_the_uploader_read(self):
+        with tempfile.TemporaryDirectory() as root:
+            world = _World(root)
+            config = load_config(world.config_path)
+            rows, metas, records = rag.load_pair(config, root)
+            self.assertEqual([row["case_id"] for row in rows], ["S001", "S002"])
+            self.assertEqual(sorted(metas), ["a", "b"])
+            self.assertEqual(metas["b"]["rule_match"], "alias")
+            self.assertEqual(sorted(records["a"]), ["S001", "S002"])
+            self.assertEqual(records["b"]["S001"]["ticket"], json.loads(rows[0]["question"]))
+            with open(os.path.join(root, "traces", "w4-b", "run_meta.json"), encoding="utf-8") as handle:
+                meta = json.load(handle)
+            meta["think"] = True
+            with open(os.path.join(root, "traces", "w4-b", "run_meta.json"), "w", encoding="utf-8") as handle:
+                json.dump(meta, handle)
+            with self.assertRaises(rag.ReportError) as caught:
+                rag.load_pair(config, root)
+            self.assertEqual(str(caught.exception), "run_meta think differs")
 
     def test_report_refuses_a_config_outside_the_root_and_names_the_one_it_used(self):
         with tempfile.TemporaryDirectory() as root, tempfile.TemporaryDirectory() as elsewhere:

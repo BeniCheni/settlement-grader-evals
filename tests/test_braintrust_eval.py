@@ -14,14 +14,19 @@ class BraintrustEvalSourceTests(unittest.TestCase):
         needle = "import " + "braintrust"
         self.assertEqual(text.count(needle), 1)
         import_at = text.index(needle)
+        # The pair is read through scorer.rag.load_pair, so every refusal
+        # report applies comes before the package is imported.
         for marker in (
             "load_config(",
-            "dataset_sha256",
-            "_v1_matches(",
-            "_runs_present(",
+            "load_pair(",
+            "except ReportError",
             "BRAINTRUST_" + "API_KEY",
         ):
             self.assertLess(text.index(marker), import_at)
+        # The SDK records a raising scorer in the case's metadata and completes,
+        # so the script checks for it before it prints an id.
+        self.assertIn("scorer_errors", text)
+        self.assertIn("results", text)
         self.assertIn("settlement-grader-rag", text)
         self.assertIn("experiment_name", text)
         self.assertIn("experiment_id", text)
