@@ -365,6 +365,44 @@ class ScorerRuleTests(unittest.TestCase):
         })
         self.assertEqual(score_case(row, record)["answer_relevancy"]["value"], 1.0)
 
+    def test_a_ticket_result_in_another_case_is_not_one_of_the_six(self):
+        row = {"legs": [{"leg": 1, "market": "Moneyline"}], "contexts": []}
+        record = {
+            "tools": [{"name": "settle_ticket", "result": {"ticket_result": "WIN"}}],
+            "ticket": {"legs": [{"leg": 1}]},
+            "final": {"legs": [{"leg": 1, "result": "W", "evidence": ""}], "ticket_result": "win"},
+        }
+        # One leg each and numbered hold; the name and the settle_ticket match do not.
+        self.assertEqual(score_case(row, record)["answer_relevancy"]["value"], 0.5)
+        record["final"]["ticket_result"] = "WIN"
+        self.assertEqual(score_case(row, record)["answer_relevancy"]["value"], 1.0)
+
+    def test_a_score_claim_matches_either_way_round(self):
+        rows, runs = _load()
+        row = rows["A01"]
+        record = copy.deepcopy(runs["v1"]["A01"])
+        # The facts hold 2-4. The final cites it the other way round.
+        record["final"]["legs"][0]["evidence"] = "won 4-2"
+        scored = score_case(row, record)
+        self.assertEqual((scored["faithfulness"]["claims"], scored["faithfulness"]["supported"]), (2, 2))
+        record["final"]["legs"][0]["evidence"] = "won 3-2"
+        scored = score_case(row, record)
+        self.assertEqual((scored["faithfulness"]["claims"], scored["faithfulness"]["supported"]), (2, 1))
+
+    def test_another_exception_from_key_for_leg_propagates(self):
+        rows, runs = _load()
+        original = rag.key_for_leg
+
+        def broken(leg, facts):
+            raise RuntimeError("not a facts error")
+
+        rag.key_for_leg = broken
+        try:
+            with self.assertRaises(RuntimeError):
+                score_case(rows["A01"], runs["v1"]["A01"])
+        finally:
+            rag.key_for_leg = original
+
     def test_recall_and_precision_are_none_when_nothing_is_needed(self):
         scored = score_case({"contexts": [], "legs": []}, {"tools": [], "ticket": {"legs": []}, "final": None})
         self.assertIsNone(scored["context_recall"]["value"])

@@ -12,9 +12,11 @@ from contextlib import redirect_stderr, redirect_stdout
 
 import run_eval
 import scorer.rag as rag
+from scorer.stats import paired_difference
 from scorer.rag import (
     DEFAULT_CONFIG,
     VERDICT_NO_SHIP,
+    VERDICT_SHIP,
     faithfulness_bar_holds,
     load_config,
     outcome_bar_holds,
@@ -220,6 +222,55 @@ class _World:
         return ["report", "--config", self.config_path, "--root", self.root]
 
 
+def _world_of(root, cases, no_final_in_b=()):
+    """A root with v1, the statement, both runs and a config, from one tuple per case.
+
+    Each case is (case_id, a_retrieves, b_retrieves, a_matches, b_matches). A
+    variant that retrieves calls lookup_rule for the needed topic; one that does
+    not match answers WIN against the row's LOSS. A case named in no_final_in_b
+    has no final and no settle_ticket in variant b, so its faithfulness is None.
+    """
+    rows = []
+    records = {"a": [], "b": []}
+    for case_id, a_retrieves, b_retrieves, a_matches, b_matches in cases:
+        ticket = _ticket(case_id)
+        rows.append(_row(case_id, ticket))
+        for variant, retrieves, matches in (("a", a_retrieves, a_matches), ("b", b_retrieves, b_matches)):
+            record = _record(case_id, ticket, retrieved=retrieves, tool_calls=2)
+            if not matches:
+                record["final"]["ticket_result"] = "WIN"
+                record["tools"][-1]["result"]["ticket_result"] = "WIN"
+            if variant == "b" and case_id in no_final_in_b:
+                record["final"] = None
+                record["tools"] = [tool for tool in record["tools"] if tool["name"] != "settle_ticket"]
+            records[variant].append(record)
+    v1 = os.path.join(root, "data", "golden", "v1.jsonl")
+    os.makedirs(os.path.dirname(v1))
+    text = "".join(
+        json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n"
+        for row in sorted(rows, key=lambda row: row["case_id"]))
+    with open(v1, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+    statement = os.path.join(root, "reports", "rag-statement.md")
+    os.makedirs(os.path.dirname(statement))
+    shutil.copyfile(_STATEMENT, statement)
+    _write_run(os.path.join(root, "traces", "w4-a"), "w4-a", "exact", records["a"])
+    _write_run(os.path.join(root, "traces", "w4-b"), "w4-b", "alias", records["b"])
+    config_path = os.path.join(root, DEFAULT_CONFIG)
+    _dump(config_path, _config(dataset_sha256=hashlib.sha256(text.encode("utf-8")).hexdigest()))
+    return config_path
+
+
+def _report_of(test, root, config_path):
+    status, _out, err = _run(["report", "--config", config_path, "--root", root])
+    test.assertEqual(status, 0, err)
+    with open(os.path.join(root, "reports", "rag.json"), encoding="utf-8") as handle:
+        document = json.load(handle)
+    with open(os.path.join(root, "packages", "rag-eval", "assignment-2", "report.md"), encoding="utf-8") as handle:
+        text = handle.read()
+    return document, text
+
+
 def _config_hash_holds(root):
     """True while dataset_sha256 is null, or when it equals data/golden/v1.sha256 and v1's bytes."""
     config = load_config(os.path.join(root, DEFAULT_CONFIG))
@@ -313,6 +364,16 @@ class ConfigTests(unittest.TestCase):
                 load_config(path)
             filled = _config()
             filled["braintrust_experiments"] = {"a": "one", "b": "two", "c": "three"}
+            _dump(path, filled)
+            with self.assertRaises(rag.ConfigError):
+                load_config(path)
+            filled = _config()
+            filled["langsmith_version"] = {"as_of": "", "dataset_id": "d"}
+            _dump(path, filled)
+            with self.assertRaises(rag.ConfigError):
+                load_config(path)
+            filled = _config()
+            filled["braintrust_experiments"] = {"a": "one", "b": 2}
             _dump(path, filled)
             with self.assertRaises(rag.ConfigError):
                 load_config(path)
@@ -565,6 +626,7 @@ class ReportTests(unittest.TestCase):
             self.assertIn("recall: lower bound 0.000 above 0.000: no", decoded)
             for word in ("mean ", "interval ", "scored ", "paired ", "left "):
                 self.assertIn(word, decoded)
+            self.assertIn("supported 2 of 2 claims legs left 0", decoded)
 
     def test_recall_does_not_hold_at_exactly_zero_and_an_empty_difference_does_not(self):
         self.assertFalse(recall_bar_holds(0.0, 1, 0.0))
@@ -729,6 +791,88 @@ class ReportTests(unittest.TestCase):
             for message, mutate in pairs:
                 with self.subTest(message=message.strip()):
                     refuse(message, mutate)
+
+    def test_the_bars_read_their_bounds_and_the_verdict_needs_all_three(self):
+        ids = ["S%03d" % index for index in range(1, 81)]
+        with tempfile.TemporaryDirectory() as root:
+            # B retrieves the needed rule on every case and A never. Every outcome
+            # matches in both runs but S001, which only B gets.
+            cases = [(case_id, False, True, case_id != "S001", True) for case_id in ids]
+            document, text = _report_of(self, root, _world_of(root, cases))
+            ab = document["ab"]
+            self.assertEqual(ab["context_recall"]["bar"], {"holds": True, "threshold": 0.0, "value": 1.0})
+            self.assertEqual(ab["faithfulness"]["bar"], {"holds": True, "threshold": -0.05, "value": 0.0})
+            outcome = ab["outcome"]
+            self.assertEqual((outcome["a"], outcome["b"], outcome["c"], outcome["d"]), (79, 0, 1, 0))
+            fall, lower, upper = paired_difference(79, 0, 1, 0)
+            self.assertEqual((outcome["fall"], outcome["lo"], outcome["hi"]), (fall, lower, upper))
+            self.assertLess(upper, 0.05)
+            self.assertEqual(outcome["bar"], {"holds": True, "threshold": 0.05, "value": upper})
+            self.assertEqual(document["verdict"], VERDICT_SHIP)
+            self.assertIn("outcome: upper bound %.3f at most 0.050: yes" % upper, text)
+            self.assertIn("verdict: ship", text)
+            # The candidates are read from A, where the outcome matched and recall is 0,
+            # so S001 is not one; read from B, whose recall is 1, there would be none.
+            self.assertEqual([row["case_id"] for row in document["groundedness"]], ids[1:])
+            self.assertEqual(document["groundedness"][0]["context_recall"], 0.0)
+            self.assertEqual(document["groundedness"][0]["tool_calls"], 2)
+            # The weaker half is read per variant: A's retrieval averages 0 against a
+            # generation of 1, and B's two halves tie.
+            self.assertEqual(document["weaker_half"]["a"]["name"], "retrieval")
+            self.assertIsNone(document["weaker_half"]["b"]["name"])
+            self.assertIn("variant a: retrieval is the weaker half", text)
+            self.assertIn("variant b: neither half: the two averages tie", text)
+        with tempfile.TemporaryDirectory() as root:
+            # B misses six outcomes A got. The fall is 6 of 80; the upper bound of its
+            # interval, 0.154, decides and fails, where the lower bound, 0.014, would pass.
+            cases = [(case_id, False, True, True, index >= 6) for index, case_id in enumerate(ids)]
+            document, text = _report_of(self, root, _world_of(root, cases))
+            outcome = document["ab"]["outcome"]
+            self.assertEqual((outcome["a"], outcome["b"], outcome["c"], outcome["d"]), (74, 6, 0, 0))
+            self.assertLessEqual(outcome["lo"], 0.05)
+            self.assertGreater(outcome["hi"], 0.05)
+            self.assertFalse(outcome["bar"]["holds"])
+            self.assertTrue(document["ab"]["context_recall"]["bar"]["holds"])
+            self.assertTrue(document["ab"]["faithfulness"]["bar"]["holds"])
+            self.assertEqual(document["verdict"], VERDICT_NO_SHIP)
+            self.assertIn("outcome fall 0.075 interval [0.014, 0.154] paired 80 left 0 a 74 b 6 c 0 d 0", text)
+            self.assertIn("outcome: upper bound 0.154 at most 0.050: no", text)
+            self.assertIn("verdict: no-ship", text)
+
+    def test_a_none_in_either_variant_leaves_the_pair_and_is_counted(self):
+        ids = ["S%03d" % index for index in range(1, 6)]
+        with tempfile.TemporaryDirectory() as root:
+            cases = [(case_id, True, True, True, True) for case_id in ids]
+            document, text = _report_of(self, root, _world_of(root, cases, no_final_in_b=("S003",)))
+            faith = document["ab"]["faithfulness"]
+            self.assertEqual((faith["paired"], faith["left"]), (4, 1))
+            self.assertEqual((faith["mean_delta"], faith["lo"], faith["hi"]), (0.0, 0.0, 0.0))
+            # Without a final, relevancy is 0, not None, so that pair stays.
+            relevancy = document["ab"]["answer_relevancy"]
+            self.assertEqual((relevancy["paired"], relevancy["left"]), (5, 0))
+            self.assertEqual(relevancy["mean_delta"], -0.2)
+            block = document["variants"]["b"]["generation"]["faithfulness"]
+            self.assertEqual((block["scored"], block["none"]), (4, 1))
+            self.assertIn("faithfulness delta 0.000 interval [0.000, 0.000] paired 4 left 1", text)
+
+    def test_the_stale_check_fails_on_a_refused_config(self):
+        with tempfile.TemporaryDirectory() as root:
+            config = _config(dataset_sha256=None)
+            config["top_k"] = 1
+            _dump(os.path.join(root, DEFAULT_CONFIG), config)
+            self.assertFalse(report_files_hold(root))
+
+    def test_the_statement_is_verbatim(self):
+        with tempfile.TemporaryDirectory() as root:
+            world = _World(root)
+            statement = " Leading space, trailing blank line.\n\n"
+            with open(os.path.join(root, "reports", "rag-statement.md"), "w", encoding="utf-8", newline="\n") as handle:
+                handle.write(statement)
+            status, _out, err = _run(world.report_argv())
+            self.assertEqual(status, 0, err)
+            with open(os.path.join(root, "packages", "rag-eval", "assignment-2", "report.md"), "rb") as handle:
+                text = handle.read().decode("utf-8")
+            self.assertTrue(text.startswith(statement + "\n# RAG report\n"))
 
     def test_load_pair_returns_what_report_and_the_uploader_read(self):
         with tempfile.TemporaryDirectory() as root:

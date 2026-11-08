@@ -29,6 +29,14 @@ class BootstrapTests(unittest.TestCase):
         self.assertLessEqual(wider[1], wider[0])
         self.assertLessEqual(wider[0], wider[2])
 
+    def test_the_pinned_bounds_sit_at_their_indices(self):
+        # Differences 1, 0.5, 0. seed 0, four resamples of three draws by index:
+        # (1, 1, 0), (1, 2, 1), (1, 1, 1), (1, 2, 0); means 2/3, 1/3, 1/2, 1/2;
+        # sorted 1/3, 1/2, 1/2, 2/3. lo is index 0 and hi index 3, and each has a
+        # different neighbour, so an index moved by one moves a bound.
+        pinned = paired_bootstrap([0.0, 0.0, 0.0], [1.0, 0.5, 0.0], n_boot=4, seed=0)
+        self.assertEqual(pinned, (0.5, 1.0 / 3.0, 2.0 / 3.0))
+
     def test_empty_or_unequal_inputs_raise(self):
         with self.assertRaises(ValueError):
             paired_bootstrap([], [], n_boot=4, seed=1)
