@@ -1,6 +1,6 @@
 # PR #52 — Pass 1: the fast-track cold read, by Cursor under ruling 36 (TZ=America/New_York)
 
-The text delivered Sat 7 Nov 2026 at about 16:11, as archived by the PM seat (Claude) on Sun 8 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
+The text delivered Sat 7 Nov 2026 at about 19:21, as archived by the PM seat (Claude) on Sun 8 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript, and the comment it led to is on the PR.
 
 ---
 
