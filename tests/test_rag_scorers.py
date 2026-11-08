@@ -253,6 +253,32 @@ class ScorerRuleTests(unittest.TestCase):
         self.assertEqual(score_case(row, record)["context_precision"]["value"], 0.5)
         self.assertEqual(score_case(row, record)["context_recall"]["value"], 1.0)
 
+    def test_a_non_string_rule_error_topic_is_retrieved_and_not_relevant(self):
+        # Ruling 40. A topic that is not a string is still a retrieved item, and
+        # it is not relevant. The id is json.dumps of the topic, keys sorted, or
+        # of null when the topic is missing, so the pair is hashable and stable.
+        row = {"contexts": [{"leg": 1, "kind": "rule", "topic": "moneyline_3way"}], "legs": []}
+        topic = {"b": 1, "a": 2}
+        record = {"tools": [
+            {"name": "lookup_rule", "args": {"topic": topic}, "result": {"error": "bad"}},
+            {"name": "lookup_rule", "args": {}, "result": {"error": "bad"}},
+            {"name": "lookup_rule", "args": {"topic": 3}, "result": {"error": "bad"}},
+            {"name": "lookup_rule", "args": {"topic": "moneyline_3way"},
+             "result": {"topic": "moneyline_3way", "rule": "text"}},
+        ], "ticket": {"legs": []}, "final": None}
+        dumped = json.dumps(topic, sort_keys=True)
+        self.assertEqual(retrieved_items(record), [
+            ("rule_error", dumped),
+            ("rule_error", "null"),
+            ("rule_error", "3"),
+            ("rule", "moneyline_3way"),
+        ])
+        scored = score_case(row, record)
+        self.assertEqual(scored["context_precision"]["value"], 0.25)
+        self.assertEqual(scored["context_recall"]["value"], 1.0)
+        record["tools"][0]["args"]["topic"] = {"a": 2, "b": 1}
+        self.assertEqual(retrieved_items(record)[0], ("rule_error", dumped))
+
     def test_a_facts_result_with_an_error_or_no_event_gives_no_item(self):
         record = {"tools": [
             {"name": "get_match_facts", "result": {"error": "RuntimeError", "event_id": "E1"}},

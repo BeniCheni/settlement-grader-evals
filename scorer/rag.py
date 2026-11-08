@@ -77,9 +77,13 @@ def retrieved_items(record):
     """(kind, id) pairs from the record's tools, in call order, first kept.
 
     A lookup_rule item's id is the topic its result resolved. A rule_error
-    item's id is the topic the call asked for. A get_match_facts item's id is
-    the string of the result's event_id. An errored result, or a facts result
-    with no event_id, gives no item. find_match and settle_ticket give none.
+    item's id is the topic the call asked for when that topic is a string.
+    Otherwise it is json.dumps of the topic with sort_keys=True, or of null
+    when the topic is missing, so the pair stays hashable and byte-stable and
+    counts as retrieved and not relevant. A get_match_facts item's id is the
+    string of the result's event_id. An errored facts result, or a facts
+    result with no event_id, gives no item. find_match and settle_ticket give
+    none.
     """
     items = []
     seen = set()
@@ -97,9 +101,10 @@ def retrieved_items(record):
         elif name == "lookup_rule":
             if _result_has_error(result):
                 topic = args.get("topic")
-                if not isinstance(topic, str):
-                    continue
-                item = ("rule_error", topic)
+                if isinstance(topic, str):
+                    item = ("rule_error", topic)
+                else:
+                    item = ("rule_error", json.dumps(topic, sort_keys=True))
             else:
                 topic = result.get("topic")
                 if not isinstance(topic, str):
