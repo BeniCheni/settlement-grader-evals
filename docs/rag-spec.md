@@ -504,7 +504,8 @@ event id or the topic, so two legs on one match need its event once. A retrieved
 Each is `f(output, expected, metadata, **kwargs)` and returns a float from 0 to 1, or `None` when it does not apply, with the
 reason kept for the report. `output` is `{"answer", "retrieved_contexts", "record"}`, the final, the items and the `load_run`
 record; `expected` is the row's `ground_truth`; `metadata` is `{"question", "ground_truth_contexts", "row"}`, the starter's names.
-Each of the four public scorers returns a float or `None` and nothing else, so Braintrust can call it. `score_case(row, record)`
+Each of the four public scorers returns a float or `None` and nothing else, so Braintrust can call it, and raises `ValueError` when
+`output` or `metadata` does not carry its record or row. `score_case(row, record)`
 returns each value with its reason, plus faithfulness's claims, supported claims and legs left, and the public scorers go through it.
 
 | Scorer | Half | Rule |
@@ -615,7 +616,7 @@ the variant's `--rule-match`. `run_eval` writes under its own repository root, s
 - a config this contract refuses, or one outside the repository root, because the commands it prints must name the file used
   and a path outside the repository cannot be printed in a byte-stable report;
 - a null `dataset_sha256`, a missing v1, or v1's bytes not matching the hash;
-- a v1 that cannot be read: a line that is not a JSON object, or a `case_id` that is missing, not a string or repeated;
+- a v1 that cannot be read: a line that is not a JSON object, or a `case_id` that is missing, not a string, empty or repeated;
 - a run directory missing, or its `run_meta.json` or `settlement-traces.json` missing or unreadable;
 - `model_digest` or `ollama_version` missing from either run's `run_meta.json`;
 - a `run_meta.json` whose `model` differs from the config's, whose `cases_file` differs from `dataset`, or whose `rule_match`
@@ -661,7 +662,8 @@ model; the scores are the four functions from `scorer.rag`. It prints each exper
 config's `braintrust_experiments` (ruling 7).
 
 Before it imports the package it reads the pair through `scorer.rag.load_pair`, so it refuses every pair `report` refuses. It reads
-its key from the environment and prints no part of it. Each example is v1's question as input, its `ground_truth` as expected, and
+its key from the environment and prints no part of it. Every refusal is status 2 and one line on stderr, including a missing key, a
+failed login, an `Eval` that raises and an experiment with no id. Each example is v1's question as input, its `ground_truth` as expected, and
 `{question, ground_truth_contexts, row}` as metadata; the task returns the recorded `{answer, retrieved_contexts, record}`. `Eval`
 completes when a task or a scorer raises, so the uploader reads each case's result and prints no id for an experiment where any case
 carries either error (ruling 41). Neither `scorer/` nor the tests import it, and PR #53 did not run it.
