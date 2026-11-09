@@ -1,4 +1,5 @@
 """Golden rows, the key, and the draft, sample, candidates, pilot and freeze commands."""
+import argparse
 import hashlib
 import json
 import os
@@ -17,7 +18,7 @@ import check_gold
 from grader.rules import RULES
 from run_eval import ticket_from_case
 from scorer.golden import (
-    build_contexts, build_draws, enrich_real, event_index, event_pools,
+    GOLDEN_SYSTEM, build_contexts, build_draws, cmd_draft, enrich_real, event_index, event_pools,
     frozen_facts, ground_truth, key_for_leg, key_for_ticket, kickoff_et,
     main, market_plain, real_rows, result_word_hit, topics_for_market,
 )
@@ -156,6 +157,19 @@ def _replies(draws, slip="Listed fixture", words=None, extra=None):
             body.update(extra)
         found[case_id] = json.dumps(body)
     return found
+
+
+class _Recorder(object):
+    """Stands in for the adapter and keeps the user text cmd_draft sends with each case id."""
+
+    def __init__(self, replies):
+        self.replies = replies
+        self.key = None
+        self.shown = []
+
+    def __call__(self, _system, user):
+        self.shown.append((self.key, user))
+        return self.replies[self.key]
 
 
 def _draft(root, batch, n, generator, replies, gap="moneyline_3way"):
@@ -690,6 +704,130 @@ class CommandTests(unittest.TestCase):
                 self.assertEqual(status, 2, argv)
                 self.assertTrue(err.strip())
                 self.assertFalse(os.path.exists(out))
+
+    def test_the_system_prompt_is_pinned_by_its_hash(self):
+        digest = hashlib.sha256(GOLDEN_SYSTEM.encode("utf-8")).hexdigest()
+        self.assertEqual(
+            digest,
+            "5f803ec8b2ae1efb84bc5373d234bbc01d0f60088bd45667d6ace5ec8c4e7595",
+        )
+
+    def test_cmd_draft_passes_the_system_prompt_on_every_call(self):
+        with tempfile.TemporaryDirectory() as root:
+            generator = self._one(root)
+            drafts = os.path.join(root, "drafts")
+            os.makedirs(drafts)
+            draws = _draws("prompt", 2, generator, "moneyline_3way")
+            expected_calls = sum(1 for _case_id, row in draws if row is not None)
+            self.assertEqual(expected_calls, 2)
+            fake = os.path.join(root, "replies.json")
+            with open(fake, "w", encoding="utf-8") as handle:
+                json.dump(_replies(draws), handle)
+            calls = []
+
+            class Spy(object):
+                def __init__(self, inner):
+                    self._inner = inner
+
+                @property
+                def key(self):
+                    return self._inner.key
+
+                @key.setter
+                def key(self, value):
+                    self._inner.key = value
+
+                def __call__(self, system, _user):
+                    calls.append(system)
+                    return self._inner(system, _user)
+
+            from scorer.judge import build_adapter
+            real_build = build_adapter
+
+            def spy_adapter(spec, http_fixture):
+                return Spy(real_build(spec, http_fixture))
+
+            args = argparse.Namespace(
+                gap="moneyline_3way",
+                n=2,
+                batch="prompt",
+                seed_cases=SEEDS,
+                adapter="fake:%s" % fake,
+                generator=generator,
+                gold=GOLD,
+                gold_check=GOLD_CHECK,
+                drafts=drafts,
+                out=os.path.join(drafts, "prompt.jsonl"),
+            )
+            with mock.patch("scorer.judge.build_adapter", spy_adapter):
+                status = cmd_draft(args)
+            self.assertEqual(status, 0)
+            self.assertEqual(calls, [GOLDEN_SYSTEM] * expected_calls)
+
+    def test_cmd_draft_shows_the_model_what_the_system_prompt_names_and_nothing_else(self):
+        for name in ("seed_wording", "structure", "structure.legs", "slip_text", "market_wording_on_slip"):
+            self.assertIn(name, GOLDEN_SYSTEM)
+        gold = {row["case_id"]: row for row in _load(GOLD)}
+        with_line = without_line = 0
+        plans = (
+            ("totals", "Total Goals", (2,), (2.5,), ("over",)),
+            ("moneyline_3way", "Match Result", (1,), (None,), ("home",)),
+        )
+        with tempfile.TemporaryDirectory() as root:
+            for gap, market, counts, lines, selections in plans:
+                generator = os.path.join(root, "%s.json" % gap)
+                _write_generator(generator, gap, market, counts, lines, selections)
+                drafts = os.path.join(root, gap)
+                os.makedirs(drafts)
+                draws = _draws("shown", 2, generator, gap)
+                rows = {case_id: row for case_id, row in draws if row is not None}
+                self.assertEqual(len(rows), 2)
+                recorder = _Recorder(_replies(draws))
+                args = argparse.Namespace(
+                    gap=gap,
+                    n=2,
+                    batch="shown",
+                    seed_cases=SEEDS,
+                    adapter="fake:unused",
+                    generator=generator,
+                    gold=GOLD,
+                    gold_check=GOLD_CHECK,
+                    drafts=drafts,
+                    out=os.path.join(drafts, "shown.jsonl"),
+                )
+                with mock.patch("scorer.judge.build_adapter", lambda spec, http_fixture: recorder):
+                    self.assertEqual(cmd_draft(args), 0)
+                self.assertEqual([case_id for case_id, _user in recorder.shown], sorted(rows))
+                for case_id, user in recorder.shown:
+                    row = rows[case_id]
+                    sent = json.loads(user)
+                    self.assertEqual(sorted(sent), ["seed_wording", "structure"])
+                    structure = sent["structure"]
+                    self.assertEqual(structure, ticket_from_case(row))
+                    self.assertNotIn("slip_text", structure)
+                    self.assertNotIn("expected", structure)
+                    for leg, drawn in zip(structure["legs"], row["legs"]):
+                        self.assertNotIn("market_wording_on_slip", leg)
+                        self.assertEqual(leg["market"], drawn["market"])
+                        self.assertEqual(leg["selection"], drawn["selection"])
+                        if drawn["line"] is None:
+                            self.assertNotIn("line", leg)
+                            without_line += 1
+                        else:
+                            self.assertEqual(leg["line"], drawn["line"])
+                            with_line += 1
+                    seeds = sent["seed_wording"]
+                    self.assertEqual([block["case_id"] for block in seeds], SEEDS.split(","))
+                    for block in seeds:
+                        real = gold[block["case_id"]]
+                        # The id labels the block. Beside it, the wording fields and no other.
+                        self.assertLessEqual(set(block), {"case_id", "market_wording_on_slip", "slip_text"})
+                        self.assertEqual(
+                            block["market_wording_on_slip"],
+                            [leg.get("market_wording_on_slip") for leg in real["legs"]],
+                        )
+                        self.assertEqual(block.get("slip_text"), real.get("slip_text"))
+        self.assertEqual((with_line, without_line), (4, 2))
 
     def test_sample_is_stable_and_takes_one_intent_first(self):
         with tempfile.TemporaryDirectory() as root:
