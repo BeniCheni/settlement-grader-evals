@@ -719,7 +719,7 @@ class CommandTests(unittest.TestCase):
             os.makedirs(drafts)
             draws = _draws("prompt", 2, generator, "moneyline_3way")
             expected_calls = sum(1 for _case_id, row in draws if row is not None)
-            self.assertGreater(expected_calls, 0)
+            self.assertEqual(expected_calls, 2)
             fake = os.path.join(root, "replies.json")
             with open(fake, "w", encoding="utf-8") as handle:
                 json.dump(_replies(draws), handle)
