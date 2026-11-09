@@ -4,7 +4,8 @@ Written Fri 6 Nov 2026 by the PM seat, for steps 3, 4, 6, 7 and 8 of `docs/week-
 close Cursor's cold read under the owner's rulings 20 to 29. Revised again on Sat 7 Nov 2026 to record what PR #51 built for
 steps 3 and 4: its build prompt's fourteen resolutions, the review's fixes, the owner's rulings 30 to 36 and the PM seat's
 decisions A to C. Revised again on Sun 8 Nov 2026 to record what PR #53 built for step 8: its build prompt's sixteen
-resolutions, the reviews' fixes and the owner's rulings 37 to 45. It is the spec of record for
+resolutions, the reviews' fixes and the owner's rulings 37 to 45. Revised again on Mon 9 Nov 2026 to record step 4's first
+real draft and the owner's rulings 46 to 48. It is the spec of record for
 their build prompts, which follow its merge. `AGENTS.md` outranks it on process, and no line here loosens it. Within that,
 precedence runs: the owner's rulings in the plan, then this spec, then the build prompts, then the plan. Where this spec
 says "contract" the name, format or behaviour is fixed, because a row, a run or a report depends on it; elsewhere the builder
@@ -115,6 +116,18 @@ python3 -c 'import os; from scorer.traces import load_run; ds=[d for d in sorted
 | 43 | Under ruling 40, may a non-string topic share an id with the string of its JSON, so that the integer 3 and the string "3", or a missing topic and the string "null", count once in one record? | Yes | It takes one ticket sending the same topic both ways, and at `20c3291` none of the 659 recorded `lookup_rule` calls has a non-string topic |
 | 44 | What severity does PR #53's Pass 1 finding 5 carry, a `report` that named the default config when `--config` sat outside the repository? | Medium | The review skill's table calls a wrong claim medium and does not weigh how reachable it is. The fix stands either way |
 | 45 | Who gives the cold read of the PM seat's PR that records rulings 37 to 45? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built PR #53, which it describes, so this read is not independent of that build |
+
+### The owner's answers after step 4's first real run
+
+The first real draft under step 4's prompt kept none of 8, and PR #55 gave the generator a prompt the model could follow. Claude Code's cold read of that PR
+stopped on who may read a prompt the PM seat wrote, and the owner set 46 on Sun 8 Nov 2026. The owner set 47 and 48 on Mon 9 Nov 2026.
+The plan's table records them too.
+
+| # | Question | Answer | Why |
+|---|---|---|---|
+| 46 | Who reads PR #55 after Claude Code's cold read, given that the PM seat wrote the prompt it pins? | Cursor on Grok 4.7, narrowed to what it did not write, the prompt's words and Claude Code's two test commits, and it merges if the gate holds | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` says one vendor never gives the only cold read of work that vendor authored, and the PM seat (Claude) wrote the 864 characters that Claude Code alone had read critically. Cursor typed them and built the rest of the PR, so this read is independent of their author and not of the build |
+| 47 | Does a generic slip title count as an error in the owner's check? | No, the check judges each leg's wording | Real rows have no slip title, and no word a model writes can change a key. Counting titles would fail 23 of the 30 sampled rows for a line the grader does not settle on |
+| 48 | Who gives the cold read of the PM seat's PR that adds the drafts, the owner's check and the edge rows? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built the generator and typed its prompt, so this read is not independent of that build |
 
 ## Step 3: the retrieval seams
 
@@ -376,8 +389,8 @@ refuses writes nothing.
   printed payout is the stake times the printed price's decimal, rounded to cents, and the key nets from it, as
   `profit_boost`'s rule says.
 - **The model writes only words:** `slip_text` and each leg's `market_wording_on_slip`. It is shown the ticket as
-  `ticket_from_case` prints it with those two fields absent, which this spec calls the structure, and the seed rows' wording
-  fields, and nothing else. Its reply is a JSON object, `{"slip_text": "...", "market_wording_on_slip": ["...", ...]}`, with one
+  `ticket_from_case` prints it with those two fields absent, which this spec calls the structure, and each seed row's case id and
+  wording fields, and nothing else. Its reply is a JSON object, `{"slip_text": "...", "market_wording_on_slip": ["...", ...]}`, with one
   string per leg in leg order, and any other key is dropped. The system prompt tells it never to state a result, a score or an
   outcome; that the seed rows show style and are never copied; that each string holds its leg's market as the structure gives
   it, with the selection and the line when there is one; and to write no date, time or kickoff, no number outside the leg's
@@ -405,7 +418,8 @@ in sorted order, it takes the first row of the shuffled list with that intent; t
 those taken, until it has 30, or every row when fewer survive. It takes more than 30 only when there are more than 30 intents.
 It writes `labels/golden-check-sheet.md`: each row's ticket, its needed contexts, its key with the
 evidence. The owner records `labels/golden-check.jsonl`, one `{"case_id", "ok", "error", "note"}` a row, with `error` one of
-`wrong_key`, `wording_changes_market`, `duplicate`, `generic` or `other`. The error rate prints as k of n with its Wilson interval.
+`wrong_key`, `wording_changes_market`, `duplicate`, `generic` or `other`. `generic` means a leg's wording does not say what the bet is, and a slip title is not judged
+(ruling 47). The error rate prints as k of n with its Wilson interval.
 A failed row is cut or fixed, and a fixed row is checked again.
 
 ### Candidates (contract: `python3 -m scorer.golden candidates`)
@@ -424,7 +438,8 @@ row of another shape.
 **The owner's rows (contract: `data/golden/edges.jsonl`).** One per line: every `data/gold.json` field, with `slip_text`
 optional, plus `case_id` (`E01` upward), `blend` `hand_crafted` and `source` `hand_crafted_by_owner`, and on each leg
 `espn_event`, the event the owner names or null. `candidates` takes the contexts' events from `espn_event`, computes the other
-golden fields, and writes the legs without it. The repository commits no edges file; a test fixture proves the path.
+golden fields, and writes the legs without it. A test fixture proves the path, and `data/golden/edges.jsonl` is committed with
+the owner's check.
 
 ### The pilot (contract: `python3 -m scorer.golden pilot`)
 
@@ -722,6 +737,13 @@ owner's edge rows; `python3 -m scorer.golden candidates` writes it. After the tw
   using only the facts this run fetched". The scorer calls `key_for_leg` on those facts, so a grade is held to the same key a row
   carries, and `check_gold.auto_grade` is only the last of that function's steps. On the four worked examples, calling `auto_grade`
   in its place changes nothing, and `test_auto_grade_in_place_of_the_key_changes_none_of_the_four` holds that.
+
+- **The synthetic source drew 184 tickets, not 160.** The plan drafts 160 to keep about 110. In the real run about 61% survive
+  the cuts, so 160 would have fallen short of ruling 1's 150 rows, and a second pass went to the topics still short of a row or an
+  outcome. `validation.md` gives the counts.
+- **The PM seat drafted the hand-crafted rows.** The plan has the owner write them. The owner asked for help, the PM seat drafted
+  20 from the frozen facts, and the owner kept all 20 with their keys. `source` reads `hand_crafted_by_owner` because the contract
+  requires that value, and the key holds by ruling 33 because the owner accepted it.
 
 ## Out of scope here
 
