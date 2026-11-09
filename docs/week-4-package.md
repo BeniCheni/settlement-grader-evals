@@ -211,7 +211,7 @@ python3 -m scorer.rag run    --config packages/rag-eval/assignment-2/config.yaml
 python3 -m scorer.rag report --config packages/rag-eval/assignment-2/config.yaml              # report.md from the traces; no model
 ```
 
-Neither command exists until step 8 lands. A test fails when the committed `report.md` is stale, as Week 3's do. The Braintrust uploader is a separate script with the
+Both commands landed with step 8, in PR #53. A test fails when the committed `report.md` is stale, as Week 3's do. The Braintrust uploader is a separate script with the
 `braintrust` dependency, outside `scorer/` and CI. The owner runs it in their own shell, it logs the same per-case scores as
 one experiment per variant, and the report records the experiment ids.
 
@@ -283,7 +283,9 @@ The owner accepted rulings 1 to 12 as the PM seat recommended them, and set ruli
 questions and the PM seat added an eighth; the owner accepted the PM seat's answers the same day as rulings 20 to 27. Cursor's second read asked two more, and the
 owner answered both as the PM seat recommended, as rulings 28 and 29. On Sat 7 Nov 2026, Claude Code's Pass 1 of PR #51 asked
 five questions, and the owner accepted the PM seat's answers as rulings 30 to 34; the owner set rulings 35 and 36 the same
-day, because Codex has no credit for now.
+day, because Codex has no credit for now. On Sun 8 Nov 2026, Claude Code's Pass 1 of PR #53 asked five questions, and the owner
+accepted the PM seat's answers as rulings 37 to 41; the owner set ruling 42 the same day, for the same reason. The reviews of
+PR #53 raised two more, which the owner answered as the PM seat recommended, as rulings 43 and 44, and the owner then set ruling 45.
 
 | # | Question | Answer | Why |
 |---|---|---|---|
@@ -323,3 +325,12 @@ day, because Codex has no credit for now.
 | 34 | Does `freeze` write `packages/rag-eval/assignment-1/golden_set.jsonl` beside v1 and its hash? | Yes | The copy is v1's bytes. `freeze` refuses to write over any of the three that holds other bytes, and then writes none, so a freeze never leaves the suite red until a file is copied by hand |
 | 35 | Who gives PR #51's Pass 2? | Cursor on Grok 4.7, in place of Codex, narrowed to answering Pass 1, reading its fixes cold and making rulings 30 to 34; Claude Code then reads Cursor's new commits cold | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` says the builder reviews nothing it built, so Cursor's pass gives no read of its own code. The PM seat sent Claude Code's fixes from that cold read to Cursor at Pass 3, so no line merges read only by its author |
 | 36 | Who gives the cold read of the PM seat's PR that records rulings 30 to 36? | Cursor on Grok 4.7, in place of Codex | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built PR #51, which it describes, so this read is not independent of that build |
+| 37 | Does `report` refuse a pair of runs whose `run_meta.json` differ anywhere but `run_id`, `rule_match` and `outcome_matches`? | Yes | The A/B's one change has to be `rule_match`. The two session checks this spec named let every other setting differ unseen |
+| 38 | Is the weaker half named per variant? | Yes, as the report prints it | Each variant has its own means, so the weaker half can differ between them |
+| 39 | May the retrieval pair and the generation pair print as plain lines? | No, in separate tables | The report contract says separate tables, and the change is small |
+| 40 | Is a `lookup_rule` error whose requested topic is not a string a retrieved, non-relevant item? | Yes | The plan calls an erred lookup noise, and dropping the call could raise precision for a model that sent a malformed topic |
+| 41 | Does the Braintrust uploader print no experiment id when any case carries a scorer error? | Yes | `Eval` completes when a scorer raises, so without the refusal a partly failed experiment could be pinned |
+| 42 | Who gives PR #53's Pass 2? | Cursor on Grok 4.7, in place of Codex, in the shape of ruling 35; Claude Code then reads Cursor's new commits cold | The owner's amendment to ruling 11, for this PR only: the owner has no Codex credit for now. `AGENTS.md` says the builder reviews nothing it built, so Cursor's pass gives no read of its own code. The PM seat sent Claude Code's commits from that cold read to Cursor at Pass 3, so no line merges read only by its author |
+| 43 | Under ruling 40, may a non-string topic share an id with the string of its JSON, so that the integer 3 and the string "3", or a missing topic and the string "null", count once in one record? | Yes | It takes one ticket sending the same topic both ways, and at `20c3291` none of the 659 recorded `lookup_rule` calls has a non-string topic |
+| 44 | What severity does PR #53's Pass 1 finding 5 carry, a `report` that named the default config when `--config` sat outside the repository? | Medium | The review skill's table calls a wrong claim medium and does not weigh how reachable it is. The fix stands either way |
+| 45 | Who gives the cold read of the PM seat's PR that records rulings 37 to 45? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built PR #53, which it describes, so this read is not independent of that build |
