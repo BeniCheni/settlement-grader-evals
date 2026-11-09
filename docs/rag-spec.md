@@ -505,8 +505,8 @@ Each is `f(output, expected, metadata, **kwargs)` and returns a float from 0 to 
 reason kept for the report. `output` is `{"answer", "retrieved_contexts", "record"}`, the final, the items and the `load_run`
 record; `expected` is the row's `ground_truth`; `metadata` is `{"question", "ground_truth_contexts", "row"}`, the starter's names.
 Each of the four public scorers returns a float or `None` and nothing else, so Braintrust can call it, and raises `ValueError` when
-`output` or `metadata` does not carry its record or row. `score_case(row, record)`
-returns each value with its reason, plus faithfulness's claims, supported claims and legs left, and the public scorers go through it.
+`output` or `metadata` does not carry its record or row. `score_case(row, record)` raises `ValueError` when `row` or `record` is not
+a dict, and returns each value with its reason, plus faithfulness's claims, supported claims and legs left, and the public scorers go through it.
 
 | Scorer | Half | Rule |
 |---|---|---|
