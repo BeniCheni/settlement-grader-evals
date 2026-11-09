@@ -1,6 +1,6 @@
 # PR #55 — Cursor's narrowed read under ruling 46, and the merge (TZ=America/New_York)
 
-The text delivered Sun 8 Nov 2026 at about 21:59, as archived by the PM seat (Claude) on Mon 9 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript. Cursor merged PR #55 after this read, at `5d42fe9`, and the comment it led to is on the PR.
+The text delivered Mon 9 Nov 2026 at about 09:05, as archived by the PM seat (Claude) on Mon 9 Nov 2026. It was delivered in chat, one line per paragraph; this copy is recovered from the session's transcript. Cursor merged PR #55 after this read, at `5d42fe9`, and the comment it led to is on the PR.
 
 ---
 
