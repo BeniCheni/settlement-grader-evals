@@ -379,7 +379,10 @@ refuses writes nothing.
   `ticket_from_case` prints it with those two fields absent, which this spec calls the structure, and the seed rows' wording
   fields, and nothing else. Its reply is a JSON object, `{"slip_text": "...", "market_wording_on_slip": ["...", ...]}`, with one
   string per leg in leg order, and any other key is dropped. The system prompt tells it never to state a result, a score or an
-  outcome.
+  outcome; that the seed rows show style and are never copied; that each string holds its leg's market as the structure gives
+  it, with the selection and the line when there is one; and to write no date, time or kickoff, no number outside the leg's
+  line or market, and none of the words the prompt lists. The prompt's text is pinned by a test, because the first real batch
+  under a shorter prompt lost every draw to these cuts.
 - **Cuts (contract), before anyone reads a row.** Each is logged in `<batch>.cuts.jsonl` as `{"case_id", "reason"}`, and the
   first that fires, in this order, is the reason:
   1. `no_key`: a leg's `key_for_leg` is `None`. This is checked before the model is called.

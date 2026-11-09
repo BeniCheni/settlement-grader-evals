@@ -1,4 +1,5 @@
 """Golden rows, the key, and the draft, sample, candidates, pilot and freeze commands."""
+import argparse
 import hashlib
 import json
 import os
@@ -17,7 +18,7 @@ import check_gold
 from grader.rules import RULES
 from run_eval import ticket_from_case
 from scorer.golden import (
-    build_contexts, build_draws, enrich_real, event_index, event_pools,
+    GOLDEN_SYSTEM, build_contexts, build_draws, cmd_draft, enrich_real, event_index, event_pools,
     frozen_facts, ground_truth, key_for_leg, key_for_ticket, kickoff_et,
     main, market_plain, real_rows, result_word_hit, topics_for_market,
 )
@@ -690,6 +691,65 @@ class CommandTests(unittest.TestCase):
                 self.assertEqual(status, 2, argv)
                 self.assertTrue(err.strip())
                 self.assertFalse(os.path.exists(out))
+
+    def test_the_system_prompt_is_pinned_by_its_hash(self):
+        digest = hashlib.sha256(GOLDEN_SYSTEM.encode("utf-8")).hexdigest()
+        self.assertEqual(
+            digest,
+            "5f803ec8b2ae1efb84bc5373d234bbc01d0f60088bd45667d6ace5ec8c4e7595",
+        )
+
+    def test_cmd_draft_passes_the_system_prompt_on_every_call(self):
+        with tempfile.TemporaryDirectory() as root:
+            generator = self._one(root)
+            drafts = os.path.join(root, "drafts")
+            os.makedirs(drafts)
+            draws = _draws("prompt", 2, generator, "moneyline_3way")
+            expected_calls = sum(1 for _case_id, row in draws if row is not None)
+            self.assertGreater(expected_calls, 0)
+            fake = os.path.join(root, "replies.json")
+            with open(fake, "w", encoding="utf-8") as handle:
+                json.dump(_replies(draws), handle)
+            calls = []
+
+            class Spy(object):
+                def __init__(self, inner):
+                    self._inner = inner
+
+                @property
+                def key(self):
+                    return self._inner.key
+
+                @key.setter
+                def key(self, value):
+                    self._inner.key = value
+
+                def __call__(self, system, _user):
+                    calls.append(system)
+                    return self._inner(system, _user)
+
+            from scorer.judge import build_adapter
+            real_build = build_adapter
+
+            def spy_adapter(spec, http_fixture):
+                return Spy(real_build(spec, http_fixture))
+
+            args = argparse.Namespace(
+                gap="moneyline_3way",
+                n=2,
+                batch="prompt",
+                seed_cases=SEEDS,
+                adapter="fake:%s" % fake,
+                generator=generator,
+                gold=GOLD,
+                gold_check=GOLD_CHECK,
+                drafts=drafts,
+                out=os.path.join(drafts, "prompt.jsonl"),
+            )
+            with mock.patch("scorer.judge.build_adapter", spy_adapter):
+                status = cmd_draft(args)
+            self.assertEqual(status, 0)
+            self.assertEqual(calls, [GOLDEN_SYSTEM] * expected_calls)
 
     def test_sample_is_stable_and_takes_one_intent_first(self):
         with tempfile.TemporaryDirectory() as root:

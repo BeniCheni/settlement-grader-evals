@@ -71,7 +71,15 @@ GOLDEN_SYSTEM = (
     "You write the slip wording for a soccer ticket that is already structured. "
     "Reply with one JSON object and nothing else, with the keys slip_text and "
     "market_wording_on_slip. market_wording_on_slip is one string per leg, in "
-    "leg order. Never state a result, a score or an outcome."
+    "leg order. Never state a result, a score or an outcome. seed_wording shows "
+    "how other tickets were phrased, for style only: never copy from it. Write "
+    "only about the ticket in structure. market_wording_on_slip must hold "
+    "exactly as many strings as structure.legs has legs, one for each leg, in "
+    "order. Each string must contain that leg's market exactly as structure "
+    "gives it, plus its selection and its line when it has one. Write no date, "
+    "no time and no kickoff. Use no number that is not that leg's line or in "
+    "its market. slip_text is a short title for the ticket with no numbers. "
+    "Never use the words won, lost, win, loss, settled, void or push."
 )
 
 _STAKE_KINDS = ("cash", "bonus_bet", "free_bet", "second_chance")
