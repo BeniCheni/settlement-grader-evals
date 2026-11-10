@@ -50,6 +50,30 @@ class BootstrapTests(unittest.TestCase):
             paired_bootstrap([0.0, 0.0, 0.0], sample, n_boot=25, seed=4),
         )
 
+    def test_the_observed_mean_adds_left_to_right(self):
+        # Ten differences of 0.1. Left to right is one bit under a tenth.
+        # From Python 3.12 sum() is compensated and returns a tenth, so this
+        # fails on sum() there. On 3.9 sum() also adds left to right and passes.
+        pinned = 0.09999999999999999
+        self.assertEqual(
+            paired_bootstrap([0.0] * 10, [0.1] * 10, n_boot=1, seed=7)[0], pinned)
+        self.assertEqual(bootstrap_mean([0.1] * 10, 1, 7)[0], pinned)
+        # Four unequal differences tell the orders apart. Reversed and descending
+        # give 0.225, ascending 0.22500000000000003, and a compensated sum 0.225.
+        mixed = [0.1, 0.3, 0.3, 0.2]
+        pinned_mixed = 0.22499999999999998
+        self.assertEqual(
+            paired_bootstrap([0.0] * 4, mixed, n_boot=1, seed=7)[0], pinned_mixed)
+        self.assertEqual(bootstrap_mean(mixed, 1, 7)[0], pinned_mixed)
+
+    def test_int_differences_add_exactly_as_sum_does(self):
+        # From the int 0, ints add exactly, as sum() does: (2**53 + 2) / 3.0.
+        # Added as floats from 0.0, each 1 rounds away and this gives
+        # 3002399751580330.5 instead.
+        self.assertEqual(
+            paired_bootstrap([0, 0, 0], [2 ** 53, 1, 1], n_boot=1, seed=7)[0],
+            3002399751580331.5)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -141,13 +141,18 @@ def paired_bootstrap(a, b, n_boot=10000, seed=7):
     Each resample draws n times with rng.choice over the paired differences.
     The resample means are sorted. lo is index int(0.025 * n_boot) and hi is
     index int(0.975 * n_boot). mean_delta is the observed mean, not the
-    bootstrap's mean. Unequal or empty inputs raise ValueError.
+    bootstrap's mean. The observed mean adds the differences left to right,
+    so its bytes do not depend on the Python version. Unequal or empty
+    inputs raise ValueError.
     """
     if len(a) != len(b) or len(a) == 0:
         raise ValueError("paired_bootstrap needs equal, non-empty inputs")
     import random
     differences = [b[i] - a[i] for i in range(len(a))]
-    observed = sum(differences) / float(len(differences))
+    observed_total = 0
+    for difference in differences:
+        observed_total += difference
+    observed = observed_total / float(len(differences))
     rng = random.Random(seed)
     means = []
     width = len(differences)
