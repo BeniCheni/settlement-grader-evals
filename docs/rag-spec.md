@@ -144,6 +144,23 @@ them. The plan's table records both.
 | 49 | Is `B10`, whose key the pilot could not hold, fixed or dropped before the freeze? | Dropped, so v1 holds 159 rows | Its key is the book's void from the owner's log, the code grades the score a loss, `data/gold_check.json` says `DISAGREE`, and `verified_by_beni` is not set, so under ruling 4 the key does not hold. Keeping it would need the owner to verify the key and `pilot` to run again. 159 rows clear ruling 1's 150 |
 | 50 | Who gives the cold read of the PM seat's PR that adds the pilot, v1 and its hash? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built `pilot` and `freeze` in PR #51, so this read is not independent of that build |
 
+### The owner's answers after the A/B
+
+The A/B ran in one session from a fresh clone of `main` at `29702e6`: `w4-a` from 21:43 to 22:56 EST on Mon 9 Nov 2026
+and `w4-b` to 00:05, both `qwen3:8b` under Ollama 0.34.0 with the pilot's model digest. Each matched 80 of the 159
+outcomes. On Tue 10 Nov 2026 the owner pinned v1 in LangSmith and logged both runs to Braintrust from their own shell,
+the report's verdict line read ship, and the owner set 51 and 52. `reports/rag.json` then differed between the two
+interpreters verify runs, which PR #58 fixed, and the owner set 53 for its read, 54 for `AGENTS.md`'s Pass 1 seat and 55 for where #58's sum starts. The plan's
+table records all five.
+
+| # | Question | Answer | Why |
+|---|---|---|---|
+| 51 | Is variant B, `rule_match` `alias`, ship or no-ship? | Ship | All three bars, set in `docs/rag-spec.md` before either run, hold: recall's interval [0.003, 0.029] lies above 0, faithfulness's lower bound -0.031 is at least -0.05, and the outcome's fall is at most 0.021 against 0.05. The recall gain is in sample on the six misses the alias table was written from, and faithfulness fell by an amount whose interval excludes zero. The statement says both |
+| 52 | Who gives the cold read of the PM seat's PR that adds the A/B runs, the report and the package? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit, as for ruling 50. Cursor wrote none of that PR. Cursor built `scorer/rag.py`, `report` and the Braintrust uploader in PR #53 and the LangSmith uploader in PR #51, so this read is not independent of that build |
+| 53 | Who gives the cold read of Cursor's PR #58, which makes `paired_bootstrap`'s observed mean add left to right? | Claude Code, the whole PR, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. Cursor built it, so Claude Code is the seat `AGENTS.md` names. The PM seat dictated the approach, the docstring's gist and the test's input and pinned value, so that read is not independent of those parts, and Claude Code checks each by running it |
+| 54 | Does `AGENTS.md`'s Pass 1 seat name Fable 5.2 in place of Fable 5.1? | Yes | Fable 5.2 is Anthropic's current Fable model. The PM seat's step 9 records PR makes the change, and its cold read is Cursor's (ruling 52), so no Claude seat gives the only read of it |
+| 55 | Does `paired_bootstrap`'s running total start from the int 0? | Yes | Then the loop gives what 3.9's `sum()` gives for every input, ints included, which is the standard PR #58's brief set: keep every value a 3.9 run produced. Starting from 0.0 differs once ints pass 2**53. No caller passes ints today |
+
 ## Step 3: the retrieval seams
 
 ### Nothing changes when idle (contract)
@@ -586,7 +603,9 @@ relevant positions 2 and 3, precision `(1/2 + 2/3) / 2 = 0.583`, recall 1.
 
 `paired_bootstrap(a, b, n_boot=10000, seed=7)` returns `(mean_delta, lo, hi)` for `mean(b - a)`, by the course starter's
 algorithm: `random.Random(seed)`, each resample `n` draws of `rng.choice` over the differences, the means sorted, `lo` at index
-`int(0.025 * n_boot)` and `hi` at `int(0.975 * n_boot)`. Unequal or empty inputs raise `ValueError`. `bootstrap_mean(xs, n_boot,
+`int(0.025 * n_boot)` and `hi` at `int(0.975 * n_boot)`. `mean_delta` adds the differences left to right from the int 0, as
+3.9's built-in `sum` does (ruling 55), so its bytes do not depend on the Python version: from 3.12 the built-in `sum` adds floats another way, and
+`reports/rag.json` would differ between the two interpreters verify runs (PR #58). Unequal or empty inputs raise `ValueError`. `bootstrap_mean(xs, n_boot,
 seed)` is `paired_bootstrap` against zeros. Tests: constant differences give a zero-width interval; the same seed gives the same
 bytes; `lo <= mean <= hi`; one small input's output is pinned.
 
@@ -676,7 +695,7 @@ retrieval pair and the generation pair in separate tables; the weaker half, the 
 metric's delta and interval, each bar's value and whether it holds, and the verdict line; the groundedness candidates, every v1
 case where A's outcome matches and recall or faithfulness is below 1, with its scores and tool count; the run metadata, model,
 digest, Ollama version and flags; and the commands. Every rate prints k of n. Faithfulness also prints how many legs a `None` key left out of its rate (ruling 26). The statement says the alias table is in sample
-on the six misses, and that 30 rows are tickets the earlier runs used.
+on the six misses, and that 29 rows are tickets the earlier runs used: 30 until ruling 49 dropped `B10`.
 
 Each variant prints its retrieval pair and its generation pair as two Markdown tables, one row per scorer, with the columns
 scorer, mean, scored, none, interval and k of n; faithfulness's legs left sit in its k-of-n cell (ruling 39). The weaker half is
