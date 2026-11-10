@@ -50,6 +50,14 @@ class BootstrapTests(unittest.TestCase):
             paired_bootstrap([0.0, 0.0, 0.0], sample, n_boot=25, seed=4),
         )
 
+    def test_the_observed_mean_adds_left_to_right(self):
+        # Ten differences of 0.1. Left to right is one bit under a tenth.
+        # Compensated sum() returns a tenth, so this fails on that sum.
+        pinned = 0.09999999999999999
+        self.assertEqual(
+            paired_bootstrap([0.0] * 10, [0.1] * 10, n_boot=1, seed=7)[0], pinned)
+        self.assertEqual(bootstrap_mean([0.1] * 10, 1, 7)[0], pinned)
+
 
 if __name__ == "__main__":
     unittest.main()
