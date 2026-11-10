@@ -52,7 +52,8 @@ class BootstrapTests(unittest.TestCase):
 
     def test_the_observed_mean_adds_left_to_right(self):
         # Ten differences of 0.1. Left to right is one bit under a tenth.
-        # Compensated sum() returns a tenth, so this fails on that sum.
+        # From Python 3.12 sum() is compensated and returns a tenth, so this
+        # fails on sum() there. On 3.9 sum() also adds left to right and passes.
         pinned = 0.09999999999999999
         self.assertEqual(
             paired_bootstrap([0.0] * 10, [0.1] * 10, n_boot=1, seed=7)[0], pinned)
