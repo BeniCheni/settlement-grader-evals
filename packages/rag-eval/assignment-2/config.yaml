@@ -1,6 +1,6 @@
 {
   "dataset": "data/golden/v1.jsonl",
-  "dataset_sha256": null,
+  "dataset_sha256": "2438ce0a7b0d336b75706620ba89ae1b2bfd449b485eb0487a45e53af02027a9",
   "model": "qwen3:8b",
   "variants": {
     "a": {"rule_match": "exact"},

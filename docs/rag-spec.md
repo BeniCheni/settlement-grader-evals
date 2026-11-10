@@ -5,7 +5,8 @@ close Cursor's cold read under the owner's rulings 20 to 29. Revised again on Sa
 steps 3 and 4: its build prompt's fourteen resolutions, the review's fixes, the owner's rulings 30 to 36 and the PM seat's
 decisions A to C. Revised again on Sun 8 Nov 2026 to record what PR #53 built for step 8: its build prompt's sixteen
 resolutions, the reviews' fixes and the owner's rulings 37 to 45. Revised again on Mon 9 Nov 2026 to record step 4's first
-real draft and the owner's rulings 46 to 48. It is the spec of record for
+real draft and the owner's rulings 46 to 48, and again the same day to record the pilot, the freeze and rulings 49 and 50. It is
+the spec of record for
 their build prompts, which follow its merge. `AGENTS.md` outranks it on process, and no line here loosens it. Within that,
 precedence runs: the owner's rulings in the plan, then this spec, then the build prompts, then the plan. Where this spec
 says "contract" the name, format or behaviour is fixed, because a row, a run or a report depends on it; elsewhere the builder
@@ -128,6 +129,20 @@ The plan's table records them too.
 | 46 | Who reads PR #55 after Claude Code's cold read, given that the PM seat wrote the prompt it pins? | Cursor on Grok 4.7, narrowed to what it did not write, the prompt's words and Claude Code's two test commits, and it merges if the gate holds | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` says one vendor never gives the only cold read of work that vendor authored, and the PM seat (Claude) wrote the 864 characters that Claude Code alone had read critically. Cursor typed them and built the rest of the PR, so this read is independent of their author and not of the build |
 | 47 | Does a generic slip title count as an error in the owner's check? | No, the check judges each leg's wording | Real rows have no slip title, and no word a model writes can change a key. Counting titles would fail 23 of the 30 sampled rows for a line the grader does not settle on |
 | 48 | Who gives the cold read of the PM seat's PR that adds the drafts, the owner's check and the edge rows? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built the generator and typed its prompt, so this read is not independent of that build |
+
+### The owner's answers after the pilot
+
+The pilot ran on Mon 9 Nov 2026 in one session, on the 160 rows `candidates` wrote at `main` `d1e59b0`: `w4-pilot-strong`
+from 13:36 to 14:47 and `w4-pilot-weak` to 15:53, both `qwen3:8b` under Ollama 0.34.0 with one model digest. An attempt
+earlier that afternoon stopped at its 80th row, most likely because the disk had filled, and wrote no run; none of it was
+used. `pilot` kept 159 rows, `keep` 14, `no_rule_signal` 66 and `known_failure` 79, and listed `B10` because its key does
+not hold. The owner set 49 the same day, and `freeze` wrote v1 from the 159. The owner then set 50, for the PR that records
+them. The plan's table records both.
+
+| # | Question | Answer | Why |
+|---|---|---|---|
+| 49 | Is `B10`, whose key the pilot could not hold, fixed or dropped before the freeze? | Dropped, so v1 holds 159 rows | Its key is the book's void from the owner's log, the code grades the score a loss, `data/gold_check.json` says `DISAGREE`, and `verified_by_beni` is not set, so under ruling 4 the key does not hold. Keeping it would need the owner to verify the key and `pilot` to run again. 159 rows clear ruling 1's 150 |
+| 50 | Who gives the cold read of the PM seat's PR that adds the pilot, v1 and its hash? | Cursor on Grok 4.7, in place of Codex, as a fast-track | The owner's amendment to ruling 11, for that PR only, while Codex has no credit. `AGENTS.md` names Codex for a Claude-authored PR. Its rule that a vendor never gives the only cold read of its own work still holds, because Cursor wrote none of that PR. Cursor built `pilot` and `freeze` in PR #51, so this read is not independent of that build |
 
 ## Step 3: the retrieval seams
 
