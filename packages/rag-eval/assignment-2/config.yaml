@@ -16,6 +16,6 @@
   "statement": "reports/rag-statement.md",
   "report": "packages/rag-eval/assignment-2/report.md",
   "json": "reports/rag.json",
-  "langsmith_version": null,
-  "braintrust_experiments": null
+  "langsmith_version": {"dataset_id": "13709a92-acc2-4067-9d86-b4b9cdf4f53c", "as_of": "2026-11-10 14:31:08.482415+00:00"},
+  "braintrust_experiments": {"a": "425d69e4-1d27-4091-838b-286c13aab2a7", "b": "e5729bff-99e7-4687-89dd-77a5671a89ab"}
 }
