@@ -17,7 +17,7 @@ failure, and the proof that any check or judge agrees with a human before it is 
 | Owner | Beni | Rules on every fork, clicks every release merge and tag | |
 | PM | Claude (Cowork or Claude Code) | Scopes slices; writes the spec, the build prompt, the review briefs and the synthesis; keeps docs and data records | Writes code. Docs and data records only. |
 | Builder | Cursor, Grok 4.7 High (Extra High only for a design-heavy slice) | Builds one slice per PR from the spec | Reviews anything it built |
-| Pass 1 | Claude Code, Fable 5.1 or Opus 5.5 (Extra on code, High on docs and UI) | Cold review of the builder's PR | Reviews anything it wrote or helped write |
+| Pass 1 | Claude Code, Fable 5.2 or Opus 5.5 (Extra on code, High on docs and UI) | Cold review of the builder's PR | Reviews anything it wrote or helped write |
 | Pass 2 | Codex, GPT-6.1 Sol High (Extra High on the judge and A/B slices) | Adjudicates Pass 1's findings against the code, fixes what it accepts, adds its own read | |
 | Pass 3 | Cursor, Grok 4.7 Medium | Merge logistics, and the tag and release when Beni says so | Merges a release without Beni's word |
 

@@ -178,9 +178,17 @@ blocks no honest ticket. The judge G2 catches 19 of 20 and wrongly blocks 14 of 
 blocks 3 of 20, against a bar of 2. Half the rows are in sample, and the rest are held out only in a narrow sense, because the same seat wrote both: see
 [the ship report](packages/red-team-guardrails/assignment-2/ship_report.md) and [the package](packages/red-team-guardrails/README.md).
 
-**Next**: put the same question to a hosted decision model, as the course's third assignment asks; measure taking `slip_text` away from the model over
-every channel, since none of the 13 attacks it ran on broke the grader without that field; verify the 26 remaining answer keys; and grow the set well past 32 so the confidence interval
-stops being the headline.
+Week 4 built a golden set of 159 tickets, pinned as v1 in LangSmith with its sha256 in this repo, and scored the grader's
+retrieval apart from its answers. 29 rows are my own tickets, 110 are synthetic with keys computed from the frozen facts, and
+20 are edge cases I wrote. I then changed one retrieval parameter, letting rule lookups match aliases. **My verdict is ship:**
+recall rose by 0.014 (95% interval 0.003 to 0.029), faithfulness fell by 0.016 (-0.031 to -0.003) inside its bar of -0.05,
+and both variants matched 80 of 159 outcomes. The alias table was written knowing six of the misses it fixes, so that part of
+the gain is in sample. Generation is the weaker half: the grader can read the right facts and still grade against them, as
+`S115` shows. See [the report](packages/rag-eval/assignment-2/report.md) and [the package](packages/rag-eval/README.md).
+
+**Next**: measure taking `slip_text` away from the model over every channel, since none of the 13 attacks it ran on broke the
+grader without that field; verify the 26 remaining answer keys in the gold set, since only 5 of v1's 159 keys are verified;
+and make alias matching the grader's default, in a code PR of its own.
 
 ## 🥅 Try it
 
