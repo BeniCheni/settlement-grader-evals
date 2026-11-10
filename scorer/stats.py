@@ -149,7 +149,7 @@ def paired_bootstrap(a, b, n_boot=10000, seed=7):
         raise ValueError("paired_bootstrap needs equal, non-empty inputs")
     import random
     differences = [b[i] - a[i] for i in range(len(a))]
-    observed_total = 0.0
+    observed_total = 0
     for difference in differences:
         observed_total += difference
     observed = observed_total / float(len(differences))
